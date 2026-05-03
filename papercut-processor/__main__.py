@@ -141,7 +141,7 @@ def main():
             shape_to_export = _mirror_solid(group.canonical)
 
         # Export and get the oriented shape (aligned to XY)
-        oriented = export_part_dxf(shape_to_export, dxf_path, thickness)
+        oriented, area = export_part_dxf(shape_to_export, dxf_path, thickness)
 
         # Use the oriented shape for dimension reporting
         bb = oriented.BoundingBox()
@@ -153,7 +153,7 @@ def main():
             name=filename,
             width_mm=bb.xlen,
             height_mm=bb.ylen,
-            area_mm2=oriented.Area(),
+            area_mm2=area,
             count=group.count,
             color=group.color
         ))

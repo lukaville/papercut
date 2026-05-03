@@ -110,7 +110,7 @@ def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float) -> c
 
     Finds the profile face (based on material thickness), orients the solid
     so this face lies on the XY plane, then translates it so its bottom-left 
-    is at (0,0). Returns the oriented and translated solid.
+    is at (0,0). Returns a tuple of (oriented_solid, profile_area).
     """
     # Find the profile face and orient the part.
     profile_face = _find_profile_face(solid, material_thickness)
@@ -131,4 +131,4 @@ def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float) -> c
     path.parent.mkdir(parents=True, exist_ok=True)
     cq.exporters.exportDXF(wp, str(path))
     
-    return oriented
+    return oriented, oriented_profile.Area()
