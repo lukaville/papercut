@@ -27,6 +27,12 @@ sheets:
     width_mm: 210
     height_mm: 297
 
+# sheets:
+#   - color: "*"
+#     name: debug
+#     width_mm: 210
+#     height_mm: 297
+
 placement:
   sheet_margin_mm: 10
   part_margin_mm: 5

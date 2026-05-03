@@ -152,17 +152,23 @@ def place_parts(
 
     # Normalize sheet colors for comparison
     def normalize_hex(h: str) -> str:
+        if h == "*":
+            return "*"
         h = h.lower().lstrip('#')
         if len(h) == 3:
             h = ''.join(c*2 for c in h)
         return '#' + h
 
     sheet_by_color = {normalize_hex(s.color): s for s in sheets_config}
+    wildcard_sheet = sheet_by_color.get("*")
 
     # Group parts by color
     parts_by_color = {}
     for p in parts:
-        color = normalize_hex(p.color.hex if p.color else "#000000")
+        if wildcard_sheet:
+            color = "*"
+        else:
+            color = normalize_hex(p.color.hex if p.color else "#000000")
         parts_by_color.setdefault(color, []).append(p)
 
     # Check for missing colors
@@ -266,6 +272,16 @@ def place_parts(
                 results.append(new_res)
                 color_packers.setdefault(color, []).append((packer, new_res))
 
+    # Assign IDs per sheet (equal parts get same ID on same sheet)
+    for res in results:
+        name_to_id = {}
+        next_id = 1
+        for pp in res.placed_parts:
+            if pp.name not in name_to_id:
+                name_to_id[pp.name] = next_id
+                next_id += 1
+            pp.part_id = name_to_id[pp.name]
+
     return results
 
 
@@ -299,6 +315,10 @@ def export_sheets(
         
         # Draw sheet boundary
         msp = doc.modelspace()
+        
+        # Track labeled parts to only label the first instance of each unique part on this sheet
+        labeled_part_names = set()
+
         msp.add_lwpolyline([
             (0, 0), (res.config.width_mm, 0), 
             (res.config.width_mm, res.config.height_mm), 
@@ -340,6 +360,26 @@ def export_sheets(
             overlay_path = overlays_dir / f"{part.name}.dxf"
             if overlay_path.exists():
                 _import_part_to_sheet(overlay_path, doc, msp, (part.x_mm, part.y_mm), "engraving", part.rotated, part.width_mm, part.height_mm)
+
+            # 3. Add Part ID Label (e.g., 1, 2)
+            if part.part_id is not None and part.name not in labeled_part_names:
+                labeled_part_names.add(part.name)
+                id_text = str(part.part_id)
+                label_size = placement_config.part_label_size_mm
+                
+                # Calculate top-left position
+                placed_h = part.width_mm if part.rotated else part.height_mm
+                # Place label just above the top-left corner of the part (outside)
+                # Offset by 0.5mm buffer above the part
+                label_pos = (part.x_mm + 0.5, part.y_mm + placed_h + 0.5)
+                
+                msp.add_text(
+                    id_text,
+                    dxfattribs={
+                        'layer': 'engraving',
+                        'height': label_size,
+                    }
+                ).set_placement(label_pos)
 
         doc.saveas(output_path)
         
@@ -388,6 +428,7 @@ def export_preview_svg(
         '    .sheet-label { font-family: sans-serif; font-size: 14px; fill: #495057; }',
         '    .sheet-id-box { fill: none; stroke: #ff0000; stroke-width: 0.5; }',
         f'    .sheet-id-text {{ font-family: sans-serif; font-size: {l_size * 0.4}px; fill: #ff0000; font-weight: bold; text-anchor: middle; dominant-baseline: central; }}',
+        f'    .part-id-text {{ font-family: sans-serif; font-size: {placement_config.part_label_size_mm}px; fill: #ff4d4d; font-weight: bold; }}',
         '  </style>'
     ]
     
@@ -398,6 +439,9 @@ def export_preview_svg(
         base_x = col * cell_w + sheet_gap/2
         base_y = row * cell_h + sheet_gap/2
         
+        # Track labeled parts for SVG as well
+        labeled_part_names = set()
+
         # Sheet boundary
         lines.append(f'  <g transform="translate({base_x}, {base_y})">')
         lines.append(f'    <rect class="sheet-bg" width="{res.config.width_mm}" height="{res.config.height_mm}" />')
@@ -427,6 +471,17 @@ def export_preview_svg(
                 engraving_data = get_dxf_layer_svg_paths(overlay_path, "engraving")
                 if engraving_data:
                     lines.append(f'    <path class="engraving" d="{engraving_data}" transform="{transform}" />')
+            
+            # Add Part ID text (1, 2, etc.)
+            if part.part_id is not None and part.name not in labeled_part_names:
+                labeled_part_names.add(part.name)
+                # CAD label_y = part.y + placed_h + 0.5
+                # SVG y is inverted.
+                placed_h = part.width_mm if part.rotated else part.height_mm
+                text_x = part.x_mm + 0.5
+                text_y = res.config.height_mm - (part.y_mm + placed_h + 0.5)
+                id_text = str(part.part_id)
+                lines.append(f'    <text class="part-id-text" x="{text_x}" y="{text_y}">{id_text}</text>')
             
         # Label and Color square below
         label_y = res.config.height_mm + 20

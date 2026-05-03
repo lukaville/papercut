@@ -37,6 +37,7 @@ class PlacedPart:
     width_mm: float
     height_mm: float
     rotated: bool = False
+    part_id: Optional[int] = None
 
 
 @dataclass
@@ -72,6 +73,7 @@ class PlacementConfig:
     sheet_margin_mm: float = 10.0
     part_margin_mm: float = 5.0
     label_square_size_mm: float = 15.0
+    part_label_size_mm: float = 4.0
 
 
 @dataclass
