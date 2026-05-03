@@ -30,3 +30,4 @@ sheets:
 placement:
   sheet_margin_mm: 10
   part_margin_mm: 5
+  label_square_size_mm: 10

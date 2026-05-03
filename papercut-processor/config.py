@@ -43,7 +43,8 @@ def load_config(project_dir: Path) -> ProjectConfig:
     p_data = data.get("placement", {})
     placement = PlacementConfig(
         sheet_margin_mm=float(p_data.get("sheet_margin_mm", 10.0)),
-        part_margin_mm=float(p_data.get("part_margin_mm", 5.0))
+        part_margin_mm=float(p_data.get("part_margin_mm", 5.0)),
+        label_square_size_mm=float(p_data.get("label_square_size_mm", 15.0))
     )
     
     return ProjectConfig(

@@ -51,6 +51,7 @@ class SheetConfig:
 class SheetResult:
     config: SheetConfig
     index: int
+    label: str
     placed_parts: list[PlacedPart]
     total_parts_area_mm2: float = 0.0
 
@@ -70,6 +71,7 @@ class FileImport:
 class PlacementConfig:
     sheet_margin_mm: float = 10.0
     part_margin_mm: float = 5.0
+    label_square_size_mm: float = 15.0
 
 
 @dataclass
