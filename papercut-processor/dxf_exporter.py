@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import math
+import uuid
 
 import cadquery as cq
 from OCP.GProp import GProp_GProps
@@ -231,12 +232,50 @@ def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float) -> c
         if len(ordered_points) < 2:
             continue
             
+        # Normalization to ensure coordinates start at (0,0)
+        final_bb = oriented_profile.BoundingBox()
+        shift_x, shift_y = -final_bb.xmin, -final_bb.ymin
+
         x0, y0 = get_coords(ordered_points[0])
-        path_data = f"M {x0},{y0}"
+        path_data = f"M {x0 + shift_x},{y0 + shift_y}"
         for p in ordered_points[1:]:
             xi, yi = get_coords(p)
-            path_data += f" L {xi},{yi}"
+            path_data += f" L {xi + shift_x},{yi + shift_y}"
         path_data += " Z"
         svg_paths.append(path_data)
         
     return oriented, oriented_profile.Area(), " ".join(svg_paths)
+
+
+def get_dxf_layer_svg_paths(dxf_path: Path, layer_name: str) -> str:
+    """Extract SVG path data for all entities on a specific layer in a DXF file."""
+    import ezdxf
+    from ezdxf import path
+    
+    try:
+        doc = ezdxf.readfile(dxf_path)
+        msp = doc.modelspace()
+        entities = msp.query(f'*[layer=="{layer_name}"]')
+        
+        svg_segments = []
+        for entity in entities:
+            try:
+                # make_path handles LINE, CIRCLE, ARC, LWPOLYLINE, etc.
+                p = path.make_path(entity)
+                # flattening(0.1) tessellates curves into line segments
+                pts = list(p.flattening(distance=0.1))
+                if len(pts) < 2:
+                    continue
+                
+                # Format coordinates to 2 decimal places for SVG compactness
+                d = f"M {pts[0].x:.2f},{pts[0].y:.2f}"
+                for pt in pts[1:]:
+                    d += f" L {pt.x:.2f},{pt.y:.2f}"
+                svg_segments.append(d)
+            except Exception:
+                # Skip entities that can't be converted to paths
+                continue
+                
+        return " ".join(svg_segments)
+    except Exception:
+        return ""

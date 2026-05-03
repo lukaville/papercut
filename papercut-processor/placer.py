@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import uuid
 from models import Part, SheetConfig, PlacementConfig, SheetResult, PlacedPart
+from dxf_exporter import get_dxf_layer_svg_paths
 
 def index_to_letters(n: int) -> str:
     """Convert a 0-indexed integer to spreadsheet letters (A, B, C, ..., AA, AB)."""
@@ -14,188 +15,256 @@ def index_to_letters(n: int) -> str:
         letters = chr(65 + remainder) + letters
     return letters
 
+class MaxRectsBinPacker:
+    """Implementation of the MaxRects 2D Bin Packing algorithm (Bottom-Left Choice)."""
+    
+    def __init__(self, width: float, height: float, p_margin: float = 0.0):
+        self.width = width
+        self.height = height
+        self.p_margin = p_margin
+        # Start with one maximal free rectangle covering the whole sheet
+        self.free_rects = [(0.0, 0.0, width, height)]
+        self.used_rects = []
+
+    def insert(self, w: float, h: float) -> tuple[float, float, bool] | None:
+        """Try to insert a part of size (w, h) using the Best Short Side Fit (BSSF) heuristic.
+        Returns (x, y, rotated) or None if it doesn't fit.
+        """
+        best_short_side_fit = float('inf')
+        best_long_side_fit = float('inf')
+        best_rotated = False
+        best_rect = None
+
+        # Try both orientations
+        for rotated in [False, True]:
+            # The dimension we pack includes the part margin on one side
+            # (the other side's margin is provided by the next part's bx/by).
+            # Wait, actually, to be consistent, we should use (w + margin) x (h + margin).
+            rw, rh = (h + self.p_margin, w + self.p_margin) if rotated else (w + self.p_margin, h + self.p_margin)
+            
+            for fx, fy, fw, fh in self.free_rects:
+                if fw >= rw and fh >= rh:
+                    # BSSF Rule: minimize leftover space in the shorter dimension
+                    leftover_w = fw - rw
+                    leftover_h = fh - rh
+                    short_side_fit = min(leftover_w, leftover_h)
+                    long_side_fit = max(leftover_w, leftover_h)
+                    
+                    if short_side_fit < best_short_side_fit or (short_side_fit == best_short_side_fit and long_side_fit < best_long_side_fit):
+                        best_short_side_fit = short_side_fit
+                        best_long_side_fit = long_side_fit
+                        best_rotated = rotated
+                        # We store the uninflated size for 'bx, by' logic, but we must use inflated for splitting
+                        best_rect = (fx, fy, rw, rh)
+
+        if best_rect is None:
+            # Special case: if the part is at the very edge of the bin, 
+            # we might not need the margin on the right/top.
+            # But for simplicity and robustness, we enforce it everywhere.
+            # However, a part that ALMOST fits (e.g. 190mm in a 190mm bin)
+            # would fail if we add margin.
+            # Let's try fitting WITHOUT the extra margin if it's the very last part of the bin.
+            for rotated in [False, True]:
+                rw_raw, rh_raw = (h, w) if rotated else (w, h)
+                for fx, fy, fw, fh in self.free_rects:
+                    if fw >= rw_raw and fh >= rh_raw:
+                        # Check if it fits if we clip the margin to the bin boundary
+                        needed_w = min(rw_raw + self.p_margin, self.width - fx)
+                        needed_h = min(rh_raw + self.p_margin, self.height - fy)
+                        if fw >= needed_w and fh >= needed_h:
+                            leftover_w = fw - needed_w
+                            leftover_h = fh - needed_h
+                            short_side_fit = min(leftover_w, leftover_h)
+                            if short_side_fit < best_short_side_fit:
+                                best_short_side_fit = short_side_fit
+                                best_rotated = rotated
+                                best_rect = (fx, fy, needed_w, needed_h)
+
+        if best_rect is None:
+            return None
+
+        bx, by, bw, bh = best_rect
+        used_for_split = (bx, by, bw, bh)
+        
+        self.used_rects.append(best_rect)
+        
+        # Update free rectangles
+        new_free_rects = []
+        for fr in self.free_rects:
+            split_rects = self._split(fr, used_for_split)
+            new_free_rects.extend(split_rects)
+        
+        self.free_rects = self._prune(new_free_rects)
+        return bx, by, best_rotated
+
+    def _split(self, free: tuple[float, float, float, float], used: tuple[float, float, float, float]) -> list[tuple[float, float, float, float]]:
+        """Split a free rectangle by a used rectangle into up to 4 smaller free rectangles."""
+        fx, fy, fw, fh = free
+        ux, uy, uw, uh = used
+
+        # Check for overlap
+        if ux >= fx + fw or ux + uw <= fx or uy >= fy + fh or uy + uh <= fy:
+            return [free]
+
+        result = []
+        # Left split
+        if ux > fx:
+            result.append((fx, fy, ux - fx, fh))
+        # Right split
+        if ux + uw < fx + fw:
+            result.append((ux + uw, fy, fx + fw - (ux + uw), fh))
+        # Bottom split
+        if uy > fy:
+            result.append((fx, fy, fw, uy - fy))
+        # Top split
+        if uy + uh < fy + fh:
+            result.append((fx, uy + uh, fw, fy + fh - (uy + uh)))
+
+        return result
+
+
+    def _prune(self, rects: list[tuple[float, float, float, float]]) -> list[tuple[float, float, float, float]]:
+        """Remove rectangles that are fully contained within others."""
+        unique_rects = []
+        for i, r1 in enumerate(rects):
+            is_contained = False
+            for j, r2 in enumerate(rects):
+                if i == j: continue
+                # Check if r1 is contained in r2
+                if (r1[0] >= r2[0] and r1[1] >= r2[1] and 
+                    r1[0] + r1[2] <= r2[0] + r2[2] and 
+                    r1[1] + r1[3] <= r2[1] + r2[3]):
+                    is_contained = True
+                    break
+            if not is_contained:
+                unique_rects.append(r1)
+        return unique_rects
+
+
 def place_parts(
     parts: list[Part],
     sheets_config: list[SheetConfig],
     placement_config: PlacementConfig
 ) -> list[SheetResult]:
-    """Place parts on sheets using a Shelf Packing algorithm (NFDH).
-    
-    Groups parts by color and matches them to sheets of the same color.
-    Throws a ValueError if any parts have a color not defined in the sheets configuration.
-    """
+    """Place parts on sheets using the MaxRects algorithm with multi-sheet backfilling."""
     if not parts:
         return []
 
-    # Normalize sheet colors for comparison (e.g. #000 -> #000000)
+    # Normalize sheet colors for comparison
     def normalize_hex(h: str) -> str:
         h = h.lower().lstrip('#')
         if len(h) == 3:
             h = ''.join(c*2 for c in h)
         return '#' + h
 
-    sheet_by_color = {}
-    for s in sheets_config:
-        color = normalize_hex(s.color)
-        sheet_by_color.setdefault(color, []).append(s)
+    sheet_by_color = {normalize_hex(s.color): s for s in sheets_config}
 
     # Group parts by color
     parts_by_color = {}
     for p in parts:
-        color_hex = p.color.hex if p.color else "#000000"
-        color = normalize_hex(color_hex)
+        color = normalize_hex(p.color.hex if p.color else "#000000")
         parts_by_color.setdefault(color, []).append(p)
 
     # Check for missing colors
-    missing_colors = []
-    for color in parts_by_color:
-        if color not in sheet_by_color:
-            missing_colors.append(color)
-
+    missing_colors = [c for c in parts_by_color if c not in sheet_by_color]
     if missing_colors:
         error_msg = "Configuration Error: No sheets found for the following part colors:\n"
         for color in missing_colors:
-            affected_parts = [p.name for p in parts_by_color[color]]
-            # De-duplicate names if needed, though they should be unique in this context
-            unique_affected = sorted(list(set(affected_parts)))
-            parts_str = ", ".join(unique_affected)
+            parts_str = ", ".join(sorted(list(set(p.name for p in parts_by_color[color]))))
             error_msg += f"  - {color} (Parts: {parts_str})\n"
-        
-        error_msg += "\nPlease add them to your 'sheets' configuration in project.yaml:\n\n"
-        error_msg += "sheets:\n"
-        for color in missing_colors:
-            error_msg += f"  - color: \"{color}\"\n"
-            error_msg += f"    name: \"custom_{color.lstrip('#')}\"\n"
-            error_msg += "    width_mm: 210\n"
-            error_msg += "    height_mm: 297\n"
         raise ValueError(error_msg)
 
     results = []
+    # Track packers per color to allow multi-sheet backfilling
+    color_packers = {} # color -> list[(packer, SheetResult)]
 
-    # Sort colors to ensure deterministic sheet numbering across runs
     sorted_colors = sorted(parts_by_color.keys())
-
     for color in sorted_colors:
         color_parts = parts_by_color[color]
-        available_sheets = sheet_by_color[color]
+        sheet_config = sheet_by_color[color]
         
-        # Track all parts that need to be placed for this color
+        # Flatten parts into a single list of individual items
         to_place = []
-        for p in sorted(color_parts, key=lambda p: p.height_mm, reverse=True):
+        for p in color_parts:
             for _ in range(p.count):
-                to_place.append((p.name, p.width_mm, p.height_mm))
-
-        # Use the first available sheet type for this color
-        current_sheet_config = available_sheets[0]
+                to_place.append(p)
         
-        while to_place:
-            # Reserve space for the sheet label square in the top-left
-            # CAD: (margin, height - margin - size)
+        # Sort by max(width, height) descending - a strong heuristic for MaxRects
+        to_place.sort(key=lambda p: max(p.width_mm, p.height_mm), reverse=True)
+
+        for p in to_place:
             margin = placement_config.sheet_margin_mm
-            l_size = placement_config.label_square_size_mm
-            label_x = margin
-            label_y = current_sheet_config.height_mm - margin - l_size
-            
-            label_placeholder = PlacedPart("__LABEL__", label_x, label_y, l_size, l_size)
-            
-            placed_on_this_sheet = [label_placeholder]
-            total_area_on_sheet = l_size * l_size
-            
-            # Packing state for current sheet
             p_margin = placement_config.part_margin_mm
             
-            available_w = current_sheet_config.width_mm - 2 * margin
-            available_h = current_sheet_config.height_mm - 2 * margin
-            
-            cursor_x = margin
-            cursor_y = margin
-            shelf_height = 0
-            
-            still_to_place = []
-            
-            # Use dict for quick area lookup
-            area_map = {p.name: p.area_mm2 for p in color_parts}
+            # Try to fit in existing sheets for this color
+            placed = False
+            for packer, res in color_packers.get(color, []):
+                fit = packer.insert(p.width_mm, p.height_mm)
+                if fit:
+                    bx, by, rotated = fit
+                    # Validation: Ensure part is within sheet bounds
+                    final_x = bx + margin
+                    final_y = by + margin
+                    rw, rh = (p.height_mm, p.width_mm) if rotated else (p.width_mm, p.height_mm)
+                    if (final_x + rw > sheet_config.width_mm + 0.01 or 
+                        final_y + rh > sheet_config.height_mm + 0.01 or
+                        final_x < -0.01 or final_y < -0.01):
+                        raise ValueError(f"Placement BUG: Part '{p.name}' placed outside sheet '{sheet_config.name}' at ({final_x:.1f}, {final_y:.1f}) with size {rw:.1f}x{rh:.1f}.")
 
-            for name, w, h in to_place:
-                # Try original orientation
-                fits_orig = (cursor_x + w <= margin + available_w) and (cursor_y + h <= margin + available_h)
-                # Try rotated orientation (90 degrees)
-                fits_rot = (cursor_x + h <= margin + available_w) and (cursor_y + w <= margin + available_h)
+                    res.placed_parts.append(PlacedPart(p.name, final_x, final_y, p.width_mm, p.height_mm, rotated))
+                    res.total_parts_area_mm2 += p.area_mm2
+                    placed = True
+                    break
+            
+            if not placed:
+                # Create a new sheet
+                available_w = sheet_config.width_mm - 2 * margin
+                available_h = sheet_config.height_mm - 2 * margin
                 
-                # If it doesn't fit horizontally on current shelf, try starting new shelf
-                if not fits_orig and not fits_rot:
-                    # New shelf
-                    temp_cursor_x = margin
-                    temp_cursor_y = cursor_y + shelf_height + p_margin
-                    
-                    # Recalculate fit on new shelf
-                    fits_orig = (temp_cursor_x + w <= margin + available_w) and (temp_cursor_y + h <= margin + available_h)
-                    fits_rot = (temp_cursor_x + h <= margin + available_w) and (temp_cursor_y + w <= margin + available_h)
-                    
-                    if fits_orig or fits_rot:
-                        cursor_x = temp_cursor_x
-                        cursor_y = temp_cursor_y
-                        shelf_height = 0 
-                    else:
-                        # Still doesn't fit on new shelf
-                        still_to_place.append((name, w, h))
-                        continue
+                packer = MaxRectsBinPacker(available_w, available_h, p_margin)
+                
+                # Reserve space for the label square in the Top-Left corner
+                l_size = placement_config.label_square_size_mm
+                # We add p_margin to the reservation so that parts keep their distance
+                # just like they do from each other.
+                # Label at (0, available_h - l_size) in packer space.
+                # We inflate it by p_margin on the 'inside' edges.
+                label_rect_with_margin = (0.0, available_h - l_size - p_margin, l_size + p_margin, l_size + p_margin)
+                
+                new_free_rects = []
+                for fr in packer.free_rects:
+                    split = packer._split(fr, label_rect_with_margin)
+                    new_free_rects.extend(split)
+                packer.free_rects = packer._prune(new_free_rects)
+                packer.used_rects.append(label_rect_with_margin)
+                
+                # Now insert the actual part
+                fit = packer.insert(p.width_mm, p.height_mm)
+                if not fit:
+                    raise ValueError(f"Part '{p.name}' ({p.width_mm:.1f}x{p.height_mm:.1f}mm) is too large for sheet '{sheet_config.name}'.")
+                
+                bx, by, rotated = fit
+                
+                # Validation: Ensure part is within sheet bounds
+                final_x = bx + margin
+                final_y = by + margin
+                rw, rh = (p.height_mm, p.width_mm) if rotated else (p.width_mm, p.height_mm)
+                if (final_x + rw > sheet_config.width_mm + 0.01 or 
+                    final_y + rh > sheet_config.height_mm + 0.01 or
+                    final_x < -0.01 or final_y < -0.01):
+                    raise ValueError(f"Placement BUG: Part '{p.name}' placed outside sheet '{sheet_config.name}' at ({final_x:.1f}, {final_y:.1f}) with size {rw:.1f}x{rh:.1f}.")
 
-                # Place it
-                new_part = None
-                if fits_orig:
-                    new_part = PlacedPart(name, cursor_x, cursor_y, w, h, rotated=False)
-                elif fits_rot:
-                    new_part = PlacedPart(name, cursor_x, cursor_y, h, w, rotated=True)
-
-                if new_part:
-                    # Check for overlaps with existing parts on this sheet (including the label)
-                    overlap = False
-                    for existing in placed_on_this_sheet:
-                        if (new_part.x_mm < existing.x_mm + existing.width_mm + p_margin and
-                            existing.x_mm < new_part.x_mm + new_part.width_mm + p_margin and
-                            new_part.y_mm < existing.y_mm + existing.height_mm + p_margin and
-                            existing.y_mm < new_part.y_mm + new_part.height_mm + p_margin):
-                            overlap = True
-                            break
-                    
-                    if overlap:
-                        # Try to move to next shelf or skip if it overlaps with the reserved label area
-                        # For shelf packing, we just skip it for this sheet and let it go to still_to_place
-                        still_to_place.append((name, w, h))
-                        continue
-                    
-                    # If we placed it, update cursor
-                    if not new_part.rotated:
-                        cursor_x += w + p_margin
-                        shelf_height = max(shelf_height, h)
-                    else:
-                        cursor_x += h + p_margin
-                        shelf_height = max(shelf_height, w)
-                        
-                    placed_on_this_sheet.append(new_part)
-                    total_area_on_sheet += area_map[name]
-            
-            sheet_index = len(results) + 1
-            sheet_label = index_to_letters(len(results))
-            
-            results.append(SheetResult(
-                config=current_sheet_config,
-                index=sheet_index,
-                label=sheet_label,
-                placed_parts=[p for p in placed_on_this_sheet if p.name != "__LABEL__"],
-                total_parts_area_mm2=total_area_on_sheet - (l_size * l_size)
-            ))
-            
-            if len(to_place) == len(still_to_place):
-                # No progress made
-                name, w, h = to_place[0]
-                raise ValueError(
-                    f"Error: Part '{name}' ({w:.1f}x{h:.1f} mm) is too large to fit on sheet "
-                    f"'{current_sheet_config.name}' ({current_sheet_config.width_mm:.1f}x{current_sheet_config.height_mm:.1f} mm)."
+                sheet_label = index_to_letters(len(results))
+                new_res = SheetResult(
+                    config=sheet_config,
+                    index=len(results) + 1,
+                    label=sheet_label,
+                    placed_parts=[PlacedPart(p.name, final_x, final_y, p.width_mm, p.height_mm, rotated)],
+                    total_parts_area_mm2=p.area_mm2
                 )
-
-            to_place = still_to_place
+                
+                results.append(new_res)
+                color_packers.setdefault(color, []).append((packer, new_res))
 
     return results
 
@@ -250,33 +319,27 @@ def export_sheets(
         ], dxfattribs={'layer': 'engraving'})
         
         # Center text inside square
-        # halign=1 (CENTER), valign=2 (MIDDLE)
         text = msp.add_text(
             res.label, 
             dxfattribs={
                 'layer': 'engraving',
-                'height': l_size * 0.4, # 40% of square size
+                'height': l_size * 0.4,
                 'halign': 1, # CENTER
                 'valign': 2, # MIDDLE
-                'style': 'OpenSans'
             }
         )
         text.set_placement((label_x + l_size/2, label_y + l_size/2))
 
         for part in res.placed_parts:
-            # For rotated parts, part.width_mm is the original height and part.height_mm is the original width
-            orig_w = part.height_mm if part.rotated else part.width_mm
-            orig_h = part.width_mm if part.rotated else part.height_mm
-            
             # 1. Import Cutting Geometry
             part_path = parts_dir / f"{part.name}.dxf"
             if part_path.exists():
-                _import_part_to_sheet(part_path, doc, msp, (part.x_mm, part.y_mm), "cutting", part.rotated, orig_w, orig_h)
+                _import_part_to_sheet(part_path, doc, msp, (part.x_mm, part.y_mm), "cutting", part.rotated, part.width_mm, part.height_mm)
             
             # 2. Import Engraving Geometry (from overlay if exists)
             overlay_path = overlays_dir / f"{part.name}.dxf"
             if overlay_path.exists():
-                _import_part_to_sheet(overlay_path, doc, msp, (part.x_mm, part.y_mm), "engraving", part.rotated, orig_w, orig_h)
+                _import_part_to_sheet(overlay_path, doc, msp, (part.x_mm, part.y_mm), "engraving", part.rotated, part.width_mm, part.height_mm)
 
         doc.saveas(output_path)
         
@@ -320,7 +383,8 @@ def export_preview_svg(
         '  <rect width="100%" height="100%" fill="#f8f9fa" />',
         '  <style>',
         '    .sheet-bg { fill: white; stroke: #dee2e6; stroke-width: 1; }',
-        '    .part-box { fill: #e9ecef; stroke: #adb5bd; stroke-width: 0.5; }',
+        '    .part-box { fill: #e9ecef; stroke: #adb5bd; stroke-width: 0.5; fill-rule: evenodd; }',
+        '    .engraving { fill: none; stroke: #ff4d4d; stroke-width: 0.3; }',
         '    .sheet-label { font-family: sans-serif; font-size: 14px; fill: #495057; }',
         '    .sheet-id-box { fill: none; stroke: #ff0000; stroke-width: 0.5; }',
         f'    .sheet-id-text {{ font-family: sans-serif; font-size: {l_size * 0.4}px; fill: #ff0000; font-weight: bold; text-anchor: middle; dominant-baseline: central; }}',
@@ -339,29 +403,30 @@ def export_preview_svg(
         lines.append(f'    <rect class="sheet-bg" width="{res.config.width_mm}" height="{res.config.height_mm}" />')
         
         # Identification Square and Label (Top-Left)
-        # CAD (margin, height - margin - size) -> SVG (margin, margin)
         margin = placement_config.sheet_margin_mm
         lines.append(f'    <rect class="sheet-id-box" x="{margin}" y="{margin}" width="{l_size}" height="{l_size}" />')
         lines.append(f'    <text class="sheet-id-text" x="{margin + l_size/2}" y="{margin + l_size/2}">{res.label}</text>')
 
-        # Parts (using actual profiles)
+        # Parts
         for part in res.placed_parts:
-            # CAD to SVG mapping:
-            # 1. CAD (x, y) bottom-left -> SVG (x, SH - y) bottom-edge
-            # 2. Path is Y-up, so scale(1, -1) makes it Y-down from that point.
             ty = res.config.height_mm - part.y_mm
             
             if part.rotated:
-                # CAD: Insert at (x+h, y), Rotate 90 CCW
-                # SVG: translate(x+h, sh-y) rotate(-90) scale(1, -1)
-                transform = f'translate({part.x_mm + part.width_mm}, {ty}) rotate(-90) scale(1, -1)'
+                # CAD: translate(x + H, y), rotate 90 CCW.
+                # SVG: translate(x + H, SH - y), rotate -90, scale(1, -1).
+                transform = f'translate({part.x_mm + part.height_mm}, {ty}) rotate(-90) scale(1, -1)'
             else:
-                # CAD: Insert at (x, y)
-                # SVG: translate(x, sh-y) scale(1, -1)
                 transform = f'translate({part.x_mm}, {ty}) scale(1, -1)'
             
             path_data = svg_paths.get(part.name, "")
             lines.append(f'    <path class="part-box" d="{path_data}" transform="{transform}" />')
+            
+            # Add engraving if overlay exists
+            overlay_path = project_dir / "overlays" / f"{part.name}.dxf"
+            if overlay_path.exists():
+                engraving_data = get_dxf_layer_svg_paths(overlay_path, "engraving")
+                if engraving_data:
+                    lines.append(f'    <path class="engraving" d="{engraving_data}" transform="{transform}" />')
             
         # Label and Color square below
         label_y = res.config.height_mm + 20
