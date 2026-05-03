@@ -56,7 +56,6 @@ pip install -r papercut-processor/requirements.txt
 
 ### 5. Validation
 - Fail fast with descriptive errors.
-- If a part color is missing from `project.yaml`, provide a copy-paste ready YAML snippet in the error message.
 - Enforce strict clash detection (tolerance: 0.0001 mm³).
 
 ## Maintenance of Overlays
