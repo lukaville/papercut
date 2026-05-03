@@ -96,7 +96,7 @@ def place_parts(
             
             still_to_place = []
             
-            # Use a dict for quick area lookup
+            # Use dict for quick area lookup
             area_map = {p.name: p.area_mm2 for p in color_parts}
 
             for name, w, h in to_place:
@@ -125,16 +125,30 @@ def place_parts(
                         continue
 
                 # Place it
+                new_part = None
                 if fits_orig:
-                    placed_on_this_sheet.append(PlacedPart(name, cursor_x, cursor_y, w, h))
-                    total_area_on_sheet += area_map[name]
+                    new_part = PlacedPart(name, cursor_x, cursor_y, w, h, rotated=False)
                     cursor_x += w + p_margin
                     shelf_height = max(shelf_height, h)
                 elif fits_rot:
-                    placed_on_this_sheet.append(PlacedPart(name, cursor_x, cursor_y, h, w, rotated=True))
-                    total_area_on_sheet += area_map[name]
+                    new_part = PlacedPart(name, cursor_x, cursor_y, h, w, rotated=True)
                     cursor_x += h + p_margin
                     shelf_height = max(shelf_height, w)
+
+                if new_part:
+                    # Check for overlaps with existing parts on this sheet
+                    for existing in placed_on_this_sheet:
+                        # Overlap if:
+                        # x1 < x2 + w2 AND x2 < x1 + w1 AND y1 < y2 + h2 AND y2 < y1 + h1
+                        # We use p_margin in the check too to be strict
+                        if (new_part.x_mm < existing.x_mm + existing.width_mm + p_margin and
+                            existing.x_mm < new_part.x_mm + new_part.width_mm + p_margin and
+                            new_part.y_mm < existing.y_mm + existing.height_mm + p_margin and
+                            existing.y_mm < new_part.y_mm + new_part.height_mm + p_margin):
+                            raise ValueError(f"Placement Error: Part {name} overlaps with {existing.name} at ({new_part.x_mm}, {new_part.y_mm})")
+                            
+                    placed_on_this_sheet.append(new_part)
+                    total_area_on_sheet += area_map[name]
             
             results.append(SheetResult(
                 config=current_sheet_config,
@@ -211,6 +225,89 @@ def export_sheets(
         sheet_area = res.config.width_mm * res.config.height_mm
         utilization = (res.total_parts_area_mm2 / sheet_area) * 100 if sheet_area > 0 else 0
         print(f"  Exported sheet: {filename} ({utilization:.1f}% utilized)")
+
+
+def export_preview_svg(
+    project_dir: Path,
+    sheets_results: list[SheetResult],
+    svg_paths: dict[str, str]
+) -> None:
+    """Generate a single SVG file previewing all sheets in a grid layout."""
+    if not sheets_results:
+        return
+
+    output_path = project_dir / "sheets" / "preview.svg"
+    
+    # Grid settings
+    cols = 4
+    sheet_gap = 50.0
+    label_height = 40.0
+    
+    max_sheet_w = max(res.config.width_mm for res in sheets_results)
+    max_sheet_h = max(res.config.height_mm for res in sheets_results)
+    
+    cell_w = max_sheet_w + sheet_gap
+    cell_h = max_sheet_h + label_height + sheet_gap
+    
+    rows = (len(sheets_results) + cols - 1) // cols
+    
+    svg_w = cols * cell_w
+    svg_h = rows * cell_h
+    
+    lines = [
+        f'<svg width="{svg_w}" height="{svg_h}" viewBox="0 0 {svg_w} {svg_h}" xmlns="http://www.w3.org/2000/svg">',
+        '  <rect width="100%" height="100%" fill="#f8f9fa" />',
+        '  <style>',
+        '    .sheet-bg { fill: white; stroke: #dee2e6; stroke-width: 1; }',
+        '    .part-box { fill: #e9ecef; stroke: #adb5bd; stroke-width: 0.5; }',
+        '    .sheet-label { font-family: sans-serif; font-size: 14px; fill: #495057; }',
+        '  </style>'
+    ]
+    
+    for i, res in enumerate(sheets_results):
+        row = i // cols
+        col = i % cols
+        
+        base_x = col * cell_w + sheet_gap/2
+        base_y = row * cell_h + sheet_gap/2
+        
+        # Sheet boundary
+        lines.append(f'  <g transform="translate({base_x}, {base_y})">')
+        lines.append(f'    <rect class="sheet-bg" width="{res.config.width_mm}" height="{res.config.height_mm}" />')
+        
+        # Parts (using actual profiles)
+        for part in res.placed_parts:
+            # CAD to SVG mapping:
+            # 1. CAD (x, y) bottom-left -> SVG (x, SH - y) bottom-edge
+            # 2. Path is Y-up, so scale(1, -1) makes it Y-down from that point.
+            ty = res.config.height_mm - part.y_mm
+            
+            if part.rotated:
+                # CAD: Insert at (x+h, y), Rotate 90 CCW
+                # SVG: translate(x+h, sh-y) rotate(-90) scale(1, -1)
+                # Note: rotate(-90) in SVG is CCW.
+                transform = f'translate({part.x_mm + part.width_mm}, {ty}) rotate(-90) scale(1, -1)'
+            else:
+                # CAD: Insert at (x, y)
+                # SVG: translate(x, sh-y) scale(1, -1)
+                transform = f'translate({part.x_mm}, {ty}) scale(1, -1)'
+            
+            path_data = svg_paths.get(part.name, "")
+            lines.append(f'    <path class="part-box" d="{path_data}" transform="{transform}" />')
+            
+        # Label and Color square below
+        label_y = res.config.height_mm + 20
+        lines.append(f'    <rect x="0" y="{label_y - 12}" width="14" height="14" fill="{res.config.color}" stroke="#333" stroke-width="0.5" />')
+        lines.append(f'    <text class="sheet-label" x="20" y="{label_y}">Sheet {res.index}: {res.config.name}</text>')
+        
+        lines.append('  </g>')
+        
+    lines.append('</svg>')
+    
+    with open(output_path, "w") as f:
+        f.write("\n".join(lines))
+    
+    print(f"  Generated preview: {output_path.name}")
 
 
 def _import_part_to_sheet(

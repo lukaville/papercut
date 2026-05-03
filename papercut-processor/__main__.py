@@ -16,13 +16,14 @@ from deduplicator import deduplicate, PartGroup, _mirror_solid
 from dxf_exporter import export_part_dxf
 from clash_detection import check_intersections
 from overlay_manager import manage_overlays
-from placer import place_parts, export_sheets
+from placer import place_parts, export_sheets, export_preview_svg
 from models import Part, ProjectConfig
 
 
 def resolve_names(groups: list[PartGroup]) -> list[tuple[PartGroup, str, bool]]:
     """Resolve a unique filename for each part group and determine flipping."""
     resolved = []
+    used_names = set()
     
     for i, group in enumerate(groups):
         # 1. Try to find a meaningful name
@@ -50,11 +51,23 @@ def resolve_names(groups: list[PartGroup]) -> list[tuple[PartGroup, str, bool]]:
                 candidate = list(normalized)[0]
             else:
                 # Conflict!
-                print(f"Error: Conflicting names for geometrically identical parts: {meaningful_names}", file=sys.stderr)
-                sys.exit(1)
+                # We'll just pick one and the uniqueness check will handle it
+                candidate = list(normalized)[0]
         
-        # Determine flip from config (if any name in group has flip=True)
-        # (This is handled in the main loop for now)
+        # Ensure candidate is alphanumeric-ish
+        candidate = "".join(c if c.isalnum() or c in "_-" else "_" for c in candidate)
+        
+        # Ensure global uniqueness - FAIL on conflict as requested
+        if candidate in used_names:
+            # Find which groups have this name
+            conflicting_groups = [g.names for g, name, _ in resolved if name == candidate]
+            raise ValueError(
+                f"Naming Conflict: Multiple different part geometries share the name '{candidate}'.\n"
+                f"Conflicting groups names: {group.names} vs {conflicting_groups}\n"
+                f"Please rename parts in the CAD model to ensure each unique geometry has a unique name."
+            )
+        used_names.add(candidate)
+        
         resolved.append((group, candidate, False))
         
     return resolved
@@ -121,10 +134,11 @@ def main():
 
     print(f"Exporting DXF files to {parts_dir} ...")
     print()
-    print(f"  {'Filename':<26} {'Count':>5}   {'Dimensions (bbox)':<27} {'Color (RGBA)'}")
-    print(f"  {'─' * 24:26} {'─' * 6:>5}   {'─' * 25:27} {'─' * 15}")
+    print(f"  {'Filename':<32} {'Count':>5}   {'Dimensions (bbox)':<27} {'Color (RGBA)'}")
+    print(f"  {'─' * 24:32} {'─' * 6:>5}   {'─' * 25:27} {'─' * 15}")
 
     placement_metadata = []
+    svg_paths = {} # Temporary store for preview
 
     for group, filename, _ in group_names:
         dxf_path = parts_dir / f"{filename}.dxf"
@@ -141,7 +155,8 @@ def main():
             shape_to_export = _mirror_solid(group.canonical)
 
         # Export and get the oriented shape (aligned to XY)
-        oriented, area = export_part_dxf(shape_to_export, dxf_path, thickness)
+        oriented, area, svg_path = export_part_dxf(shape_to_export, dxf_path, thickness)
+        svg_paths[filename] = svg_path
 
         # Use the oriented shape for dimension reporting
         bb = oriented.BoundingBox()
@@ -186,6 +201,7 @@ def main():
         )
         
         export_sheets(project_dir, sheets_results)
+        export_preview_svg(project_dir, sheets_results, svg_paths)
 
 
 if __name__ == "__main__":
