@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+#
+# Papercut Processor — wrapper script
+#
+# Manages a Python virtual environment and runs the processor.
+# Usage: ./process <project_directory>
+#
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROCESSOR_DIR="$SCRIPT_DIR/papercut-processor"
+VENV_DIR="$PROCESSOR_DIR/.venv"
+REQUIREMENTS="$PROCESSOR_DIR/requirements.txt"
+
+# --- Virtual environment setup ---
+
+# Use python3.11 as cadquery dependencies often trail behind the latest Python releases.
+PYTHON_BIN=$(which python3.11 || which python3.10 || which python3.12 || echo "python3")
+
+if [ ! -d "$VENV_DIR" ]; then
+    echo "Creating virtual environment in $VENV_DIR using $($PYTHON_BIN --version) ..."
+    "$PYTHON_BIN" -m venv "$VENV_DIR"
+fi
+
+# shellcheck disable=SC1091
+source "$VENV_DIR/bin/activate"
+
+# Install / update dependencies if requirements have changed.
+MARKER="$VENV_DIR/.requirements.stamp"
+if [ ! -f "$MARKER" ] || [ "$REQUIREMENTS" -nt "$MARKER" ]; then
+    echo "Installing dependencies ..."
+    pip install --quiet --upgrade pip
+    pip install --quiet -r "$REQUIREMENTS"
+    touch "$MARKER"
+fi
+
+# --- Run the processor ---
+
+if [ $# -lt 1 ]; then
+    echo "Usage: ./process <project_directory>" >&2
+    exit 1
+fi
+
+# Resolve the project directory relative to the caller's working directory.
+PROJECT_DIR="$1"
+if [[ ! "$PROJECT_DIR" = /* ]]; then
+    PROJECT_DIR="$(pwd)/$PROJECT_DIR"
+fi
+
+export PYTHONPATH="$PROCESSOR_DIR:${PYTHONPATH:-}"
+exec python "$PROCESSOR_DIR/__main__.py" "$PROJECT_DIR"

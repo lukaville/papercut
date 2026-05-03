@@ -1,0 +1,32 @@
+import:
+  - file: source.step
+    parts:
+      inner_front:
+        flip: true
+      entrance_door:
+        flip: true
+
+overlays:
+  - outer_front
+
+sheets:
+  - color: "#121212"
+    name: black
+    width_mm: 210
+    height_mm: 297
+  - color: "#999999"
+    name: grey
+    width_mm: 210
+    height_mm: 297
+  - color: "#d1d1d1"
+    name: white
+    width_mm: 210
+    height_mm: 297
+  - color: "#c04931"
+    name: brown
+    width_mm: 210
+    height_mm: 297
+
+placement:
+  sheet_margin_mm: 10
+  part_margin_mm: 5
