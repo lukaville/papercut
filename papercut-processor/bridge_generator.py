@@ -7,14 +7,14 @@ left uncut.
 
 import math
 from dataclasses import dataclass
+from typing import Optional
 
 from models import BridgeConfig
 
 
 # Minimum offset from a polygon corner vertex when placing a bridge,
 # expressed as a fraction of the edge length (clamped to at most half the edge).
-_CORNER_OFFSET_FRACTION = 0.15
-_CORNER_OFFSET_MIN_MM = 1.0
+# Now superseded by direct adjancency logic.
 
 
 @dataclass
@@ -82,39 +82,32 @@ def _closest_edge_point_to_target(
 
 
 def _offset_t_from_corner(edge_length_mm: float, bridge_size_mm: float) -> float:
-    """Compute a parametric offset to keep a bridge away from a polygon corner.
-
-    Returns a t-offset (fraction of edge length) that ensures the bridge center
-    is at least _CORNER_OFFSET_MIN_MM from the edge endpoint, while not exceeding
-    half the edge.
-    """
+    """Compute the normalized t-offset for a bridge to be adjacent to a corner."""
     if edge_length_mm < 1e-6:
-        return 0.5
-
-    offset_mm = max(_CORNER_OFFSET_MIN_MM, edge_length_mm * _CORNER_OFFSET_FRACTION)
-    # Don't go past half the edge
+        return 0.0
+    # Place bridge immediately adjacent to the corner vertex.
+    # The gap should start at t=0 or t=1, so its center is at half the bridge size.
+    offset_mm = bridge_size_mm / 2.0
+    # Ensure we don't go past the midpoint of the edge
     offset_mm = min(offset_mm, edge_length_mm * 0.5)
-    # Also ensure the bridge itself fits
-    half_bridge_t = (bridge_size_mm / 2.0) / edge_length_mm
-    offset_t = offset_mm / edge_length_mm
-    return max(offset_t, half_bridge_t + 0.01)
+    return offset_mm / edge_length_mm
 
 
 def _bridges_overlap(b1: Bridge, b2: Bridge, vertices: list[tuple[float, float]]) -> bool:
-    """Check if two bridges on the same edge overlap or are too close."""
-    if b1.edge_index != b2.edge_index:
-        return False
-    n = len(vertices)
-    p0 = vertices[b1.edge_index]
-    p1 = vertices[(b1.edge_index + 1) % n]
-    length = _edge_length(p0, p1)
-    if length < 1e-6:
-        return True
+    """Check if two bridges are too close to each other, even on different edges."""
+    def get_pos(b: Bridge):
+        p0 = vertices[b.edge_index]
+        p1 = vertices[(b.edge_index + 1) % len(vertices)]
+        return (p0[0] + b.t * (p1[0] - p0[0]), p0[1] + b.t * (p1[1] - p0[1]))
 
-    half1 = (b1.size_mm / 2.0) / length
-    half2 = (b2.size_mm / 2.0) / length
-    gap = abs(b1.t - b2.t) - half1 - half2
-    return gap < 0.01  # Must have at least 1% of edge between bridges
+    pos1 = get_pos(b1)
+    pos2 = get_pos(b2)
+    dist = math.hypot(pos1[0] - pos2[0], pos1[1] - pos2[1])
+    
+    # Bridges should be separated by at least their combined size plus a buffer
+    # to avoid double-weakening a corner.
+    min_dist = (b1.size_mm + b2.size_mm) * 1.5
+    return dist < min_dist
 
 
 def compute_bridge_positions(
@@ -157,50 +150,100 @@ def compute_bridge_positions(
     bridges: list[Bridge] = []
 
     if is_narrow:
-        # --- Narrow/small part: 2 bridges on the two longest edges ---
-        sorted_edges = sorted(range(n), key=lambda i: edge_lengths[i], reverse=True)
+        # --- Narrow/small part: 2 bridges at the two most distant corners of the bounding box ---
+        # This handles cases where long edges are split into many small segments.
+        min_x = min(v[0] for v in vertices)
+        max_x = max(v[0] for v in vertices)
+        min_y = min(v[1] for v in vertices)
+        max_y = max(v[1] for v in vertices)
 
-        placed_count = 0
-        for edge_idx in sorted_edges:
-            if placed_count >= 2:
-                break
+        # We'll try the two primary diagonals: BL-TR and BR-TL
+        # and pick the one that aligns with the "longest" dimension.
+        if (max_x - min_x) >= (max_y - min_y):
+            # Horizontal-ish part: use opposite horizontal ends
+            diag_corners = [(min_x, min_y), (max_x, max_y)]
+        else:
+            # Vertical-ish part: use opposite vertical ends
+            diag_corners = [(min_x, min_y), (max_x, max_y)] # BL to TR
+            # Actually, just two furthest corners is enough
+            
+        for corner in diag_corners:
+            edge_idx, t_raw = _closest_edge_point_to_target(vertices, corner)
             length = edge_lengths[edge_idx]
-            if length < bridge_size * 2:
-                continue  # Edge too short for a bridge
-            bridges.append(Bridge(edge_index=edge_idx, t=0.5, size_mm=bridge_size))
-            placed_count += 1
+            if length < bridge_size: # Even smaller tolerance for narrow parts
+                continue
+
+            # Offset logic consistent with standard parts
+            if t_raw < 0.5:
+                t = _offset_t_from_corner(length, bridge_size)
+            else:
+                t = 1.0 - _offset_t_from_corner(length, bridge_size)
+            
+            candidate = Bridge(edge_index=edge_idx, t=t, size_mm=bridge_size)
+            if not any(_bridges_overlap(candidate, b, vertices) for b in bridges):
+                bridges.append(candidate)
     else:
         # --- Standard part: 4 bridges near bounding box corners ---
+        # Find the vertices closest to the four corners of the bounding box
+        min_x = min(v[0] for v in vertices)
+        max_x = max(v[0] for v in vertices)
+        min_y = min(v[1] for v in vertices)
+        max_y = max(v[1] for v in vertices)
+
         corners = [
-            (min_x, min_y),  # bottom-left
-            (max_x, min_y),  # bottom-right
-            (max_x, max_y),  # top-right
-            (min_x, max_y),  # top-left
+            (min_x, min_y), (max_x, min_y),
+            (max_x, max_y), (min_x, max_y)
         ]
+        
+        # --- Add extra intermediate bridges if the part is very large ---
+        # We use the bounding box to determine intermediate positions
+        # because long edges might be split into many small segments.
+        min_length = config.min_length_extra_bridge_mm
+        
+        # Bottom edge intermediate points
+        if max_x - min_x > min_length:
+            num = max(2, math.ceil((max_x - min_x) / min_length))
+            for i in range(1, num):
+                corners.append((min_x + i * (max_x - min_x) / num, min_y))
+        
+        # Top edge intermediate points
+        if max_x - min_x > min_length:
+            num = max(2, math.ceil((max_x - min_x) / min_length))
+            for i in range(1, num):
+                corners.append((min_x + i * (max_x - min_x) / num, max_y))
+                
+        # Left edge intermediate points
+        if max_y - min_y > min_length:
+            num = max(2, math.ceil((max_y - min_y) / min_length))
+            for i in range(1, num):
+                corners.append((min_x, min_y + i * (max_y - min_y) / num))
+                
+        # Right edge intermediate points
+        if max_y - min_y > min_length:
+            num = max(2, math.ceil((max_y - min_y) / min_length))
+            for i in range(1, num):
+                corners.append((max_x, min_y + i * (max_y - min_y) / num))
 
         for corner in corners:
             edge_idx, t_raw = _closest_edge_point_to_target(vertices, corner)
             length = edge_lengths[edge_idx]
             if length < bridge_size * 2:
-                continue  # Edge too short
+                continue
 
-            # Offset the bridge away from the corner vertex
-            offset_t = _offset_t_from_corner(length, bridge_size)
-            # Determine which end of the edge is closer to the corner
-            p0 = vertices[edge_idx]
-            p1 = vertices[(edge_idx + 1) % n]
-            d_start = math.hypot(p0[0] - corner[0], p0[1] - corner[1])
-            d_end = math.hypot(p1[0] - corner[0], p1[1] - corner[1])
-
-            if d_start <= d_end:
-                t = offset_t
+            # Offset the bridge away from the corner vertex if we are near one,
+            # otherwise just use the target t.
+            # But wait, to keep it simple and consistent with user request:
+            # If we are near a vertex, use the zero-gap offset.
+            # If we are in the middle of an edge, just use t_raw.
+            
+            if t_raw < 0.1: # Near start vertex
+                t = _offset_t_from_corner(length, bridge_size)
+            elif t_raw > 0.9: # Near end vertex
+                t = 1.0 - _offset_t_from_corner(length, bridge_size)
             else:
-                t = 1.0 - offset_t
-            t = max(0.0, min(1.0, t))
-
+                t = t_raw
+            
             candidate = Bridge(edge_index=edge_idx, t=t, size_mm=bridge_size)
-
-            # Check for overlap with already placed bridges
             if not any(_bridges_overlap(candidate, b, vertices) for b in bridges):
                 bridges.append(candidate)
 
@@ -249,13 +292,12 @@ def apply_bridges_to_polyline(
     """Split a polyline at bridge locations, producing open segments with gaps.
 
     Args:
-        vertices: Ordered vertices of the polygon (no repeated closing vertex).
+        vertices: Ordered vertices of the polygon. If closed, V[n-1] connects to V[0].
         bridges: Bridges to apply.
         closed: Whether the polyline is a closed polygon.
 
     Returns:
         List of open polyline segments (each a list of (x, y) tuples).
-        The gaps between segments are the bridges.
     """
     if not bridges or len(vertices) < 2:
         if closed:
@@ -263,148 +305,130 @@ def apply_bridges_to_polyline(
         return [vertices]
 
     n = len(vertices)
+    num_edges = n if closed else n - 1
 
-    # Collect all cut points: for each bridge, compute start and end positions
-    # as (edge_index, t) pairs, sorted by position along the polygon.
-    cuts: list[tuple[int, float, int, float]] = []  # (edge, t_start, edge, t_end)
-
+    # 1. Collect all bridge intervals as (edge_index, t_start, t_end)
+    # t is normalized [0, 1] along each edge.
+    intervals = []
     for bridge in bridges:
         edge_idx = bridge.edge_index
         p0 = vertices[edge_idx]
         p1 = vertices[(edge_idx + 1) % n]
         length = _edge_length(p0, p1)
-
         if length < 1e-6:
             continue
-
         half_t = (bridge.size_mm / 2.0) / length
-        t_start = bridge.t - half_t
-        t_end = bridge.t + half_t
+        t_start = max(0.0, bridge.t - half_t)
+        t_end = min(1.0, bridge.t + half_t)
+        if t_end > t_start:
+            intervals.append((edge_idx, t_start, t_end))
 
-        # Clamp to [0, 1]
-        t_start = max(0.0, t_start)
-        t_end = min(1.0, t_end)
+    # Sort intervals by edge_index then t_start
+    intervals.sort()
 
-        if t_end <= t_start:
-            continue
+    # 2. Build the result by walking the polyline and cutting out intervals
+    segments = []
+    current_segment = []
 
-        cuts.append((edge_idx, t_start, edge_idx, t_end))
+    # Helper to add a point if it's not a duplicate of the last point
+    def add_pt(p):
+        if not current_segment:
+            current_segment.append(p)
+            return
+        last = current_segment[-1]
+        if abs(p[0] - last[0]) > 1e-9 or abs(p[1] - last[1]) > 1e-9:
+            current_segment.append(p)
 
-    if not cuts:
-        if closed:
-            return [vertices + [vertices[0]]]
-        return [vertices]
+    def close_segment():
+        nonlocal current_segment
+        if current_segment:
+            segments.append(current_segment)
+        current_segment = []
 
-    # Sort cuts by (edge_index, t_start)
-    cuts.sort(key=lambda c: (c[0], c[1]))
+    # Current position in the walk
+    curr_edge = 0
+    curr_t = 0.0
 
-    # Build segments by walking the polygon and skipping bridge gaps
-    segments: list[list[tuple[float, float]]] = []
-    current_segment: list[tuple[float, float]] = []
-
-    # Determine the starting point: just after the last bridge gap
-    # This ensures we produce contiguous segments even across the polygon wrap-around.
-    # For simplicity, start at vertex 0 and handle wrap-around at the end.
-
-    cut_idx = 0  # pointer into cuts list
-
-    for edge_idx in range(n):
+    for edge_idx, t0, t1 in intervals:
+        # Walk from curr position to t0
+        while curr_edge < edge_idx:
+            # Finish current edge
+            p0 = vertices[curr_edge]
+            p1 = vertices[(curr_edge + 1) % n]
+            add_pt(_point_on_edge(p0, p1, curr_t))
+            add_pt(p1)
+            curr_edge += 1
+            curr_t = 0.0
+        
+        # Now we are at edge_idx, curr_t. Walk to t0.
         p0 = vertices[edge_idx]
         p1 = vertices[(edge_idx + 1) % n]
-        length = _edge_length(p0, p1)
+        add_pt(_point_on_edge(p0, p1, curr_t))
+        add_pt(_point_on_edge(p0, p1, t0))
+        
+        # Close segment (bridge gap starts)
+        close_segment()
+        
+        # Set next start position to t1
+        curr_t = t1
 
-        # Collect all cuts on this edge
-        edge_cuts = []
-        while cut_idx < len(cuts) and cuts[cut_idx][0] == edge_idx:
-            edge_cuts.append((cuts[cut_idx][1], cuts[cut_idx][3]))
-            cut_idx += 1
+    # 3. Walk to the end of the polyline
+    while curr_edge < num_edges:
+        p0 = vertices[curr_edge]
+        p1 = vertices[(curr_edge + 1) % n]
+        add_pt(_point_on_edge(p0, p1, curr_t))
+        add_pt(p1)
+        curr_edge += 1
+        curr_t = 0.0
 
-        if not edge_cuts:
-            # No bridges on this edge — add start vertex
-            current_segment.append(p0)
-            if not closed and edge_idx == n - 1:
-                current_segment.append(p1)
-        else:
-            # Walk along the edge, emitting points and breaking at gaps
-            current_segment.append(p0)
-
-            for t_start, t_end in edge_cuts:
-                # Emit point at bridge start (end of current segment)
-                if t_start > 0.0:
-                    pt_start = _point_on_edge(p0, p1, t_start)
-                    current_segment.append(pt_start)
-
-                # Close current segment and start a new one after the gap
-                if current_segment:
-                    segments.append(current_segment)
-                    current_segment = []
-
-                if t_end < 1.0:
-                    pt_end = _point_on_edge(p0, p1, t_end)
-                    current_segment.append(pt_end)
-
-            # If the edge ends after the last bridge, don't add p1 yet —
-            # it will be added as p0 of the next edge iteration.
-            # Exception: last edge of an open polyline.
-            if not closed and edge_idx == n - 1:
-                current_segment.append(p1)
-
-    # Handle closure: connect last segment back to first if applicable
+    # 4. Handle closure: merge the last and first segments if applicable
     if closed and segments and current_segment:
-        # The current_segment runs from after the last bridge gap back to
-        # vertex 0 (via the polygon wrap). Prepend first segment's points
-        # to this segment to close the loop.
-        current_segment.extend(segments[0])
-        segments[0] = current_segment
+        # Check if they are actually continuous (should be vertex 0)
+        p_last = current_segment[-1]
+        p_first = segments[0][0]
+        if abs(p_last[0] - p_first[0]) < 1e-6 and abs(p_last[1] - p_first[1]) < 1e-6:
+            current_segment.extend(segments[0][1:])
+            segments[0] = current_segment
+        else:
+            # They are separated by a bridge at the junction
+            close_segment()
     elif current_segment:
-        segments.append(current_segment)
+        close_segment()
 
-    # Filter out degenerate segments (single point or empty)
-    segments = [seg for seg in segments if len(seg) >= 2]
-
-    return segments
+    # Final filter: remove degenerate segments
+    return [seg for seg in segments if len(seg) >= 2]
 
 
 def _chain_lines_into_polygons(
     lines: list
-) -> list[tuple[list[tuple[float, float]], list]]:
-    """Chain LINE entities into closed polygons by matching endpoints.
+) -> list[tuple[list[tuple[float, float]], list, bool]]:
+    """Chain LINE entities into closed or open polygons by matching endpoints.
 
     Args:
         lines: List of ezdxf LINE entities.
 
     Returns:
-        List of (vertices, original_line_entities) tuples. Each vertices list
-        is an ordered polygon (no repeated closing vertex). The line_entities
-        list maps 1:1 to polygon edges for attribute preservation.
+        List of (vertices, original_line_entities, is_closed) tuples.
     """
     if not lines:
         return []
 
-    # Build adjacency: map each rounded endpoint to the lines touching it
-    ROUND = 4  # decimal places for coordinate rounding (~0.1µm tolerance)
+    ROUND = 4
     remaining = set(range(len(lines)))
-    polygons: list[tuple[list[tuple[float, float]], list]] = []
+    polygons: list[tuple[list[tuple[float, float]], list, bool]] = []
 
     def _key(x: float, y: float) -> tuple[float, float]:
         return (round(x, ROUND), round(y, ROUND))
 
-    def _start(line):
-        return (line.dxf.start.x, line.dxf.start.y)
-
-    def _end(line):
-        return (line.dxf.end.x, line.dxf.end.y)
-
     while remaining:
-        # Start a new chain from an arbitrary remaining line
         seed_idx = next(iter(remaining))
         remaining.remove(seed_idx)
         seed = lines[seed_idx]
 
-        chain_vertices = [_start(seed), _end(seed)]
+        chain_vertices = [(seed.dxf.start.x, seed.dxf.start.y),
+                          (seed.dxf.end.x, seed.dxf.end.y)]
         chain_lines = [seed]
 
-        # Extend the chain by finding lines whose start/end matches our chain's tail
         changed = True
         while changed:
             changed = False
@@ -412,33 +436,63 @@ def _chain_lines_into_polygons(
 
             for idx in list(remaining):
                 line = lines[idx]
-                sk = _key(*_start(line))
-                ek = _key(*_end(line))
+                sk = _key(line.dxf.start.x, line.dxf.start.y)
+                ek = _key(line.dxf.end.x, line.dxf.end.y)
 
                 if sk == tail_key:
-                    chain_vertices.append(_end(line))
+                    chain_vertices.append((line.dxf.end.x, line.dxf.end.y))
                     chain_lines.append(line)
                     remaining.remove(idx)
                     changed = True
                     break
                 elif ek == tail_key:
-                    chain_vertices.append(_start(line))
+                    chain_vertices.append((line.dxf.start.x, line.dxf.start.y))
                     chain_lines.append(line)
                     remaining.remove(idx)
                     changed = True
                     break
 
-        # Check if the chain closes (first vertex ≈ last vertex)
+        # Check if the chain closes (tolerance: 0.1mm)
+        is_closed = False
         if (len(chain_vertices) >= 4 and
-            abs(chain_vertices[0][0] - chain_vertices[-1][0]) < 0.01 and
-            abs(chain_vertices[0][1] - chain_vertices[-1][1]) < 0.01):
-            # Remove the duplicate closing vertex
+            abs(chain_vertices[0][0] - chain_vertices[-1][0]) < 0.1 and
+            abs(chain_vertices[0][1] - chain_vertices[-1][1]) < 0.1):
             chain_vertices = chain_vertices[:-1]
+            is_closed = True
 
-        if len(chain_vertices) >= 3:
-            polygons.append((chain_vertices, chain_lines))
+        if len(chain_vertices) >= 2:
+            polygons.append((chain_vertices, chain_lines, is_closed))
 
     return polygons
+
+
+def _polygon_area(vertices: list[tuple[float, float]]) -> float:
+    """Compute the absolute area of a polygon using the shoelace formula."""
+    n = len(vertices)
+    if n < 3:
+        return 0.0
+    area = 0.0
+    for i in range(n):
+        x0, y0 = vertices[i]
+        x1, y1 = vertices[(i + 1) % n]
+        area += x0 * y1 - x1 * y0
+    return abs(area) / 2.0
+
+
+def _find_outer_contour_index(
+    polygons: list[tuple[list[tuple[float, float]], list, bool]]
+) -> Optional[int]:
+    """Find the index of the outer contour among a list of polygons."""
+    if not polygons:
+        return None
+    best_idx = 0
+    best_area = -1.0
+    for i, (verts, _, _) in enumerate(polygons):
+        area = _polygon_area(verts)
+        if area > best_area:
+            best_area = area
+            best_idx = i
+    return best_idx
 
 
 def add_bridges_to_cutting_block(
@@ -448,8 +502,9 @@ def add_bridges_to_cutting_block(
     """Apply bridges to cutting geometry within an ezdxf block.
 
     Handles both LINE entities (produced by CadQuery's DXF exporter) and
-    LWPOLYLINE entities. LINE entities are first chained into closed polygons,
-    then bridges are applied by splitting edges with gaps.
+    LWPOLYLINE entities. Collects all shapes, identifies the outer contour
+    (largest area), and applies bridges only to it. All original cutting
+    geometry is replaced.
 
     Modifies the block in place.
 
@@ -460,84 +515,75 @@ def add_bridges_to_cutting_block(
     if not bridge_config.enable:
         return
 
-    # --- Handle LINE entities (CadQuery output) ---
+    all_polygons: list[tuple[list[tuple[float, float]], list, bool]] = []
+
+    # 1. Collect LINE entities and chain them
     line_entities = [e for e in block if e.dxftype() == "LINE"]
-
     if line_entities:
-        polygons = _chain_lines_into_polygons(line_entities)
+        chained = _chain_lines_into_polygons(line_entities)
+        all_polygons.extend(chained)
 
-        for vertices, original_lines in polygons:
-            if len(vertices) < 3:
-                continue
-
-            # Compute bridge positions
-            bridges = compute_bridge_positions(vertices, bridge_config)
-            if not bridges:
-                continue
-
-            # Apply bridges to produce open segments
-            segments = apply_bridges_to_polyline(vertices, bridges, closed=True)
-
-            # Preserve DXF attributes from the first original line
-            attribs = {}
-            if original_lines:
-                ref = original_lines[0]
-                if hasattr(ref.dxf, 'layer'):
-                    attribs['layer'] = ref.dxf.layer
-
-            # Delete original LINE entities that formed this polygon
-            for line in original_lines:
-                try:
-                    block.delete_entity(line)
-                except Exception:
-                    pass
-
-            # Add new open polyline segments as LWPOLYLINE (more compact than individual LINEs)
-            for seg in segments:
-                block.add_lwpolyline(seg, close=False, dxfattribs=attribs)
-
-    # --- Handle LWPOLYLINE entities ---
-    polylines = [e for e in block if e.dxftype() == "LWPOLYLINE"]
-
-    for polyline in polylines:
-        # Extract vertices and closed flag
+    # 2. Collect LWPOLYLINE entities
+    polyline_entities = [e for e in block if e.dxftype() == "LWPOLYLINE"]
+    for polyline in polyline_entities:
         with polyline.points("xy") as points:
             vertices = list(points)
-
-        if len(vertices) < 3:
+        if len(vertices) < 2:
             continue
-
         is_closed = polyline.is_closed
-
         # Remove duplicate closing vertex if present
         if (len(vertices) > 1 and
             abs(vertices[0][0] - vertices[-1][0]) < 1e-6 and
             abs(vertices[0][1] - vertices[-1][1]) < 1e-6):
             vertices = vertices[:-1]
             is_closed = True
+        all_polygons.append((vertices, [polyline], is_closed))
 
-        if len(vertices) < 3:
-            continue
+    if not all_polygons:
+        return
 
-        # Compute bridge positions
-        bridges = compute_bridge_positions(vertices, bridge_config)
-        if not bridges:
-            continue
+    # 3. Find the outer contour (largest area)
+    best_idx = _find_outer_contour_index(all_polygons)
+    if best_idx is None:
+        return
 
-        # Apply bridges to produce open segments
-        segments = apply_bridges_to_polyline(vertices, bridges, closed=is_closed)
+    # 4. Process all polygons
+    for i, (vertices, original_entities, is_closed) in enumerate(all_polygons):
+        if i == best_idx and len(vertices) >= 2:
+            # This is the outer contour — apply bridges
+            bridges = compute_bridge_positions(vertices, bridge_config)
+            if bridges:
+                segments = apply_bridges_to_polyline(vertices, bridges, closed=is_closed)
+                
+                attribs = {}
+                ref = original_entities[0]
+                if hasattr(ref.dxf, 'layer'):
+                    attribs['layer'] = ref.dxf.layer
+                if hasattr(ref.dxf, 'color') and ref.dxf.color is not None:
+                    attribs['color'] = ref.dxf.color
 
-        # Get the original entity's DXF attributes
-        attribs = {}
-        if hasattr(polyline.dxf, 'layer'):
-            attribs['layer'] = polyline.dxf.layer
-        if hasattr(polyline.dxf, 'color') and polyline.dxf.color is not None:
-            attribs['color'] = polyline.dxf.color
+                for ent in original_entities:
+                    try:
+                        block.delete_entity(ent)
+                    except Exception:
+                        pass
+                
+                for seg in segments:
+                    block.add_lwpolyline(seg, close=False, dxfattribs=attribs)
+                continue
 
-        # Delete the original polyline
-        block.delete_entity(polyline)
+        # For non-outer polygons (holes), convert LINEs to LWPOLYLINE for consistency
+        ref = original_entities[0]
+        if ref.dxftype() == "LINE":
+            attribs = {'layer': ref.dxf.layer} if hasattr(ref.dxf, 'layer') else {}
+            for ent in original_entities:
+                try:
+                    block.delete_entity(ent)
+                except Exception:
+                    pass
+            # Add as a single (possibly closed) polyline
+            pts = vertices + ([vertices[0]] if is_closed else [])
+            block.add_lwpolyline(pts, close=False, dxfattribs=attribs)
 
-        # Add new open polyline segments
-        for seg in segments:
-            block.add_lwpolyline(seg, close=False, dxfattribs=attribs)
+
 

@@ -37,6 +37,6 @@ placement:
 
 bridges:
   enable: true
-  size_mm: 0.5
+  size_mm: 0.3
   min_size_all_corners_mm: 20
   min_length_extra_bridge_mm: 100
