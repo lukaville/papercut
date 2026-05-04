@@ -58,7 +58,9 @@ def load_config(project_dir: Path) -> ProjectConfig:
         enable=bool(b_data.get("enable", False)),
         size_mm=float(b_data.get("size_mm", 0.5)),
         min_size_all_corners_mm=float(b_data.get("min_size_all_corners_mm", 20.0)),
-        min_length_extra_bridge_mm=float(b_data.get("min_length_extra_bridge_mm", 100.0))
+        min_length_extra_bridge_mm=float(b_data.get("min_length_extra_bridge_mm", 100.0)),
+        overcut=bool(b_data.get("overcut", False)),
+        overcut_length_mm=float(b_data.get("overcut_length_mm", 2.0))
     )
     
     return ProjectConfig(

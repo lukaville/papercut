@@ -495,6 +495,82 @@ def _find_outer_contour_index(
     return best_idx
 
 
+def compute_overcuts(
+    vertices: list[tuple[float, float]],
+    bridges: list[Bridge],
+    config: BridgeConfig
+) -> list[tuple[tuple[float, float], tuple[float, float]]]:
+    """Generate overcut lines for bridges located at convex corner vertices.
+
+    Args:
+        vertices: List of polygon vertices.
+        bridges: List of Bridge objects.
+        config: Bridge configuration.
+
+    Returns:
+        List of (start_pt, end_pt) tuples representing overcut lines.
+    """
+    if not config.overcut:
+        return []
+
+    n = len(vertices)
+    if n < 3:
+        return []
+
+    # Calculate winding order (Area > 0 means CCW)
+    area = 0.0
+    for i in range(n):
+        p0, p1 = vertices[i], vertices[(i + 1) % n]
+        area += p0[0] * p1[1] - p1[0] * p0[1]
+    is_ccw = area > 0
+
+    overcut_lines = []
+    L_over = config.overcut_length_mm
+
+    for b in bridges:
+        # Bridge is on edge b.edge_index: vertices[i] -> vertices[i+1]
+        i = b.edge_index
+        p_prev = vertices[(i - 1 + n) % n]
+        p0 = vertices[i]
+        p1 = vertices[(i + 1) % n]
+        p2 = vertices[(i + 2) % n]
+        
+        L = _edge_length(p0, p1)
+        if L < 1e-6:
+            continue
+        half_t = (b.size_mm / 2.0) / L
+        
+        # 1. Check if bridge gap touches start vertex p0
+        if b.t - half_t < 1e-6:
+            # Vertex p0 is the junction between (p_prev -> p0) and (p0 -> p1)
+            # Check if this corner is convex
+            v1 = (p0[0] - p_prev[0], p0[1] - p_prev[1])
+            v2 = (p1[0] - p0[0], p1[1] - p0[1])
+            cross = v1[0] * v2[1] - v1[1] * v2[0]
+            
+            # In CCW, cross > 0 is convex (left turn). In CW, cross < 0 is convex.
+            is_convex = (cross > 1e-6) if is_ccw else (cross < -1e-6)
+            
+            if is_convex:
+                ux, uy = (p1[0] - p0[0]) / L, (p1[1] - p0[1]) / L
+                overcut_lines.append((p0, (p0[0] - ux * L_over, p0[1] - uy * L_over)))
+            
+        # 2. Check if bridge gap touches end vertex p1
+        if b.t + half_t > 1.0 - 1e-6:
+            # Vertex p1 is the junction between (p0 -> p1) and (p1 -> p2)
+            v1 = (p1[0] - p0[0], p1[1] - p0[1])
+            v2 = (p2[0] - p1[0], p2[1] - p1[1])
+            cross = v1[0] * v2[1] - v1[1] * v2[0]
+            
+            is_convex = (cross > 1e-6) if is_ccw else (cross < -1e-6)
+            
+            if is_convex:
+                ux, uy = (p1[0] - p0[0]) / L, (p1[1] - p0[1]) / L
+                overcut_lines.append((p1, (p1[0] + ux * L_over, p1[1] + uy * L_over)))
+
+    return overcut_lines
+
+
 def add_bridges_to_cutting_block(
     block,
     bridge_config: BridgeConfig
@@ -554,6 +630,7 @@ def add_bridges_to_cutting_block(
             bridges = compute_bridge_positions(vertices, bridge_config)
             if bridges:
                 segments = apply_bridges_to_polyline(vertices, bridges, closed=is_closed)
+                overcuts = compute_overcuts(vertices, bridges, bridge_config)
                 
                 attribs = {}
                 ref = original_entities[0]
@@ -568,8 +645,14 @@ def add_bridges_to_cutting_block(
                     except Exception:
                         pass
                 
+                # Add bridged segments
                 for seg in segments:
                     block.add_lwpolyline(seg, close=False, dxfattribs=attribs)
+                
+                # Add overcut lines
+                for start, end in overcuts:
+                    block.add_line(start, end, dxfattribs=attribs)
+                
                 continue
 
         # For non-outer polygons (holes), convert LINEs to LWPOLYLINE for consistency
