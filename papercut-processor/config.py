@@ -27,7 +27,9 @@ def load_config(project_dir: Path) -> ProjectConfig:
         file_imports.append(FileImport(file=file_path, parts=parts))
         
     # Parse overlays
-    overlay_data = data.get("overlays", [])
+    overlay_data = data.get("overlays", {})
+    if isinstance(overlay_data, list):
+        overlay_data = {name: {} for name in overlay_data}
     
     # Parse sheets
     sheet_data = []

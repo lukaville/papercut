@@ -79,6 +79,6 @@ class PlacementConfig:
 @dataclass
 class ProjectConfig:
     imports: list[FileImport] = field(default_factory=list)
-    overlays: list[str] = field(default_factory=list)
+    overlays: dict[str, Any] = field(default_factory=dict)
     sheets: list[SheetConfig] = field(default_factory=list)
     placement: PlacementConfig = field(default_factory=PlacementConfig())

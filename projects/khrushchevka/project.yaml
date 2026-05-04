@@ -6,8 +6,7 @@ import:
       entrance_door:
         flip: true
 
-overlays:
-  - outer_front
+overlays: {}
 
 sheets:
   - color: "#121212"

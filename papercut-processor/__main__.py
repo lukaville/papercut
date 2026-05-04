@@ -185,8 +185,9 @@ def main():
     print(f"Done. {len(groups)} DXF file(s) written to {parts_dir}")
 
     # Step 6: Manage Overlays
-    if config.overlays:
-        print(f"Managing overlays in {project_dir / 'overlays'} ...")
+    overlays_dir = project_dir / "overlays"
+    if overlays_dir.is_dir():
+        print(f"Managing overlays in {overlays_dir} ...")
         manage_overlays(project_dir, config.overlays)
 
     # Step 7: Place parts on sheets

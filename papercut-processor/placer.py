@@ -5,6 +5,7 @@ import sys
 import uuid
 from models import Part, SheetConfig, PlacementConfig, SheetResult, PlacedPart
 from dxf_exporter import get_dxf_layer_svg_paths
+from overlay_manager import get_engraving_entities
 
 def index_to_letters(n: int) -> str:
     """Convert a 0-indexed integer to spreadsheet letters (A, B, C, ..., AA, AB)."""
@@ -359,7 +360,7 @@ def export_sheets(
             # 2. Import Engraving Geometry (from overlay if exists)
             overlay_path = overlays_dir / f"{part.name}.dxf"
             if overlay_path.exists():
-                _import_part_to_sheet(overlay_path, doc, msp, (part.x_mm, part.y_mm), "engraving", part.rotated, part.width_mm, part.height_mm)
+                _import_overlay_to_sheet(overlay_path, part_path, doc, msp, (part.x_mm, part.y_mm), part.rotated, part.width_mm, part.height_mm)
 
             # 3. Add Part ID Label (e.g., 1, 2)
             if part.part_id is not None and part.name not in labeled_part_names:
@@ -467,8 +468,9 @@ def export_preview_svg(
             
             # Add engraving if overlay exists
             overlay_path = project_dir / "overlays" / f"{part.name}.dxf"
-            if overlay_path.exists():
-                engraving_data = get_dxf_layer_svg_paths(overlay_path, "engraving")
+            part_path = project_dir / "parts" / f"{part.name}.dxf"
+            if overlay_path.exists() and part_path.exists():
+                engraving_data = _get_overlay_svg_paths(overlay_path, part_path)
                 if engraving_data:
                     lines.append(f'    <path class="engraving" d="{engraving_data}" transform="{transform}" />')
             
@@ -520,24 +522,11 @@ def _import_part_to_sheet(
         importer.import_modelspace(block)
         importer.finalize()
         
-        # If it's an overlay, we only want the 'engraving' layer
-        if target_layer == "engraving":
-            # Use query('*') to get all entities safely
-            for entity in block.query("*"):
-                dxf = getattr(entity, 'dxf', None)
-                if not dxf:
-                    continue
-                    
-                if dxf.layer.lower() != "engraving":
-                    block.delete_entity(entity)
-                else:
-                    dxf.layer = "engraving"
-        else:
-            # For parts, import everything to 'cutting'
-            for entity in block.query("*"):
-                dxf = getattr(entity, 'dxf', None)
-                if dxf:
-                    dxf.layer = "cutting"
+        # For parts, import everything to 'cutting'
+        for entity in block.query("*"):
+            dxf = getattr(entity, 'dxf', None)
+            if dxf:
+                dxf.layer = "cutting"
         
         # Insert the block at the correct position
         insert_x, insert_y = offset
@@ -545,15 +534,83 @@ def _import_part_to_sheet(
         if rotated:
             rotation = 90
             # Pivot around bottom-left (0,0) of the PART.
-            # Rotating CCW 90 deg around (0,0) moves (0,0)->(0,0) and (W,0)->(0,W) and (0,H)->(-H,0).
-            # To bring the new bounding box [-H, 0]x[0, W] to [offset_x, offset_x+H]x[offset_y, offset_y+W]:
-            # We must insert at (offset_x + H, offset_y).
             insert_x += orig_h
         
         target_layout.add_blockref(block_name, insert=(insert_x, insert_y), dxfattribs={'rotation': rotation})
         
     except Exception as e:
         print(f"    Warning: Failed to import {source_path.name}: {e}")
+
+
+def _import_overlay_to_sheet(
+    overlay_path: Path,
+    part_path: Path,
+    target_doc: ezdxf.document.Drawing,
+    target_layout,
+    offset: tuple[float, float],
+    rotated: bool,
+    orig_w: float,
+    orig_h: float
+) -> None:
+    """Import filtered engraving geometry from overlay_path into target_layout."""
+    try:
+        engravings, align_mat = get_engraving_entities(overlay_path, part_path)
+        
+        # Create a unique block name
+        block_name = f"OVERLAY_{uuid.uuid4().hex}"
+        block = target_doc.blocks.new(name=block_name)
+        
+        # Ensure layer exists
+        if "engraving" not in target_doc.layers:
+            target_doc.layers.new("engraving", dxfattribs={'color': 5}) # Blue
+
+        for entity in engravings:
+            # Transform and set layer before copying to target document
+            entity.transform(align_mat)
+            entity.dxf.layer = "engraving"
+            block.add_foreign_entity(entity)
+
+        # Insert at the same position as the part
+        insert_x, insert_y = offset
+        rotation = 0
+        if rotated:
+            rotation = 90
+            insert_x += orig_h
+            
+        target_layout.add_blockref(block_name, insert=(insert_x, insert_y), dxfattribs={'rotation': rotation})
+        
+    except Exception as e:
+        print(f"    Warning: Failed to import overlay {overlay_path.name}: {e}")
+
+
+def _get_overlay_svg_paths(overlay_path: Path, part_path: Path) -> str:
+    """Extract SVG path data for filtered engravings in an overlay DXF."""
+    from ezdxf import path
+    try:
+        engravings, align_mat = get_engraving_entities(overlay_path, part_path)
+        
+        svg_segments = []
+        for entity in engravings:
+            try:
+                # Transform entity
+                e_temp = entity.copy()
+                e_temp.transform(align_mat)
+                
+                p = path.make_path(e_temp)
+                pts = list(p.flattening(distance=0.1))
+                if len(pts) < 2:
+                    continue
+                
+                d = f"M {pts[0].x:.2f},{pts[0].y:.2f}"
+                for pt in pts[1:]:
+                    d += f" L {pt.x:.2f},{pt.y:.2f}"
+                svg_segments.append(d)
+            except Exception:
+                continue
+                
+        return " ".join(svg_segments)
+    except Exception:
+        return ""
 
 def _get_block_width_height(block) -> tuple[float, float]:
     """Estimate block width and height from its entities."""

@@ -1,94 +1,223 @@
 import ezdxf
-from ezdxf.addons.importer import Importer
 from pathlib import Path
 import sys
 
-def manage_overlays(project_dir: Path, overlay_parts: list[str]) -> None:
-    """Manage overlay DXF files for specified parts.
-    
-    Creates an 'overlays/' directory. For each part, creates/updates a DXF
-    that contains an embedded block with the current part geometry.
-    Manual drawings on the 'engraving' layer are preserved.
-    """
-    if not overlay_parts:
-        return
+from typing import Any
 
+def manage_overlays(project_dir: Path, overlay_config: dict[str, Any]) -> None:
+    """Discover and validate overlay DXF files in the overlays/ directory."""
     overlays_dir = project_dir / "overlays"
-    overlays_dir.mkdir(parents=True, exist_ok=True)
-
     parts_dir = project_dir / "parts"
 
-    for part_name in overlay_parts:
-        overlay_path = overlays_dir / f"{part_name}.dxf"
+    if not overlays_dir.exists():
+        return
+
+    # Automatically discover all .dxf files in the overlays directory
+    overlay_files = list(overlays_dir.glob("*.dxf"))
+    if not overlay_files:
+        return
+
+    for overlay_path in overlay_files:
+        part_name = overlay_path.stem
         part_dxf_path = parts_dir / f"{part_name}.dxf"
 
         if not part_dxf_path.exists():
-            print(f"Warning: Cannot create overlay for '{part_name}', part DXF not found at {part_dxf_path}", file=sys.stderr)
+            print(f"Warning: Cannot validate overlay '{overlay_path.name}', part DXF not found at {part_dxf_path}", file=sys.stderr)
             continue
 
-        if overlay_path.exists():
-            _update_overlay(overlay_path, part_dxf_path, part_name)
-        else:
-            _create_overlay(overlay_path, part_dxf_path, part_name)
+        try:
+            get_engraving_entities(overlay_path, part_dxf_path)
+            print(f"  Overlay validated: {overlay_path.name}")
+        except ValueError as e:
+            raise ValueError(f"Overlay validation failed for '{part_name}': {e}")
 
 
-def _create_overlay(path: Path, part_path: Path, part_name: str) -> None:
-    """Create a new overlay DXF with embedded geometry and engraving layer."""
-    doc = ezdxf.new(dxfversion="R2010")
+def get_engraving_entities(overlay_path: Path, part_path: Path) -> tuple[list, any]:
+    """Align overlay with part and return filtered engraving entities and transformation matrix."""
+    from ezdxf import bbox
+    from ezdxf.math import Matrix44, Vec3
+    import math
+
+    overlay_doc = ezdxf.readfile(overlay_path)
+    part_doc = ezdxf.readfile(part_path)
     
-    # Add engraving layer
-    if "engraving" not in doc.layers:
-        doc.layers.add(name="engraving", color=1) # Red
+    overlay_msp = overlay_doc.modelspace()
+    part_msp = part_doc.modelspace()
+    
+    # 1. Use robust ezdxf.bbox
+    overlay_bb = bbox.extents(overlay_msp.query('LINE LWPOLYLINE CIRCLE ARC'))
+    part_bb = bbox.extents(part_msp.query('LINE LWPOLYLINE CIRCLE ARC'))
+    
+    if not overlay_bb or not part_bb:
+        raise ValueError("Could not determine bounding box of overlay or part")
+
+    part_segments = []
+    for e in part_msp:
+        part_segments.extend(_get_entity_segments(e))
+
+    # 2. Try 8 orientations (4 rotations * 2 flips) to find best orientation 
+    # based on actual perimeter overlap.
+    best_matched_length = -1
+    best_mat = None
+    
+    for flip_x in [False, True]:
+        for rotation_angle in [0, 90, 180, 270]:
+            # Start with centering the overlay at its own origin
+            mat = Matrix44.translate(-overlay_bb.extmin.x, -overlay_bb.extmin.y, -overlay_bb.extmin.z)
+            
+            if flip_x:
+                mat @= Matrix44.scale(-1, 1, 1)
+            
+            mat @= Matrix44.z_rotate(math.radians(rotation_angle))
+            
+            # Find the new bounding box after flip and rotation to align back to (0,0)
+            # We transform the corners of the original bounding box by the current partial matrix
+            corners = [
+                Vec3(overlay_bb.extmin.x, overlay_bb.extmin.y, overlay_bb.extmin.z),
+                Vec3(overlay_bb.extmax.x, overlay_bb.extmin.y, overlay_bb.extmin.z),
+                Vec3(overlay_bb.extmin.x, overlay_bb.extmax.y, overlay_bb.extmin.z),
+                Vec3(overlay_bb.extmax.x, overlay_bb.extmax.y, overlay_bb.extmin.z),
+            ]
+            transformed_corners = [mat.transform(c) for c in corners]
+            curr_min_x = min(c.x for c in transformed_corners)
+            curr_min_y = min(c.y for c in transformed_corners)
+            
+            mat @= Matrix44.translate(-curr_min_x, -curr_min_y, 0)
+            
+            # Finally move to part's absolute minimum coordinates
+            mat @= Matrix44.translate(part_bb.extmin.x, part_bb.extmin.y, part_bb.extmin.z)
+            
+            current_matched_length = 0
+            for e in overlay_msp.query('LINE LWPOLYLINE'):
+                for s_ov in _get_entity_segments(e):
+                    ov_intervals = []
+                    for s_part in part_segments:
+                        # Use tighter tolerance for matching
+                        iv = _get_segments_overlap_interval(s_ov, s_part, mat, tol=0.01)
+                        if iv: ov_intervals.append(iv)
+                    
+                    if ov_intervals:
+                        ov_intervals.sort()
+                        c_s, c_e = ov_intervals[0]
+                        for n_s, n_e in ov_intervals[1:]:
+                            if n_s <= c_e: c_e = max(c_e, n_e)
+                            else:
+                                current_matched_length += (c_e - c_s)
+                                c_s, c_e = n_s, n_e
+                        current_matched_length += (c_e - c_s)
+            
+            if current_matched_length > best_matched_length:
+                best_matched_length = current_matched_length
+                best_mat = mat
+
+    if best_matched_length < 10.0:
+        raise ValueError(f"Outline mismatch. Only {best_matched_length:.1f}mm matched in any orientation.")
+
+    mat = best_mat
+    engravings = []
+    matched_count = 0
+    matched_length = 0
+
+    # 3. Filter entities using the best matrix
+    for e in overlay_msp:
+        segs = _get_entity_segments(e)
+        if not segs:
+            engravings.append(e)
+            continue
+            
+        is_outline = True
+        entity_length = sum(_dist(s[0], s[1]) for s in segs)
+        entity_matched_length = 0
         
-    # Create a block for the base geometry
-    block_name = "BASE_GEOMETRY"
-    block = doc.blocks.new(name=block_name)
-    
-    # Import part geometry into the block
-    _import_geometry(part_path, doc, block)
-    
-    # Insert the block into modelspace
-    doc.modelspace().add_blockref(name=block_name, insert=(0, 0), dxfattribs={'layer': '0'})
-    
-    doc.saveas(path)
-    print(f"  Created new overlay: {path.name}")
-
-
-def _update_overlay(path: Path, part_path: Path, part_name: str) -> None:
-    """Update an existing overlay DXF by replacing the embedded block content."""
-    try:
-        doc = ezdxf.readfile(path)
+        for s_ov in segs:
+            ov_len = _dist(s_ov[0], s_ov[1])
+            ov_intervals = []
+            for s_part in part_segments:
+                iv = _get_segments_overlap_interval(s_ov, s_part, mat, tol=0.01)
+                if iv: ov_intervals.append(iv)
+            
+            ov_matched_len = 0
+            if ov_intervals:
+                ov_intervals.sort()
+                c_s, c_e = ov_intervals[0]
+                for n_s, n_e in ov_intervals[1:]:
+                    if n_s <= c_e: c_e = max(c_e, n_e)
+                    else:
+                        ov_matched_len += (c_e - c_s)
+                        c_s, c_e = n_s, n_e
+                ov_matched_len += (c_e - c_s)
+            
+            if ov_matched_len > ov_len * 0.99: # 99% match for perfect
+                entity_matched_length += ov_len
+            else:
+                is_outline = False
         
-        # Ensure engraving layer exists
-        if "engraving" not in doc.layers:
-            doc.layers.add(name="engraving", color=1)
-
-        block_name = "BASE_GEOMETRY"
-        if block_name in doc.blocks:
-            # Clear existing geometry in the block
-            block = doc.blocks.get(block_name)
-            block.delete_all_entities()
-        else:
-            # Create block if missing
-            block = doc.blocks.new(name=block_name)
-            # And insert it if missing from modelspace
-            doc.modelspace().add_blockref(name=block_name, insert=(0, 0), dxfattribs={'layer': '0'})
-
-        # Re-import geometry
-        _import_geometry(part_path, doc, block)
+        if is_outline and entity_matched_length > entity_length * 0.98: # 98% for perfect
+            matched_count += 1
+            matched_length += entity_matched_length
+            continue
         
-        doc.save()
-        print(f"  Updated geometry in overlay: {path.name}")
-    except Exception as e:
-        print(f"Error updating overlay {path}: {e}", file=sys.stderr)
+        engravings.append(e)
+
+    return engravings, mat
 
 
-def _import_geometry(source_path: Path, target_doc: ezdxf.document.Drawing, target_layout) -> None:
-    """Import all entities from modelspace of source_path into target_layout."""
-    try:
-        source_doc = ezdxf.readfile(source_path)
-        importer = Importer(source_doc, target_doc)
-        importer.import_modelspace(target_layout)
-        importer.finalize()
-    except Exception as e:
-        print(f"  Failed to import geometry from {source_path.name}: {e}", file=sys.stderr)
+def _get_entity_segments(entity):
+    """Break an entity into a list of (start, end) point tuples."""
+    if entity.dxftype() == 'LINE':
+        return [(entity.dxf.start, entity.dxf.end)]
+    elif entity.dxftype() == 'LWPOLYLINE':
+        pts = list(entity.get_points())
+        segs = []
+        for i in range(len(pts) - 1):
+            segs.append((pts[i], pts[i+1]))
+        if entity.closed:
+            segs.append((pts[-1], pts[0]))
+        return segs
+    return []
+
+
+def _dist(p1, p2):
+    return ((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)**0.5
+
+
+def _get_segments_overlap_interval(s1, s2, mat, tol=0.01):
+    """Return the interval (t_min, t_max) of overlap between s1 (transformed) and s2 if they are collinear."""
+    from ezdxf.math import Vec3
+    p1 = mat.transform(Vec3(s1[0]))
+    p2 = mat.transform(Vec3(s1[1]))
+    p3 = Vec3(s2[0])
+    p4 = Vec3(s2[1])
+
+    v1 = (p2 - p1)
+    v2 = (p4 - p3)
+    if v1.magnitude < tol or v2.magnitude < tol:
+        return None
+        
+    # Absolute distance check for collinearity
+    # Distance from line p1-p2 to point p3: |v1.cross(v13)| / |v1|
+    v13 = (p3 - p1)
+    dist = v1.cross(v13).magnitude / v1.magnitude
+    if dist > tol:
+        return None
+        
+    # Check if lines are parallel
+    if v1.cross(v2).magnitude / (v1.magnitude * v2.magnitude) > 0.01: # 1% angle tol
+        return None
+
+    def project(p, origin, direction):
+        return (p - origin).dot(direction.normalize())
+
+    t1, t2 = 0, v1.magnitude
+    t3 = project(p3, p1, v1)
+    t4 = project(p4, p1, v1)
+    
+    t_min, t_max = min(t1, t2), max(t1, t2)
+    u_min, u_max = min(t3, t4), max(t3, t4)
+    
+    overlap_min = max(t_min, u_min)
+    overlap_max = min(t_max, u_max)
+    
+    if overlap_max > overlap_min + tol:
+        return (overlap_min, overlap_max)
+    return None
