@@ -24,12 +24,6 @@ sheets:
     width_mm: 210
     height_mm: 297
 
-# sheets:
-#   - color: "*"
-#     name: debug
-#     width_mm: 210
-#     height_mm: 297
-
 placement:
   sheet_margin_mm: 10
   part_margin_mm: 5
@@ -41,4 +35,8 @@ bridges:
   min_size_all_corners_mm: 20
   min_length_extra_bridge_mm: 100
   overcut: true
-  overcut_length_mm: 2.0
+  overcut_length_mm: 1.2
+
+kerf:
+  compensation: true
+  offset_mm: 0.05

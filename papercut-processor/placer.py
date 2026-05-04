@@ -586,7 +586,9 @@ def _import_overlay_to_sheet(
 ) -> None:
     """Import filtered engraving geometry from overlay_path into target_layout."""
     try:
-        engravings, align_mat = get_engraving_entities(overlay_path, part_path)
+        ref_path = part_path.with_suffix(".ref.dxf")
+        match_path = ref_path if ref_path.exists() else part_path
+        engravings, align_mat = get_engraving_entities(overlay_path, match_path)
         
         # Create a unique block name
         block_name = f"OVERLAY_{uuid.uuid4().hex}"
@@ -619,7 +621,9 @@ def _get_overlay_svg_paths(overlay_path: Path, part_path: Path) -> str:
     """Extract SVG path data for filtered engravings in an overlay DXF."""
     from ezdxf import path
     try:
-        engravings, align_mat = get_engraving_entities(overlay_path, part_path)
+        ref_path = part_path.with_suffix(".ref.dxf")
+        match_path = ref_path if ref_path.exists() else part_path
+        engravings, align_mat = get_engraving_entities(overlay_path, match_path)
         
         svg_segments = []
         for entity in engravings:

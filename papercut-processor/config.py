@@ -1,6 +1,6 @@
 from pathlib import Path
 import yaml
-from models import ProjectConfig, FileImport, PartConfig, SheetConfig, PlacementConfig, BridgeConfig
+from models import ProjectConfig, FileImport, PartConfig, SheetConfig, PlacementConfig, BridgeConfig, KerfConfig
 
 def load_config(project_dir: Path) -> ProjectConfig:
     """Load and parse project.yaml into a ProjectConfig object."""
@@ -62,11 +62,19 @@ def load_config(project_dir: Path) -> ProjectConfig:
         overcut=bool(b_data.get("overcut", False)),
         overcut_length_mm=float(b_data.get("overcut_length_mm", 2.0))
     )
+
+    # Parse kerf
+    k_data = data.get("kerf", {})
+    kerf = KerfConfig(
+        compensation=bool(k_data.get("compensation", False)),
+        offset_mm=float(k_data.get("offset_mm", 0.0))
+    )
     
     return ProjectConfig(
         imports=file_imports, 
         overlays=overlay_data,
         sheets=sheet_data,
         placement=placement,
-        bridges=bridges
+        bridges=bridges,
+        kerf=kerf
     )

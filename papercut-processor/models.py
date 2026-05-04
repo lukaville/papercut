@@ -89,9 +89,17 @@ class PlacementConfig:
 
 
 @dataclass
+class KerfConfig:
+    """Configuration for kerf compensation."""
+    compensation: bool = False
+    offset_mm: float = 0.0
+
+
+@dataclass
 class ProjectConfig:
     imports: list[FileImport] = field(default_factory=list)
     overlays: dict[str, Any] = field(default_factory=dict)
     sheets: list[SheetConfig] = field(default_factory=list)
-    placement: PlacementConfig = field(default_factory=PlacementConfig())
+    placement: PlacementConfig = field(default_factory=PlacementConfig)
     bridges: BridgeConfig = field(default_factory=BridgeConfig)
+    kerf: KerfConfig = field(default_factory=KerfConfig)

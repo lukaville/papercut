@@ -20,13 +20,15 @@ def manage_overlays(project_dir: Path, overlay_config: dict[str, Any]) -> None:
     for overlay_path in overlay_files:
         part_name = overlay_path.stem
         part_dxf_path = parts_dir / f"{part_name}.dxf"
+        ref_path = part_dxf_path.with_suffix(".ref.dxf")
+        match_path = ref_path if ref_path.exists() else part_dxf_path
 
-        if not part_dxf_path.exists():
+        if not match_path.exists():
             print(f"Warning: Cannot validate overlay '{overlay_path.name}', part DXF not found at {part_dxf_path}", file=sys.stderr)
             continue
 
         try:
-            get_engraving_entities(overlay_path, part_dxf_path)
+            get_engraving_entities(overlay_path, match_path)
             print(f"  Overlay validated: {overlay_path.name}")
         except ValueError as e:
             raise ValueError(f"Overlay validation failed for '{part_name}': {e}")

@@ -180,20 +180,22 @@ def main():
         
         shape_to_export = group.canonical
 
-        # Export and get the oriented shape (aligned to XY)
-        oriented, area, svg_path = export_part_dxf(shape_to_export, dxf_path, thickness)
+        # Export and get the compensated dimensions and SVG path
+        kerf_offset = config.kerf.offset_mm if config.kerf.compensation else 0.0
+        ref_path = parts_dir / f"{filename}.ref.dxf" if config.kerf.compensation else None
+        
+        width_mm, height_mm, area, svg_path = export_part_dxf(shape_to_export, dxf_path, thickness, kerf_offset, ref_path)
         svg_paths[filename] = svg_path
 
-        # Use the oriented shape for dimension reporting
-        bb = oriented.BoundingBox()
-        dims = sorted([bb.xlen, bb.ylen, bb.zlen], reverse=True)
-        dim_str = f"{dims[0]:.1f} × {dims[1]:.1f} × {dims[2]:.1f}"
+        # Use the compensated dimensions for reporting
+        # For Z dimension, we still use material thickness
+        dim_str = f"{width_mm:.1f} × {height_mm:.1f} × {thickness:.1f}"
         
         # Store for placement
         placement_metadata.append(Part(
             name=filename,
-            width_mm=bb.xlen,
-            height_mm=bb.ylen,
+            width_mm=width_mm,
+            height_mm=height_mm,
             area_mm2=area,
             count=group.count,
             color=group.color

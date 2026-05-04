@@ -136,28 +136,63 @@ def _orient_face_to_xy(solid: cq.Shape, face: cq.Face) -> cq.Shape:
     return best_shape
 
 
-def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float) -> cq.Shape:
+def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float, kerf_offset_mm: float = 0.0, ref_path: Path = None) -> tuple[float, float, float, str]:
     """Export the cutting profile of a flat solid as a 2D DXF file.
 
     Finds the profile face (based on material thickness), orients the solid
     so this face lies on the XY plane, then translates it so its bottom-left 
-    is at (0,0). Returns a tuple of (oriented_solid, profile_area, svg_path_string).
+    is at (0,0). Returns (width_mm, height_mm, area_mm2, svg_path_string).
     """
     # Find the profile face and orient the part.
     profile_face = _find_profile_face(solid, material_thickness)
     oriented = _orient_face_to_xy(solid, profile_face)
 
     # After orientation, find the profile face again on the oriented solid.
-    # We want to translate the solid so that THIS face's bounding box starts at (0,0).
     oriented_profile = _find_profile_face(oriented, material_thickness)
+    original_profile = oriented_profile # Keep for reference export
+    
+    # Apply kerf compensation if requested
+    if abs(kerf_offset_mm) > 1e-6:
+        try:
+            outer = oriented_profile.outerWire()
+            inners = oriented_profile.innerWires()
+            
+            # Offset outer wire OUTWARDS (+kerf_offset_mm)
+            # Use kind="intersection" to maintain sharp corners
+            new_outer_list = outer.offset2D(kerf_offset_mm, kind="intersection")
+            if not new_outer_list:
+                raise ValueError("Outer wire offset failed")
+            new_outer = new_outer_list[0]
+            
+            # Offset inner wires INWARDS (-kerf_offset_mm)
+            new_inners = []
+            for inner in inners:
+                # Using intersection here as well for stability
+                off_list = inner.offset2D(-kerf_offset_mm, kind="intersection")
+                if off_list:
+                    new_inners.append(off_list[0])
+            
+            # Reconstruct the face
+            oriented_profile = cq.Face.makeFromWires(new_outer, new_inners)
+        except Exception as e:
+            print(f"Warning: Kerf compensation failed for a part: {e}. Using original geometry.")
+
+    # Move the profile so its bottom-left is at (0,0)
     face_bb = oriented_profile.BoundingBox()
+    oriented_profile = oriented_profile.translate((-face_bb.xmin, -face_bb.ymin, 0))
     
-    # Move the oriented solid so its profile face's bounding box minimum is at (0,0,0)
-    # This is crucial for the placement algorithm which assumes bottom-left origin.
-    oriented = oriented.translate((-face_bb.xmin, -face_bb.ymin, -face_bb.zmin))
-    
-    # Update the oriented_profile reference to the translated solid.
-    oriented_profile = _find_profile_face(oriented, material_thickness)
+    # If a reference path is provided, export the UN-OFFSET profile 
+    # using the EXACT SAME translation as the offset profile.
+    if ref_path:
+        ref_profile = original_profile.translate((-face_bb.xmin, -face_bb.ymin, 0))
+        ref_wp = cq.Workplane("XY").add(ref_profile)
+        ref_path.parent.mkdir(parents=True, exist_ok=True)
+        cq.exporters.exportDXF(ref_wp, str(ref_path))
+
+    # Final bounding box for returning dimensions
+    final_bb = oriented_profile.BoundingBox()
+    width_mm = final_bb.xlen
+    height_mm = final_bb.ylen
     
     # Build a Workplane with the face's wires for DXF export.
     wp = cq.Workplane("XY").add(oriented_profile)
@@ -214,8 +249,6 @@ def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float) -> c
                     break
             
             if found_idx == -1:
-                # Discontinuity in wire, just pick the next one and start a new sub-path
-                # but for simplicity we stop here as CadQuery wires should be continuous
                 break
                 
             next_edge = current_edges.pop(found_idx)
@@ -226,25 +259,20 @@ def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float) -> c
             if reverse_next:
                 next_pts = next_pts[::-1]
             
-            # Avoid duplicate point at junction
             ordered_points.extend(next_pts[1:])
             
         if len(ordered_points) < 2:
             continue
             
-        # Normalization to ensure coordinates start at (0,0)
-        final_bb = oriented_profile.BoundingBox()
-        shift_x, shift_y = -final_bb.xmin, -final_bb.ymin
-
         x0, y0 = get_coords(ordered_points[0])
-        path_data = f"M {x0 + shift_x},{y0 + shift_y}"
+        path_data = f"M {x0:.2f},{y0:.2f}"
         for p in ordered_points[1:]:
             xi, yi = get_coords(p)
-            path_data += f" L {xi + shift_x},{yi + shift_y}"
+            path_data += f" L {xi:.2f},{yi:.2f}"
         path_data += " Z"
         svg_paths.append(path_data)
         
-    return oriented, oriented_profile.Area(), " ".join(svg_paths)
+    return width_mm, height_mm, oriented_profile.Area(), " ".join(svg_paths)
 
 
 def get_dxf_layer_svg_paths(dxf_path: Path, layer_name: str) -> str:
