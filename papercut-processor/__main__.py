@@ -227,8 +227,8 @@ def main():
             config.placement
         )
         
-        export_sheets(project_dir, sheets_results, config.placement)
-        export_preview_svg(project_dir, sheets_results, svg_paths, config.placement)
+        export_sheets(project_dir, sheets_results, config.placement, config.bridges)
+        export_preview_svg(project_dir, sheets_results, svg_paths, config.placement, config.bridges)
 
 
 if __name__ == "__main__":

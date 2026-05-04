@@ -70,6 +70,15 @@ class FileImport:
 
 
 @dataclass
+class BridgeConfig:
+    """Configuration for bridge (tab) generation on cutting outlines."""
+    enable: bool = False
+    size_mm: float = 0.5
+    min_size_all_corners_mm: float = 20.0
+    min_length_extra_bridge_mm: float = 100.0
+
+
+@dataclass
 class PlacementConfig:
     sheet_margin_mm: float = 10.0
     part_margin_mm: float = 5.0
@@ -83,3 +92,4 @@ class ProjectConfig:
     overlays: dict[str, Any] = field(default_factory=dict)
     sheets: list[SheetConfig] = field(default_factory=list)
     placement: PlacementConfig = field(default_factory=PlacementConfig())
+    bridges: BridgeConfig = field(default_factory=BridgeConfig)

@@ -34,3 +34,9 @@ placement:
   sheet_margin_mm: 10
   part_margin_mm: 5
   label_square_size_mm: 10
+
+bridges:
+  enable: true
+  size_mm: 0.5
+  min_size_all_corners_mm: 20
+  min_length_extra_bridge_mm: 100

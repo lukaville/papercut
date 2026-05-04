@@ -3,9 +3,10 @@ from ezdxf.addons.importer import Importer
 from pathlib import Path
 import sys
 import uuid
-from models import Part, SheetConfig, PlacementConfig, SheetResult, PlacedPart
+from models import Part, SheetConfig, PlacementConfig, SheetResult, PlacedPart, BridgeConfig
 from dxf_exporter import get_dxf_layer_svg_paths
 from overlay_manager import get_engraving_entities
+from bridge_generator import add_bridges_to_cutting_block
 
 def index_to_letters(n: int) -> str:
     """Convert a 0-indexed integer to spreadsheet letters (A, B, C, ..., AA, AB)."""
@@ -289,7 +290,8 @@ def place_parts(
 def export_sheets(
     project_dir: Path,
     sheets_results: list[SheetResult],
-    placement_config: PlacementConfig
+    placement_config: PlacementConfig,
+    bridge_config: BridgeConfig | None = None
 ) -> None:
     """Export the placement results as DXF files in the 'sheets/' directory."""
     sheets_dir = project_dir / "sheets"
@@ -368,7 +370,7 @@ def export_sheets(
             # 1. Import Cutting Geometry
             part_path = parts_dir / f"{part.name}.dxf"
             if part_path.exists():
-                _import_part_to_sheet(part_path, doc, msp, (part.x_mm, part.y_mm), "cutting", part.rotated, part.width_mm, part.height_mm)
+                _import_part_to_sheet(part_path, doc, msp, (part.x_mm, part.y_mm), "cutting", part.rotated, part.width_mm, part.height_mm, bridge_config)
             
             # 2. Import Engraving Geometry (from overlay if exists)
             overlay_path = overlays_dir / f"{part.name}.dxf"
@@ -405,7 +407,8 @@ def export_preview_svg(
     project_dir: Path,
     sheets_results: list[SheetResult],
     svg_paths: dict[str, str],
-    placement_config: PlacementConfig
+    placement_config: PlacementConfig,
+    bridge_config: BridgeConfig | None = None
 ) -> None:
     """Generate a single SVG file previewing all sheets in a grid layout."""
     if not sheets_results:
@@ -532,7 +535,8 @@ def _import_part_to_sheet(
     target_layer: str,
     rotated: bool,
     orig_w: float,
-    orig_h: float
+    orig_h: float,
+    bridge_config: BridgeConfig | None = None
 ) -> None:
     """Import geometry from source_path and place it at offset in target_layer."""
     try:
@@ -551,6 +555,10 @@ def _import_part_to_sheet(
             dxf = getattr(entity, 'dxf', None)
             if dxf:
                 dxf.layer = "cutting"
+        
+        # Apply bridges to cutting polylines
+        if bridge_config and bridge_config.enable:
+            add_bridges_to_cutting_block(block, bridge_config)
         
         # Insert the block at the correct position
         insert_x, insert_y = offset

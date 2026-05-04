@@ -1,6 +1,6 @@
 from pathlib import Path
 import yaml
-from models import ProjectConfig, FileImport, PartConfig, SheetConfig, PlacementConfig
+from models import ProjectConfig, FileImport, PartConfig, SheetConfig, PlacementConfig, BridgeConfig
 
 def load_config(project_dir: Path) -> ProjectConfig:
     """Load and parse project.yaml into a ProjectConfig object."""
@@ -51,10 +51,20 @@ def load_config(project_dir: Path) -> ProjectConfig:
         part_margin_mm=float(p_data.get("part_margin_mm", 5.0)),
         label_square_size_mm=float(p_data.get("label_square_size_mm", 15.0))
     )
+
+    # Parse bridges
+    b_data = data.get("bridges", {})
+    bridges = BridgeConfig(
+        enable=bool(b_data.get("enable", False)),
+        size_mm=float(b_data.get("size_mm", 0.5)),
+        min_size_all_corners_mm=float(b_data.get("min_size_all_corners_mm", 20.0)),
+        min_length_extra_bridge_mm=float(b_data.get("min_length_extra_bridge_mm", 100.0))
+    )
     
     return ProjectConfig(
         imports=file_imports, 
         overlays=overlay_data,
         sheets=sheet_data,
-        placement=placement
+        placement=placement,
+        bridges=bridges
     )
