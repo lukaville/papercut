@@ -317,8 +317,21 @@ def export_sheets(
         # Draw sheet boundary
         msp = doc.modelspace()
         
-        # Track labeled parts to only label the first instance of each unique part on this sheet
-        labeled_part_names = set()
+        # Determine which instances should carry the label (top-left most)
+        label_carriers = {} # part_name -> PlacedPart
+        for part in res.placed_parts:
+            top = part.y_mm + (part.width_mm if part.rotated else part.height_mm)
+            left = part.x_mm
+            if part.name not in label_carriers:
+                label_carriers[part.name] = part
+            else:
+                current_best = label_carriers[part.name]
+                current_top = current_best.y_mm + (current_best.width_mm if current_best.rotated else current_best.height_mm)
+                current_left = current_best.x_mm
+                if top > current_top + 0.001:
+                    label_carriers[part.name] = part
+                elif abs(top - current_top) < 0.001 and left < current_left - 0.001:
+                    label_carriers[part.name] = part
 
         msp.add_lwpolyline([
             (0, 0), (res.config.width_mm, 0), 
@@ -363,8 +376,7 @@ def export_sheets(
                 _import_overlay_to_sheet(overlay_path, part_path, doc, msp, (part.x_mm, part.y_mm), part.rotated, part.width_mm, part.height_mm)
 
             # 3. Add Part ID Label (e.g., 1, 2)
-            if part.part_id is not None and part.name not in labeled_part_names:
-                labeled_part_names.add(part.name)
+            if part.part_id is not None and part is label_carriers.get(part.name):
                 id_text = str(part.part_id)
                 label_size = placement_config.part_label_size_mm
                 
@@ -440,8 +452,21 @@ def export_preview_svg(
         base_x = col * cell_w + sheet_gap/2
         base_y = row * cell_h + sheet_gap/2
         
-        # Track labeled parts for SVG as well
-        labeled_part_names = set()
+        # Determine which instances should carry the label (top-left most)
+        label_carriers = {} # part_name -> PlacedPart
+        for part in res.placed_parts:
+            top = part.y_mm + (part.width_mm if part.rotated else part.height_mm)
+            left = part.x_mm
+            if part.name not in label_carriers:
+                label_carriers[part.name] = part
+            else:
+                current_best = label_carriers[part.name]
+                current_top = current_best.y_mm + (current_best.width_mm if current_best.rotated else current_best.height_mm)
+                current_left = current_best.x_mm
+                if top > current_top + 0.001:
+                    label_carriers[part.name] = part
+                elif abs(top - current_top) < 0.001 and left < current_left - 0.001:
+                    label_carriers[part.name] = part
 
         # Sheet boundary
         lines.append(f'  <g transform="translate({base_x}, {base_y})">')
@@ -475,8 +500,7 @@ def export_preview_svg(
                     lines.append(f'    <path class="engraving" d="{engraving_data}" transform="{transform}" />')
             
             # Add Part ID text (1, 2, etc.)
-            if part.part_id is not None and part.name not in labeled_part_names:
-                labeled_part_names.add(part.name)
+            if part.part_id is not None and part is label_carriers.get(part.name):
                 # CAD label_y = part.y + placed_h + 0.5
                 # SVG y is inverted.
                 placed_h = part.width_mm if part.rotated else part.height_mm

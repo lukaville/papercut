@@ -1,10 +1,8 @@
 import:
   - file: source.step
     parts:
-      inner_front:
-        flip: true
-      entrance_door:
-        flip: true
+      balcony_side_left:
+        flip_horizontal: true
 
 overlays: {}
 

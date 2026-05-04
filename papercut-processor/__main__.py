@@ -120,6 +120,34 @@ def main():
     thickness = detect_thickness([s for s, _, _ in all_named_solids])
     print(f"  Detected material thickness: {thickness:.3f} mm")
 
+    # Step 2.5: Apply flips based on configuration
+    print("Applying part flips ...")
+    transformed_solids = []
+    for solid, name, color in all_named_solids:
+        if name in part_configs:
+            p_config = part_configs[name]
+            if p_config.flip_horizontal or p_config.flip_vertical:
+                # Find thickness axis for this specific instance
+                bb = solid.BoundingBox()
+                dims = [("X", bb.xlen), ("Y", bb.ylen), ("Z", bb.zlen)]
+                # Find the dimension closest to 'thickness' detected in Step 2
+                thickness_axis = min(dims, key=lambda d: abs(d[1] - thickness))[0]
+                
+                # Map Horizontal/Vertical to CAD axes based on thickness orientation
+                if thickness_axis == "Z":
+                    h_axis, v_axis = "X", "Y"
+                elif thickness_axis == "X":
+                    h_axis, v_axis = "Y", "Z"
+                else: # Y
+                    h_axis, v_axis = "X", "Z"
+                
+                if p_config.flip_horizontal:
+                    solid = _mirror_solid(solid, h_axis)
+                if p_config.flip_vertical:
+                    solid = _mirror_solid(solid, v_axis)
+        transformed_solids.append((solid, name, color))
+    all_named_solids = transformed_solids
+
     # Step 3: Deduplicate union of all solids
     print("Deduplicating union of all parts ...")
     groups = deduplicate(all_named_solids)
@@ -132,6 +160,13 @@ def main():
     parts_dir = project_dir / "parts"
     parts_dir.mkdir(parents=True, exist_ok=True)
 
+    # Clear existing DXF files to prevent stale leftovers from previous runs
+    for f in parts_dir.glob("*.dxf"):
+        try:
+            f.unlink()
+        except OSError:
+            pass
+
     print(f"Exporting DXF files to {parts_dir} ...")
     print()
     print(f"  {'Filename':<32} {'Count':>5}   {'Dimensions (bbox)':<27} {'Color (RGBA)'}")
@@ -143,16 +178,7 @@ def main():
     for group, filename, _ in group_names:
         dxf_path = parts_dir / f"{filename}.dxf"
         
-        # Determine if we should flip
-        flip = False
-        for name in group.names:
-            if name in part_configs and part_configs[name].flip:
-                flip = True
-                break
-        
         shape_to_export = group.canonical
-        if flip:
-            shape_to_export = _mirror_solid(group.canonical)
 
         # Export and get the oriented shape (aligned to XY)
         oriented, area, svg_path = export_part_dxf(shape_to_export, dxf_path, thickness)

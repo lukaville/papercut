@@ -22,7 +22,10 @@ def load_config(project_dir: Path) -> ProjectConfig:
             continue
             
         parts_data = item.get("parts", {})
-        parts = {name: PartConfig(flip=p_data.get("flip", False)) 
+        parts = {name: PartConfig(
+                    flip_horizontal=p_data.get("flip_horizontal", False),
+                    flip_vertical=p_data.get("flip_vertical", False)
+                 ) 
                  for name, p_data in parts_data.items()}
         file_imports.append(FileImport(file=file_path, parts=parts))
         

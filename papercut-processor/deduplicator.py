@@ -131,21 +131,48 @@ def _center_at_origin(solid: cq.Shape) -> cq.Shape:
     return cq.Shape(builder.Shape())
 
 
-def _mirror_solid(solid: cq.Shape) -> cq.Shape:
-    """Mirror a solid across the XY plane (flip Z)."""
+def _mirror_solid(solid: cq.Shape, axis: str = "Z") -> cq.Shape:
+    """Mirror a solid across a plane perpendicular to the given axis (X, Y, or Z)."""
     trsf = gp_Trsf()
-    trsf.SetMirror(gp_Ax2(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)))
-
+    direction = gp_Dir(0, 0, 1)
+    if axis.upper() == "X":
+        direction = gp_Dir(1, 0, 0)
+    elif axis.upper() == "Y":
+        direction = gp_Dir(0, 1, 0)
+    
+    trsf.SetMirror(gp_Ax2(gp_Pnt(0, 0, 0), direction))
     builder = BRepBuilderAPI_Transform(solid.wrapped, trsf, True)
     return cq.Shape(builder.Shape())
+
+
+def _is_generic_name(name: str) -> bool:
+    """Check if a part name is a generic auto-generated name (e.g. 'Part 1')."""
+    import re
+    return bool(re.match(r"Part \d+$", name))
+
+
+def _names_are_compatible(name_a: str, name_b: str) -> bool:
+    """Check if two part names are compatible for grouping.
+    
+    Generic names (e.g. 'Part 1', 'Part 2') are always compatible with anything.
+    Two meaningful names are compatible only if they normalize to the same string.
+    """
+    if _is_generic_name(name_a) or _is_generic_name(name_b):
+        return True
+    # Normalize: lowercase, replace spaces with underscores
+    return name_a.lower().replace(" ", "_") == name_b.lower().replace(" ", "_")
 
 
 def deduplicate(metadata_solids: list[tuple[cq.Shape, str, Optional[Color]]]) -> list[PartGroup]:
     """Group solids into equivalence classes of identical parts.
 
-    Two parts are considered identical if their geometric signatures match.
-    Signature is rotation and translation invariant.
-    Mirrored parts are also considered identical.
+    Two parts are considered identical if:
+    1. Their geometric signatures match (rotation/translation invariant).
+    2. Their colors are identical.
+    3. Their names are compatible (same meaningful name, or at least one is generic).
+    
+    This ensures that parts with different meaningful names (e.g. mirrors
+    named 'balcony_side' vs 'balcony_side_left') are kept as separate groups.
     """
     if not metadata_solids:
         return []
@@ -174,8 +201,9 @@ def deduplicate(metadata_solids: list[tuple[cq.Shape, str, Optional[Color]]]) ->
                 
             _, sig_j, _, name_j, color_j = entries[j]
             
-            # Match only if both geometry and color are identical
-            if sig_i.matches(sig_j) and color_i == color_j:
+            # Match requires geometry, color, AND compatible names
+            if (sig_i.matches(sig_j) and color_i == color_j
+                    and _names_are_compatible(name_i, name_j)):
                 group.count += 1
                 group.names.add(name_j)
                 assigned.add(j)

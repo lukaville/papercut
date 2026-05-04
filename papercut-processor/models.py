@@ -59,7 +59,8 @@ class SheetResult:
 
 @dataclass
 class PartConfig:
-    flip: bool = False
+    flip_horizontal: bool = False
+    flip_vertical: bool = False
 
 
 @dataclass
@@ -73,7 +74,7 @@ class PlacementConfig:
     sheet_margin_mm: float = 10.0
     part_margin_mm: float = 5.0
     label_square_size_mm: float = 15.0
-    part_label_size_mm: float = 4.0
+    part_label_size_mm: float = 3.2
 
 
 @dataclass
