@@ -312,6 +312,8 @@ def export_sheets(
         output_path = sheets_dir / filename
         
         doc = ezdxf.new(dxfversion="R2010")
+        doc.header['$INSUNITS'] = 4  # 4 = Millimeters
+        doc.header['$MEASUREMENT'] = 1  # 1 = Metric
         doc.layers.add(name="cutting", color=7) # White/Black
         doc.layers.add(name="engraving", color=1) # Red
         doc.layers.add(name="sheet_outline", color=8) # Grey

@@ -5,6 +5,7 @@ import math
 import uuid
 
 import cadquery as cq
+import ezdxf
 from OCP.GProp import GProp_GProps
 from OCP.BRepGProp import BRepGProp
 from OCP.gp import gp_Pnt, gp_Dir, gp_Ax2, gp_Ax3, gp_Trsf, gp_Vec
@@ -199,6 +200,15 @@ def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float, kerf
 
     path.parent.mkdir(parents=True, exist_ok=True)
     cq.exporters.exportDXF(wp, str(path))
+    
+    # Fix units in the exported DXF
+    try:
+        doc = ezdxf.readfile(path)
+        doc.header['$INSUNITS'] = 4
+        doc.header['$MEASUREMENT'] = 1
+        doc.save()
+    except Exception as e:
+        print(f"Warning: Failed to set DXF units for {path.name}: {e}")
     
     # Generate high-fidelity SVG path string from wires
     svg_paths = []
