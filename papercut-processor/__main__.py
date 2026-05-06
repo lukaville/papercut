@@ -232,6 +232,24 @@ def main():
         export_sheets(project_dir, sheets_results, config.placement, config.bridges)
         export_preview_svg(project_dir, sheets_results, svg_paths, config.placement, config.bridges)
 
+        # Print part ID mapping
+        print()
+        print("Part ID Mapping:")
+        mapping = {}
+        for res in sheets_results:
+            for pp in res.placed_parts:
+                full_id = f"{res.label}{pp.part_id}"
+                mapping.setdefault(pp.name, set()).add(full_id)
+        
+        # Natural sort for IDs (A1, A2, A10)
+        def natural_key(s):
+            return [int(text) if text.isdigit() else text.lower()
+                    for text in re.split(r'(\d+)', s)]
+
+        for part_name in sorted(mapping.keys()):
+            ids = sorted(list(mapping[part_name]), key=natural_key)
+            print(f"  {part_name:<30} -> {', '.join(ids)}")
+
 
 if __name__ == "__main__":
     main()

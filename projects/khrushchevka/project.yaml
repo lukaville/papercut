@@ -3,6 +3,8 @@ import:
     parts:
       balcony_side_left:
         flip_horizontal: true
+      outer_side:
+        flip_horizontal: true
 
 overlays: {}
 
@@ -31,7 +33,7 @@ placement:
 
 bridges:
   enable: true
-  size_mm: 0.3
+  size_mm: 0.85
   min_size_all_corners_mm: 20
   min_length_extra_bridge_mm: 100
   overcut: true
@@ -39,4 +41,4 @@ bridges:
 
 kerf:
   compensation: true
-  offset_mm: 0.05
+  offset_mm: 0.08

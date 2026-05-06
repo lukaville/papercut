@@ -335,14 +335,7 @@ def export_sheets(
                 elif abs(top - current_top) < 0.001 and left < current_left - 0.001:
                     label_carriers[part.name] = part
 
-        msp.add_lwpolyline([
-            (0, 0), (res.config.width_mm, 0), 
-            (res.config.width_mm, res.config.height_mm), 
-            (0, res.config.height_mm), (0, 0)
-        ], dxfattribs={'layer': 'sheet_outline'})
-
-        # Draw sheet identification label square and text (Top-Left)
-        # In CAD: (margin, height - margin - size)
+        # 1. Engraving Layer (Sheet-level)
         margin = placement_config.sheet_margin_mm
         l_size = placement_config.label_square_size_mm
         label_x = margin
@@ -354,7 +347,6 @@ def export_sheets(
             (label_x, label_y + l_size), (label_x, label_y)
         ], dxfattribs={'layer': 'engraving'})
         
-        # Center text inside square
         text = msp.add_text(
             res.label, 
             dxfattribs={
@@ -366,26 +358,19 @@ def export_sheets(
         )
         text.set_placement((label_x + l_size/2, label_y + l_size/2))
 
+        # 2. Engraving Layer (Part-level: Overlays and ID labels)
         for part in res.placed_parts:
-            # 1. Import Cutting Geometry
-            part_path = parts_dir / f"{part.name}.dxf"
-            if part_path.exists():
-                _import_part_to_sheet(part_path, doc, msp, (part.x_mm, part.y_mm), "cutting", part.rotated, part.width_mm, part.height_mm, bridge_config)
-            
-            # 2. Import Engraving Geometry (from overlay if exists)
+            # Import Engraving Geometry (from overlay if exists)
             overlay_path = overlays_dir / f"{part.name}.dxf"
+            part_path = parts_dir / f"{part.name}.dxf"
             if overlay_path.exists():
                 _import_overlay_to_sheet(overlay_path, part_path, doc, msp, (part.x_mm, part.y_mm), part.rotated, part.width_mm, part.height_mm)
 
-            # 3. Add Part ID Label (e.g., 1, 2)
+            # Add Part ID Label (e.g., 1, 2)
             if part.part_id is not None and part is label_carriers.get(part.name):
                 id_text = str(part.part_id)
                 label_size = placement_config.part_label_size_mm
-                
-                # Calculate top-left position
                 placed_h = part.width_mm if part.rotated else part.height_mm
-                # Place label just above the top-left corner of the part (outside)
-                # Offset by 0.5mm buffer above the part
                 label_pos = (part.x_mm + 0.5, part.y_mm + placed_h + 0.5)
                 
                 msp.add_text(
@@ -395,6 +380,19 @@ def export_sheets(
                         'height': label_size,
                     }
                 ).set_placement(label_pos)
+
+        # 3. Cutting Layer
+        for part in res.placed_parts:
+            part_path = parts_dir / f"{part.name}.dxf"
+            if part_path.exists():
+                _import_part_to_sheet(part_path, doc, msp, (part.x_mm, part.y_mm), "cutting", part.rotated, part.width_mm, part.height_mm, bridge_config)
+
+        # 4. Sheet Outline Layer (Last)
+        msp.add_lwpolyline([
+            (0, 0), (res.config.width_mm, 0), 
+            (res.config.width_mm, res.config.height_mm), 
+            (0, res.config.height_mm), (0, 0)
+        ], dxfattribs={'layer': 'sheet_outline'})
 
         doc.saveas(output_path)
         
