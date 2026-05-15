@@ -27,6 +27,28 @@ class Part:
     area_mm2: float
     count: int
     color: Optional[Color]
+    group_id: Optional[int] = None # Link to deduplication group
+
+
+@dataclass
+class PartInstance:
+    name: str
+    color: Optional[Color]
+    solid: cq.Shape
+    matrix: list[float] # 4x4 transformation matrix
+    group_id: Optional[int] = None
+    sheet_label: Optional[str] = None
+    sheet_part_id: Optional[int] = None
+
+
+@dataclass
+class PartGroup:
+    """A group of identical parts (same geometry and color)."""
+    id: int
+    canonical: cq.Shape
+    names: set[str] = field(default_factory=set)
+    color: Optional[Color] = None
+    count: int = 0
 
 
 @dataclass

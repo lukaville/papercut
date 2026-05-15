@@ -1,0 +1,663 @@
+import json
+from pathlib import Path
+import cadquery as cq
+from models import PartInstance, PartGroup, SheetResult
+
+VIEWER_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papercut - 3D Assembly Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <style>
+        :root {
+            --glass: rgba(15, 23, 42, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent: #00f2ff;
+            --bg: #0f172a;
+            --text: #f8fafc;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        #viewport {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            bottom: 20px;
+            width: 320px;
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            z-index: 100;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: var(--accent);
+        }
+
+        .stats {
+            font-size: 14px;
+            opacity: 0.6;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px 16px;
+            color: white;
+            font-family: inherit;
+            margin-bottom: 20px;
+            outline: none;
+            width: calc(100% - 34px);
+        }
+
+        .part-list {
+            flex: 1;
+            overflow-y: auto;
+            margin-right: -10px;
+            padding-right: 10px;
+        }
+
+        .part-item {
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .part-item:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--glass-border);
+        }
+
+        .part-item.active {
+            background: rgba(0, 242, 255, 0.1);
+            border-color: var(--accent);
+        }
+
+        .part-name {
+            font-weight: 600;
+            font-size: 14px;
+            display: block;
+        }
+
+        .part-meta {
+            font-size: 12px;
+            opacity: 0.6;
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            max-height: calc(100vh - 80px);
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 24px;
+            display: none;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .sheet-preview {
+            width: 100%;
+            aspect-ratio: 0.707; /* A4 Tall */
+            background: #fff;
+            border-radius: 12px;
+            margin-top: 15px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .sheet-rect {
+            position: absolute;
+            background: #cbd5e1;
+            border: 0.2px solid #94a3b8;
+        }
+
+        .sheet-rect.highlight {
+            background: var(--accent);
+            border-color: #0ea5e9;
+            box-shadow: 0 0 15px var(--accent);
+            z-index: 10;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            opacity: 0.5;
+            padding: 5px;
+            line-height: 1;
+        }
+
+        .deselect-btn {
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0.5;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 10px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .deselect-btn:hover { opacity: 1; background: rgba(255,255,255,0.2); }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+    </style>
+</head>
+<body>
+    <div id="viewport"></div>
+    
+    <div class="overlay">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+            <h1>Papercut</h1>
+            <span class="deselect-btn" onclick="deselect()">Deselect</span>
+        </div>
+        <div class="stats" id="global-stats">Loading assembly...</div>
+        
+        <input type="text" class="search-box" placeholder="Search parts..." id="search">
+        
+        <div class="part-list" id="part-list"></div>
+    </div>
+
+    <div id="info-panel">
+        <div class="close-btn" onclick="deselect()">✕</div>
+        <h2 id="info-title" style="margin:0; font-size:20px; padding-right:30px">Part Name</h2>
+        <div id="info-group" style="font-size:13px; opacity:0.6; margin-bottom:20px; line-height:1.4">Group Name</div>
+        
+        <div style="font-size:14px; background: rgba(255,255,255,0.05); padding:15px; border-radius:16px; border: 1px solid var(--glass-border)">
+            <div style="margin-bottom:10px; display:flex; justify-content:space-between">
+                <span style="opacity:0.6">Dimensions:</span>
+                <span id="info-dims">-</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <span style="opacity:0.6">Located on:</span>
+                <div id="info-sheets-tabs" style="display:flex; gap:5px"></div>
+            </div>
+        </div>
+
+        <div id="sheet-map-section">
+            <div style="margin-top:24px; font-weight:600; font-size:13px; opacity:0.8; display:flex; justify-content:space-between">
+                <span>Sheet Map</span>
+                <span id="info-label" style="color:var(--accent)">-</span>
+            </div>
+            <div class="sheet-preview" id="sheet-preview"></div>
+            <div id="sheet-name" style="font-size:11px; text-align:center; margin-top:10px; color:rgba(255,255,255,0.4); font-family:monospace">Sheet Name</div>
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, controls, grid;
+        let projectData = null;
+        let groupMeshes = {};
+        let instances = [];
+        let selectedObject = null;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+
+        async function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f172a);
+            scene.fog = new THREE.Fog(0x0f172a, 1000, 8000);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 30000);
+            camera.position.set(1200, 1200, 1200);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('viewport').appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = true;
+            
+            // Lighting
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            scene.add(new THREE.HemisphereLight(0xffffff, 0x0f172a, 0.8));
+            
+            const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+            sun.position.set(2000, 2000, 2000);
+            scene.add(sun);
+            
+            const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            backLight.position.set(-2000, 1000, -2000);
+            scene.add(backLight);
+            
+            const fillLight = new THREE.PointLight(0x00f2ff, 0.4);
+            fillLight.position.set(0, 1000, 0);
+            scene.add(fillLight);
+
+            // Grid
+            grid = new THREE.GridHelper(6000, 60, 0x334155, 0x1e293b);
+            scene.add(grid);
+
+            await loadData();
+            animate();
+            
+            window.addEventListener('resize', onWindowResize);
+            renderer.domElement.addEventListener('click', onClick);
+            document.getElementById('search').addEventListener('input', (e) => filterList(e.target.value));
+        }
+
+        async function loadData() {
+            const resp = await fetch('project_data.json');
+            projectData = await resp.json();
+
+            document.getElementById('global-stats').textContent = 
+                `${projectData.groups.length} unique parts, ${projectData.instances.length} total instances`;
+
+            const loader = new THREE.STLLoader();
+            for (const group of projectData.groups) {
+                const geometry = await new Promise(resolve => loader.load(group.model, resolve));
+                groupMeshes[group.id] = geometry;
+                addPartToList(group);
+            }
+
+            projectData.instances.forEach((inst, idx) => {
+                const group = projectData.groups.find(g => g.id === inst.group_id);
+                const container = new THREE.Group();
+                
+                // Mesh
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: group.color,
+                    specular: 0x222222,
+                    shininess: 30,
+                    transparent: true,
+                    opacity: 1.0
+                });
+                const mesh = new THREE.Mesh(groupMeshes[inst.group_id], material);
+                container.add(mesh);
+                
+                // Edges
+                const edges = new THREE.EdgesGeometry(groupMeshes[inst.group_id]);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ 
+                    color: 0x000000, 
+                    opacity: 0.1, 
+                    transparent: true 
+                }));
+                container.add(line);
+                
+                // Transformation
+                const m = new THREE.Matrix4().fromArray(inst.matrix);
+                container.applyMatrix4(m);
+                
+                // ID Label (Sprite + Leader Line)
+                if (inst.sheet_label) {
+                    const labelStr = `${inst.sheet_label}${inst.sheet_part_id}`;
+                    const labelGroup = new THREE.Group();
+                    
+                    const sprite = createLabelSprite(labelStr);
+                    sprite.position.set(0, 120, 0); // Offset upwards
+                    labelGroup.add(sprite);
+                    
+                    // Leader Line
+                    const lineGeom = new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(0, 0, 0),
+                        new THREE.Vector3(0, 110, 0)
+                    ]);
+                    const leaderLine = new THREE.Line(lineGeom, new THREE.LineBasicMaterial({ 
+                        color: 0x00f2ff, 
+                        transparent: true, 
+                        opacity: 0.4 
+                    }));
+                    labelGroup.add(leaderLine);
+                    
+                    labelGroup.visible = false;
+                    container.add(labelGroup);
+                    container.userData.labelGroup = labelGroup;
+                }
+                
+                container.userData.instIdx = idx;
+                container.userData.groupId = inst.group_id;
+                container.userData.isPart = true;
+                scene.add(container);
+                instances.push(container);
+            });
+
+            const box = new THREE.Box3().setFromObject(scene);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            grid.position.y = box.min.y - 5;
+            controls.target.copy(center);
+            
+            // Initial Zoom - set camera closer
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const dist = maxDim * 1.2; 
+            camera.position.set(center.x + dist, center.y + dist, center.z + dist);
+            camera.lookAt(center);
+        }
+
+        function createLabelSprite(text) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#00f2ff';
+            ctx.font = 'bold 44px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Glow effect
+            ctx.shadowColor = '#00f2ff';
+            ctx.shadowBlur = 10;
+            ctx.fillText(text, 64, 32);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ 
+                map: texture, 
+                transparent: true,
+                depthTest: false 
+            });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(60, 30, 1);
+            return sprite;
+        }
+
+        function filterList(q) {
+            const items = document.querySelectorAll('.part-item');
+            items.forEach(item => {
+                const name = item.querySelector('.part-name').textContent.toLowerCase();
+                item.style.display = name.includes(q.toLowerCase()) ? 'block' : 'none';
+            });
+        }
+
+        function addPartToList(group) {
+            const list = document.getElementById('part-list');
+            const item = document.createElement('div');
+            item.className = 'part-item';
+            item.id = `list-item-${group.id}`;
+            item.innerHTML = `
+                <span class="part-name">${group.names[0]}</span>
+                <div class="part-meta">
+                    <span>${group.count} instances</span>
+                    <span style="color:${group.color}">●</span>
+                </div>
+            `;
+            item.onclick = (e) => { e.stopPropagation(); highlightGroup(group.id); };
+            list.appendChild(item);
+        }
+
+        function highlightGroup(groupId) {
+            deselect();
+            document.querySelectorAll('.part-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`list-item-${groupId}`).classList.add('active');
+            
+            let firstMatch = null;
+            instances.forEach(container => {
+                if (container.userData.groupId === groupId) {
+                    container.children[0].material.emissive.setHex(0x333333);
+                    if (container.userData.labelGroup) container.userData.labelGroup.visible = true;
+                    if (!firstMatch) firstMatch = container;
+                } else {
+                    container.children[0].material.opacity = 0.15;
+                    container.children[1].material.opacity = 0.05;
+                }
+            });
+
+            if (firstMatch) {
+                const inst = projectData.instances[firstMatch.userData.instIdx];
+                showInfo(inst);
+            }
+        }
+
+        function deselect() {
+            instances.forEach(container => {
+                container.children[0].material.emissive.setHex(0x000000);
+                container.children[0].material.opacity = 1.0;
+                container.children[1].material.opacity = 0.1;
+                if (container.userData.labelGroup) container.userData.labelGroup.visible = false;
+            });
+            document.querySelectorAll('.part-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('info-panel').style.display = 'none';
+            selectedObject = null;
+        }
+
+        function onClick(event) {
+            if (event.target.closest('.overlay') || event.target.closest('#info-panel')) return;
+            
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            let selected = null;
+            for (let intersect of intersects) {
+                let obj = intersect.object;
+                while (obj && !obj.userData.isPart) obj = obj.parent;
+                if (obj && obj.userData.isPart) { selected = obj; break; }
+            }
+            
+            if (selected) {
+                const inst = projectData.instances[selected.userData.instIdx];
+                highlightGroup(inst.group_id); // Re-use group highlight logic
+                showInfo(inst);
+                // Specifically highlight THIS instance label
+                selected.userData.labelGroup.visible = true;
+                selected.children[0].material.emissive.setHex(0x555555);
+                selectedObject = selected;
+            } else {
+                deselect();
+            }
+        }
+
+        function showInfo(inst) {
+            const group = projectData.groups.find(g => g.id === inst.group_id);
+            document.getElementById('info-panel').style.display = 'block';
+            document.getElementById('info-title').textContent = inst.name;
+            document.getElementById('info-group').textContent = group.names.join(', ');
+            
+            // Find all sheets that contain instances of this group
+            const groupInstances = projectData.instances.filter(i => i.group_id === inst.group_id && i.sheet_label);
+            const sheetLabels = [...new Set(groupInstances.map(i => i.sheet_label))].sort();
+            
+            const tabs = document.getElementById('info-sheets-tabs');
+            tabs.innerHTML = '';
+            
+            if (sheetLabels.length > 0) {
+                document.getElementById('sheet-map-section').style.display = 'block';
+                sheetLabels.forEach(label => {
+                    const btn = document.createElement('span');
+                    btn.textContent = label;
+                    btn.style.cssText = `
+                        cursor: pointer;
+                        padding: 2px 8px;
+                        background: ${label === inst.sheet_label ? 'var(--accent)' : 'rgba(255,255,255,0.1)'};
+                        color: ${label === inst.sheet_label ? '#000' : '#fff'};
+                        border-radius: 6px;
+                        font-size: 11px;
+                        font-weight: 600;
+                    `;
+                    btn.onclick = () => {
+                        // Find first instance on this sheet
+                        const targetInst = groupInstances.find(i => i.sheet_label === label);
+                        showInfo(targetInst);
+                    };
+                    tabs.appendChild(btn);
+                });
+                
+                document.getElementById('info-label').textContent = `${inst.sheet_label}${inst.sheet_part_id}`;
+                renderSheetPreview(inst.sheet_label, inst.sheet_part_id);
+            } else {
+                document.getElementById('sheet-map-section').style.display = 'none';
+                document.getElementById('info-label').textContent = 'N/A';
+            }
+            
+            // Get dimensions
+            document.getElementById('info-dims').textContent = 'N/A';
+            const sheet = projectData.sheets.find(s => s.label === inst.sheet_label);
+            if (sheet) {
+                const p = sheet.parts.find(p => p.id === inst.sheet_part_id);
+                if (p) {
+                    document.getElementById('info-dims').textContent = `${p.w.toFixed(1)} x ${p.h.toFixed(1)} mm`;
+                }
+            }
+        }
+
+        function renderSheetPreview(label, highlightId) {
+            const sheet = projectData.sheets.find(s => s.label === label);
+            const preview = document.getElementById('sheet-preview');
+            preview.innerHTML = '';
+            document.getElementById('sheet-name').textContent = `Sheet ${label}: ${sheet.name}`;
+            
+            // Set dynamic aspect ratio based on sheet
+            preview.style.aspectRatio = (sheet.width / sheet.height);
+            
+            const scale = Math.min(preview.clientWidth / sheet.width, preview.clientHeight / sheet.height);
+            const offsetX = (preview.clientWidth - sheet.width * scale) / 2;
+            const offsetY = (preview.clientHeight - sheet.height * scale) / 2;
+            
+            sheet.parts.forEach(p => {
+                const rect = document.createElement('div');
+                rect.className = 'sheet-rect' + (p.id === highlightId ? ' highlight' : '');
+                
+                // Actual scaled dimensions
+                const w = (p.rotated ? p.h : p.w) * scale;
+                const h = (p.rotated ? p.w : p.h) * scale;
+                
+                rect.style.width = w + 'px';
+                rect.style.height = h + 'px';
+                rect.style.left = (offsetX + p.x * scale) + 'px';
+                
+                // OpenCASCADE (Y-up) to CSS (Y-down)
+                rect.style.top = (offsetY + (sheet.height - p.y - (p.rotated ? p.w : p.h)) * scale) + 'px';
+                
+                preview.appendChild(rect);
+            });
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+</body>
+</html>
+"""
+
+def export_viewer(project_dir: Path, instances: list[PartInstance], groups: list[PartGroup], sheets: list[SheetResult]):
+    """Export an interactive 3D assembly viewer to the project directory."""
+    print(f"Exporting 3D assembly viewer ...")
+    
+    viewer_dir = project_dir / "viewer"
+    viewer_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 1. Export Unique Parts as STL
+    models_dir = viewer_dir / "models"
+    models_dir.mkdir(parents=True, exist_ok=True)
+    
+    group_models = {}
+    for group in groups:
+        # Convert set of names to a safe filename
+        safe_name = "".join(c if c.isalnum() else "_" for c in list(group.names)[0])
+        model_name = f"group_{group.id}_{safe_name}.stl"
+        model_path = models_dir / model_name
+        
+        # Export the canonical shape for the viewer.
+        # Since step_reader now clears the internal location and stores it in the matrix,
+        # we can just export the canonical shape as-is.
+        cq.exporters.export(group.canonical, str(model_path))
+        group_models[group.id] = f"models/{model_name}"
+        
+    # 2. Prepare Metadata JSON
+    data = {
+        "groups": [],
+        "instances": [],
+        "sheets": []
+    }
+    
+    for group in groups:
+        data["groups"].append({
+            "id": group.id,
+            "names": sorted(list(group.names)),
+            "count": group.count,
+            "color": group.color.hex if group.color else "#cccccc",
+            "model": group_models[group.id]
+        })
+        
+    for inst in instances:
+        data["instances"].append({
+            "name": inst.name,
+            "group_id": inst.group_id,
+            "matrix": inst.matrix,
+            "sheet_label": inst.sheet_label,
+            "sheet_part_id": inst.sheet_part_id
+        })
+        
+    for sheet in sheets:
+        data["sheets"].append({
+            "label": sheet.label,
+            "name": sheet.config.name,
+            "width": sheet.config.width_mm,
+            "height": sheet.config.height_mm,
+            "parts": [
+                {
+                    "name": pp.name,
+                    "id": pp.part_id,
+                    "x": pp.x_mm,
+                    "y": pp.y_mm,
+                    "w": pp.width_mm,
+                    "h": pp.height_mm,
+                    "rotated": pp.rotated
+                } for pp in sheet.placed_parts
+            ]
+        })
+        
+    with open(viewer_dir / "project_data.json", "w") as f:
+        json.dump(data, f, indent=2)
+        
+    # 3. Save viewer.html
+    with open(viewer_dir / "viewer.html", "w") as f:
+        f.write(VIEWER_HTML)
+        
+    print(f"  Viewer exported to: {viewer_dir / 'viewer.html'}")

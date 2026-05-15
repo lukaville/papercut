@@ -19,24 +19,7 @@ _REL_TOL = 1e-3
 _ABS_TOL = 1e-5
 
 
-from step_reader import Color
-
-@dataclass
-class PartGroup:
-    """A group of identical parts (same geometry and color)."""
-
-    canonical: cq.Shape
-    """One representative solid from this group."""
-
-    names: set[str] = field(default_factory=set)
-    """All names associated with parts in this group."""
-
-    color: Optional[Color] = None
-    """The unique color associated with parts in this group."""
-
-    count: int = 0
-    """How many instances of this part exist in the model."""
-
+from models import Color, PartInstance, PartGroup
 
 @dataclass
 class _ShapeSignature:
@@ -163,7 +146,7 @@ def _names_are_compatible(name_a: str, name_b: str) -> bool:
     return name_a.lower().replace(" ", "_") == name_b.lower().replace(" ", "_")
 
 
-def deduplicate(metadata_solids: list[tuple[cq.Shape, str, Optional[Color]]]) -> list[PartGroup]:
+def deduplicate(instances: list[PartInstance]) -> list[PartGroup]:
     """Group solids into equivalence classes of identical parts.
 
     Two parts are considered identical if:
@@ -171,41 +154,44 @@ def deduplicate(metadata_solids: list[tuple[cq.Shape, str, Optional[Color]]]) ->
     2. Their colors are identical.
     3. Their names are compatible (same meaningful name, or at least one is generic).
     
-    This ensures that parts with different meaningful names (e.g. mirrors
-    named 'balcony_side' vs 'balcony_side_left') are kept as separate groups.
+    Assigns group_id to each instance and returns the list of PartGroups.
     """
-    if not metadata_solids:
+    if not instances:
         return []
 
     # Pre-compute centered shapes and signatures.
-    entries: list[tuple[cq.Shape, _ShapeSignature, cq.Shape, str, Optional[Color]]] = []
-    for solid, name, color in metadata_solids:
-        centered = _center_at_origin(solid)
+    # We use the solid from the instance, which has local location applied.
+    entries: list[tuple[PartInstance, _ShapeSignature, cq.Shape]] = []
+    for inst in instances:
+        centered = _center_at_origin(inst.solid)
         sig = _compute_signature(centered)
-        entries.append((solid, sig, centered, name, color))
+        entries.append((inst, sig, centered))
 
     groups: list[PartGroup] = []
     # Track which entry indices have been assigned to a group.
     assigned = set()
 
-    for i, (solid_i, sig_i, centered_i, name_i, color_i) in enumerate(entries):
+    for i, (inst_i, sig_i, centered_i) in enumerate(entries):
         if i in assigned:
             continue
             
-        group = PartGroup(canonical=solid_i, count=1, names={name_i}, color=color_i)
+        group_idx = len(groups)
+        group = PartGroup(id=group_idx, canonical=inst_i.solid, count=1, names={inst_i.name}, color=inst_i.color)
+        inst_i.group_id = group_idx
         assigned.add(i)
         
         for j in range(i + 1, len(entries)):
             if j in assigned:
                 continue
                 
-            _, sig_j, _, name_j, color_j = entries[j]
+            inst_j, sig_j, _ = entries[j]
             
             # Match requires geometry, color, AND compatible names
-            if (sig_i.matches(sig_j) and color_i == color_j
-                    and _names_are_compatible(name_i, name_j)):
+            if (sig_i.matches(sig_j) and inst_i.color == inst_j.color
+                    and _names_are_compatible(inst_i.name, inst_j.name)):
                 group.count += 1
-                group.names.add(name_j)
+                group.names.add(inst_j.name)
+                inst_j.group_id = group_idx
                 assigned.add(j)
                 
         groups.append(group)

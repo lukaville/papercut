@@ -5,18 +5,35 @@ from OCP.BRepGProp import BRepGProp
 from typing import Optional
 import sys
 
-def check_intersections(named_solids: list[tuple[cq.Shape, str, any]], tolerance: float = 1e-4) -> None:
-    """Check for volumetric intersections between all pairs of solids.
+from models import PartInstance
+
+def check_intersections(instances: list[PartInstance], tolerance: float = 1e-4) -> None:
+    """Check for volumetric intersections between all pairs of part instances.
     
     Uses a spatial grid to optimize pair selection and AABB filtering for pruning.
     Throws a ValueError if any two solids overlap by more than the tolerance volume.
     """
-    n = len(named_solids)
+    n = len(instances)
     if n < 2:
         return
 
-    # Pre-compute AABBs
-    aabbs = [solid.BoundingBox() for solid, _, _ in named_solids]
+    from OCP.gp import gp_Trsf
+
+    def _list_to_trsf(m: list[float]) -> gp_Trsf:
+        trsf = gp_Trsf()
+        trsf.SetValues(
+            m[0], m[4], m[8],  m[12],
+            m[1], m[5], m[9],  m[13],
+            m[2], m[6], m[10], m[14]
+        )
+        return trsf
+
+    # 1. Pre-compute AABBs in world space
+    aabbs = []
+    for inst in instances:
+        trsf = _list_to_trsf(inst.matrix)
+        world_solid = inst.solid.moved(cq.Location(trsf))
+        aabbs.append(world_solid.BoundingBox())
     
     # Spatial hashing to find candidate pairs
     # Determine grid cell size based on average bounding box size
@@ -49,10 +66,16 @@ def check_intersections(named_solids: list[tuple[cq.Shape, str, any]], tolerance
 
     conflicts = []
 
+
     for idx1, idx2 in candidate_pairs:
-        solid_i, name_i, _ = named_solids[idx1]
+        inst_i = instances[idx1]
+        solid_i = inst_i.solid.moved(cq.Location(_list_to_trsf(inst_i.matrix))).wrapped
+        name_i = inst_i.name
         bb_i = aabbs[idx1]
-        solid_j, name_j, _ = named_solids[idx2]
+        
+        inst_j = instances[idx2]
+        solid_j = inst_j.solid.moved(cq.Location(_list_to_trsf(inst_j.matrix))).wrapped
+        name_j = inst_j.name
         bb_j = aabbs[idx2]
 
         # 1. Quick AABB check (with small negative buffer)

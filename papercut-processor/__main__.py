@@ -17,7 +17,8 @@ from dxf_exporter import export_part_dxf
 from clash_detection import check_intersections
 from overlay_manager import manage_overlays
 from placer import place_parts, export_sheets, export_preview_svg
-from models import Part, ProjectConfig
+from viewer_exporter import export_viewer
+from models import Part, ProjectConfig, PartInstance
 
 
 def resolve_names(groups: list[PartGroup]) -> list[tuple[PartGroup, str, bool]]:
@@ -51,7 +52,6 @@ def resolve_names(groups: list[PartGroup]) -> list[tuple[PartGroup, str, bool]]:
                 candidate = list(normalized)[0]
             else:
                 # Conflict!
-                # We'll just pick one and the uniqueness check will handle it
                 candidate = list(normalized)[0]
         
         # Ensure candidate is alphanumeric-ish
@@ -92,24 +92,24 @@ def main():
         for name, p_config in imp.parts.items():
             part_configs[name] = p_config
 
-    # Step 1: Load all solids from imported files
-    all_named_solids = []
+    # Step 1: Load all solids and instances from imported files
+    all_instances = []
     for imp in config.imports:
         step_path = project_dir / imp.file
         print(f"Loading {step_path} ...")
-        solids = load_step(step_path)
-        all_named_solids.extend(solids)
+        instances = load_step(step_path)
+        all_instances.extend(instances)
 
-    if not all_named_solids:
+    if not all_instances:
         print("No parts found in STEP files.")
         return
 
-    print(f"  Found {len(all_named_solids)} solid(s)")
+    print(f"  Found {len(all_instances)} instance(s)")
 
     # Step 1.5: Check for intersections (clashes)
     print("Checking for volumetric intersections (clash detection) ...")
     try:
-        check_intersections(all_named_solids)
+        check_intersections(all_instances)
         print("  No intersections found (tolerance: 0.0001 mm³).")
     except ValueError as e:
         print(str(e), file=sys.stderr)
@@ -117,18 +117,17 @@ def main():
 
     # Step 2: Detect material thickness
     print("Detecting material thickness ...")
-    thickness = detect_thickness([s for s, _, _ in all_named_solids])
+    thickness = detect_thickness([inst.solid for inst in all_instances])
     print(f"  Detected material thickness: {thickness:.3f} mm")
 
     # Step 2.5: Apply flips based on configuration
     print("Applying part flips ...")
-    transformed_solids = []
-    for solid, name, color in all_named_solids:
-        if name in part_configs:
-            p_config = part_configs[name]
+    for inst in all_instances:
+        if inst.name in part_configs:
+            p_config = part_configs[inst.name]
             if p_config.flip_horizontal or p_config.flip_vertical:
                 # Find thickness axis for this specific instance
-                bb = solid.BoundingBox()
+                bb = inst.solid.BoundingBox()
                 dims = [("X", bb.xlen), ("Y", bb.ylen), ("Z", bb.zlen)]
                 # Find the dimension closest to 'thickness' detected in Step 2
                 thickness_axis = min(dims, key=lambda d: abs(d[1] - thickness))[0]
@@ -142,15 +141,13 @@ def main():
                     h_axis, v_axis = "X", "Z"
                 
                 if p_config.flip_horizontal:
-                    solid = _mirror_solid(solid, h_axis)
+                    inst.solid = _mirror_solid(inst.solid, h_axis)
                 if p_config.flip_vertical:
-                    solid = _mirror_solid(solid, v_axis)
-        transformed_solids.append((solid, name, color))
-    all_named_solids = transformed_solids
+                    inst.solid = _mirror_solid(inst.solid, v_axis)
 
     # Step 3: Deduplicate union of all solids
     print("Deduplicating union of all parts ...")
-    groups = deduplicate(all_named_solids)
+    groups = deduplicate(all_instances)
     print(f"  Found {len(groups)} unique part(s)")
 
     # Step 4: Resolve names
@@ -160,7 +157,7 @@ def main():
     parts_dir = project_dir / "parts"
     parts_dir.mkdir(parents=True, exist_ok=True)
 
-    # Clear existing DXF files to prevent stale leftovers from previous runs
+    # Clear existing DXF files
     for f in parts_dir.glob("*.dxf"):
         try:
             f.unlink()
@@ -176,19 +173,21 @@ def main():
     svg_paths = {} # Temporary store for preview
 
     for group, filename, _ in group_names:
+        # Update instances in this group to have the resolved filename
+        for inst in all_instances:
+            if inst.group_id == group.id:
+                inst.name = filename # Use unique filename for viewer link
+
         dxf_path = parts_dir / f"{filename}.dxf"
-        
         shape_to_export = group.canonical
 
-        # Export and get the compensated dimensions and SVG path
+        # Export and get dimensions
         kerf_offset = config.kerf.offset_mm if config.kerf.compensation else 0.0
         ref_path = parts_dir / f"{filename}.ref.dxf" if config.kerf.compensation else None
         
         width_mm, height_mm, area, svg_path = export_part_dxf(shape_to_export, dxf_path, thickness, kerf_offset, ref_path)
         svg_paths[filename] = svg_path
 
-        # Use the compensated dimensions for reporting
-        # For Z dimension, we still use material thickness
         dim_str = f"{width_mm:.1f} × {height_mm:.1f} × {thickness:.1f}"
         
         # Store for placement
@@ -198,7 +197,8 @@ def main():
             height_mm=height_mm,
             area_mm2=area,
             count=group.count,
-            color=group.color
+            color=group.color,
+            group_id=group.id
         ))
         
         # Get color info for reporting
@@ -219,6 +219,7 @@ def main():
         manage_overlays(project_dir, config.overlays)
 
     # Step 7: Place parts on sheets
+    sheets_results = []
     if config.sheets:
         print()
         print(f"Placing parts on sheets in {project_dir / 'sheets'} ...")
@@ -226,7 +227,8 @@ def main():
         sheets_results = place_parts(
             placement_metadata,
             config.sheets,
-            config.placement
+            config.placement,
+            all_instances
         )
         
         export_sheets(project_dir, sheets_results, config.placement, config.bridges)
@@ -249,6 +251,9 @@ def main():
         for part_name in sorted(mapping.keys()):
             ids = sorted(list(mapping[part_name]), key=natural_key)
             print(f"  {part_name:<30} -> {', '.join(ids)}")
+
+    # Step 8: Export 3D Viewer
+    export_viewer(project_dir, all_instances, groups, sheets_results)
 
 
 if __name__ == "__main__":

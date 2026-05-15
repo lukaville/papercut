@@ -13,8 +13,9 @@ from OCP.TCollection import TCollection_ExtendedString
 from OCP.TDataStd import TDataStd_Name
 from OCP.TopExp import TopExp_Explorer
 from OCP.TopAbs import TopAbs_SOLID
+from OCP.gp import gp_Trsf, gp_Vec
 
-from models import Color
+from models import Color, PartInstance
 
 
 def _get_name(label: TDF_Label) -> str:
@@ -46,10 +47,44 @@ def _get_color(label: TDF_Label, color_tool, shape_tool) -> Optional[Color]:
     return None
 
 
+def _get_matrix(label: TDF_Label) -> gp_Trsf:
+    """Extract transformation from a label."""
+    loc = XCAFDoc_ShapeTool.GetLocation_s(label)
+    return loc.Transformation()
+
+
+def _combine_trsf(t1: gp_Trsf, t2: gp_Trsf) -> gp_Trsf:
+    """Combine two transformations."""
+    return t1.Multiplied(t2)
+
+
+def _trsf_to_list(trsf: gp_Trsf) -> list[float]:
+    """Convert gp_Trsf to a 4x4 column-major list of 16 floats for Three.js."""
+    m = [0.0] * 16
+    # Three.js expects column-major order:
+    # m[0] m[4] m[8]  m[12]
+    # m[1] m[5] m[9]  m[13]
+    # m[2] m[6] m[10] m[14]
+    # m[3] m[7] m[11] m[15]
+    
+    # gp_Trsf represents a 3x4 affine transformation matrix:
+    # [ R11 R12 R13 T1 ]
+    # [ R21 R22 R23 T2 ]
+    # [ R31 R32 R33 T3 ]
+    for row in range(1, 4):
+        for col in range(1, 5):
+            # Map (row, col) to column-major index (col-1)*4 + (row-1)
+            m[(col-1)*4 + (row-1)] = trsf.Value(row, col)
+            
+    m[3], m[7], m[11], m[15] = 0.0, 0.0, 0.0, 1.0
+    return m
+
+
 def _extract_solids_with_metadata(
     doc: TDocStd_Document,
     label: TDF_Label,
-    solids_out: list[tuple[cq.Shape, str, Optional[Color]]],
+    current_trsf: gp_Trsf,
+    instances_out: list[PartInstance],
     visited: Optional[set] = None
 ):
     """Recursively extract solids and their metadata from XDE document."""
@@ -71,39 +106,78 @@ def _extract_solids_with_metadata(
     # Get name and color for this label
     name = _get_name(label)
     color = _get_color(label, color_tool, shape_tool)
+    
+    # Get local transformation and combine with parent
+    local_trsf = _get_matrix(label)
+    trsf = _combine_trsf(current_trsf, local_trsf)
+    
+    t = trsf.TranslationPart()
+    
+    is_ref = XCAFDoc_ShapeTool.IsReference_s(label)
+    is_assembly = XCAFDoc_ShapeTool.IsAssembly_s(label)
+    is_component = XCAFDoc_ShapeTool.IsComponent_s(label)
 
-    # Check if this label has a shape
-    if XCAFDoc_ShapeTool.IsShape_s(label):
-        shape = XCAFDoc_ShapeTool.GetShape_s(label)
-        if shape.IsNull():
-            pass
-        elif shape.ShapeType() == TopAbs_SOLID:
-            solids_out.append((cq.Shape(shape), name, color))
-        else:
-            # Explore sub-solids if any (e.g. if this is a compound or shell)
-            explorer = TopExp_Explorer(shape, TopAbs_SOLID)
-            while explorer.More():
-                solid = explorer.Current()
-                solids_out.append((cq.Shape(solid), name, color))
-                explorer.Next()
+    # If it's a reference, follow it to find the actual shape/assembly
+    referred_label = label
+    if is_ref:
+        ref_label = TDF_Label()
+        if XCAFDoc_ShapeTool.GetReferredShape_s(label, ref_label):
+            referred_label = ref_label
 
-    # Recurse into children (assemblies)
+    # Check if this referred label has a shape
+    if XCAFDoc_ShapeTool.IsShape_s(referred_label):
+        shape_raw = XCAFDoc_ShapeTool.GetShape_s(referred_label)
+        if not shape_raw.IsNull():
+            # Process solid(s) from the shape
+            solids = []
+            if shape_raw.ShapeType() == TopAbs_SOLID:
+                solids.append(shape_raw)
+            else:
+                explorer = TopExp_Explorer(shape_raw, TopAbs_SOLID)
+                while explorer.More():
+                    solids.append(explorer.Current())
+                    explorer.Next()
+            
+            for s in solids:
+                # Use CadQuery's Center to find the world position
+                cq_shape = cq.Shape(s)
+                com = cq_shape.Center()
+                
+                # Create a transformation from origin to COM
+                com_trsf = gp_Trsf()
+                com_trsf.SetTranslation(gp_Vec(com.x, com.y, com.z))
+                
+                # Combine with any label-level transformation
+                combined_trsf = _combine_trsf(trsf, com_trsf)
+                
+                # The "base" shape for deduplication should be at origin
+                # We use translate instead of Location to be more robust with flat files
+                base_shape = cq_shape.translate(cq.Vector(com).multiply(-1))
+                
+                instances_out.append(PartInstance(
+                    name=name,
+                    color=color,
+                    solid=base_shape, 
+                    matrix=_trsf_to_list(combined_trsf)
+                ))
+
+    # Recurse into children of the referred label (if it's an assembly or has components)
     comps = TDF_LabelSequence()
-    XCAFDoc_ShapeTool.GetComponents_s(label, comps)
+    XCAFDoc_ShapeTool.GetComponents_s(referred_label, comps)
     for i in range(1, comps.Length() + 1):
-        _extract_solids_with_metadata(doc, comps.Value(i), solids_out, visited)
+        _extract_solids_with_metadata(doc, comps.Value(i), trsf, instances_out, visited)
     
     # Also sub-shapes (if they are not components)
     sub_shapes = TDF_LabelSequence()
     XCAFDoc_ShapeTool.GetSubShapes_s(label, sub_shapes)
     for i in range(1, sub_shapes.Length() + 1):
-        _extract_solids_with_metadata(doc, sub_shapes.Value(i), solids_out, visited)
+        _extract_solids_with_metadata(doc, sub_shapes.Value(i), trsf, instances_out, visited)
 
 
-def load_step(path: Path) -> list[tuple[cq.Shape, str, Optional[Color]]]:
-    """Load a STEP file and return a list of (solid, name, color) tuples.
+def load_step(path: Path) -> list[PartInstance]:
+    """Load a STEP file and return a list of PartInstance objects.
 
-    Uses XDE to preserve part names and colors.
+    Uses XDE to preserve part names, colors, and 3D placements.
     """
     if not path.exists():
         raise FileNotFoundError(f"STEP file not found: {path}")
@@ -122,9 +196,13 @@ def load_step(path: Path) -> list[tuple[cq.Shape, str, Optional[Color]]]:
     shape_tool = XCAFDoc_DocumentTool.ShapeTool_s(doc.Main())
     labels = TDF_LabelSequence()
     shape_tool.GetFreeShapes(labels)
+    print(f"DEBUG: Found {labels.Length()} root labels")
 
-    solids_with_metadata: list[tuple[cq.Shape, str, Optional[Color]]] = []
+    instances: list[PartInstance] = []
+    identity = gp_Trsf()
     for i in range(1, labels.Length() + 1):
-        _extract_solids_with_metadata(doc, labels.Value(i), solids_with_metadata)
+        root_label = labels.Value(i)
+        print(f"DEBUG: Root label {i}: '{_get_name(root_label)}'")
+        _extract_solids_with_metadata(doc, root_label, identity, instances)
 
-    return solids_with_metadata
+    return instances

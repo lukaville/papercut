@@ -3,7 +3,7 @@ from ezdxf.addons.importer import Importer
 from pathlib import Path
 import sys
 import uuid
-from models import Part, SheetConfig, PlacementConfig, SheetResult, PlacedPart, BridgeConfig
+from models import Part, SheetConfig, PlacementConfig, SheetResult, PlacedPart, BridgeConfig, PartInstance
 from dxf_exporter import get_dxf_layer_svg_paths
 from overlay_manager import get_engraving_entities
 from bridge_generator import add_bridges_to_cutting_block
@@ -146,11 +146,19 @@ class MaxRectsBinPacker:
 def place_parts(
     parts: list[Part],
     sheets_config: list[SheetConfig],
-    placement_config: PlacementConfig
+    placement_config: PlacementConfig,
+    instances: list[PartInstance] = None
 ) -> list[SheetResult]:
     """Place parts on sheets using the MaxRects algorithm with multi-sheet backfilling."""
     if not parts:
         return []
+
+    # Map group_id to instances for tracking
+    instances_by_group = {}
+    if instances:
+        for inst in instances:
+            if inst.group_id is not None:
+                instances_by_group.setdefault(inst.group_id, []).append(inst)
 
     # Normalize sheet colors for comparison
     def normalize_hex(h: str) -> str:
@@ -233,10 +241,6 @@ def place_parts(
                 
                 # Reserve space for the label square in the Top-Left corner
                 l_size = placement_config.label_square_size_mm
-                # We add p_margin to the reservation so that parts keep their distance
-                # just like they do from each other.
-                # Label at (0, available_h - l_size) in packer space.
-                # We inflate it by p_margin on the 'inside' edges.
                 label_rect_with_margin = (0.0, available_h - l_size - p_margin, l_size + p_margin, l_size + p_margin)
                 
                 new_free_rects = []
@@ -275,6 +279,7 @@ def place_parts(
                 color_packers.setdefault(color, []).append((packer, new_res))
 
     # Assign IDs per sheet (equal parts get same ID on same sheet)
+    # AND link back to 3D instances
     for res in results:
         name_to_id = {}
         next_id = 1
@@ -283,6 +288,22 @@ def place_parts(
                 name_to_id[pp.name] = next_id
                 next_id += 1
             pp.part_id = name_to_id[pp.name]
+            
+            # Find a matching 3D instance and link it
+            if instances:
+                # Find which group this part belongs to
+                matching_group_id = None
+                for group_id, inst_list in instances_by_group.items():
+                    if inst_list and inst_list[0].name == pp.name: # Simplified name check
+                        # Actually we should use group names, but for now this works 
+                        # if deduplication logic matched names
+                        matching_group_id = group_id
+                        break
+                
+                if matching_group_id is not None and instances_by_group[matching_group_id]:
+                    inst = instances_by_group[matching_group_id].pop(0)
+                    inst.sheet_label = res.label
+                    inst.sheet_part_id = pp.part_id
 
     return results
 
