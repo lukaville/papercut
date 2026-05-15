@@ -579,7 +579,7 @@ def _import_part_to_sheet(
         
         # Apply bridges to cutting polylines
         if bridge_config and bridge_config.enable:
-            add_bridges_to_cutting_block(block, bridge_config)
+            add_bridges_to_cutting_block(block, bridge_config, rotated=rotated)
         
         # Insert the block at the correct position
         insert_x, insert_y = offset

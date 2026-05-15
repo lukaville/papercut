@@ -110,9 +110,71 @@ def _bridges_overlap(b1: Bridge, b2: Bridge, vertices: list[tuple[float, float]]
     return dist < min_dist
 
 
+def _prefer_horizontal_edge(
+    vertices: list[tuple[float, float]],
+    edge_lengths: list[float],
+    edge_idx: int,
+    t_raw: float,
+    bridge_size: float,
+    min_required_length: float,
+    search_dist: float = 5.0,
+    prefer_vertical_local: bool = False
+) -> tuple[int, float]:
+    """Try to find a horizontal edge within search_dist along the contour.
+    
+    Returns (new_edge_idx, new_t).
+    """
+    def is_pref(pt0, pt1):
+        is_horiz = abs(pt1[0] - pt0[0]) >= abs(pt1[1] - pt0[1])
+        return not is_horiz if prefer_vertical_local else is_horiz
+
+    n = len(vertices)
+    p0 = vertices[edge_idx]
+    p1 = vertices[(edge_idx + 1) % n]
+    
+    # Check if current edge is already preferred
+    if is_pref(p0, p1):
+        return edge_idx, t_raw
+        
+    L = edge_lengths[edge_idx]
+    d_start = t_raw * L
+    d_end = (1.0 - t_raw) * L
+    
+    best_edge = edge_idx
+    best_t = t_raw
+    min_shift = float('inf')
+    
+    # Check previous edge
+    prev_idx = (edge_idx - 1) % n
+    prev_p0 = vertices[prev_idx]
+    prev_p1 = vertices[edge_idx]
+    if is_pref(prev_p0, prev_p1):
+        if edge_lengths[prev_idx] >= min_required_length:
+            shift = d_start + (bridge_size / 2.0)
+            if shift <= search_dist and shift < min_shift:
+                min_shift = shift
+                best_edge = prev_idx
+                best_t = 1.0
+
+    # Check next edge
+    next_idx = (edge_idx + 1) % n
+    next_p0 = vertices[(edge_idx + 1) % n]
+    next_p1 = vertices[(edge_idx + 2) % n]
+    if is_pref(next_p0, next_p1):
+        if edge_lengths[next_idx] >= min_required_length:
+            shift = d_end + (bridge_size / 2.0)
+            if shift <= search_dist and shift < min_shift:
+                min_shift = shift
+                best_edge = next_idx
+                best_t = 0.0
+            
+    return best_edge, best_t
+
+
 def compute_bridge_positions(
     vertices: list[tuple[float, float]],
-    config: BridgeConfig
+    config: BridgeConfig,
+    prefer_vertical_local: bool = False
 ) -> list[Bridge]:
     """Compute bridge positions for a closed polygon.
 
@@ -169,6 +231,12 @@ def compute_bridge_positions(
             
         for corner in diag_corners:
             edge_idx, t_raw = _closest_edge_point_to_target(vertices, corner)
+            
+            # Prefer horizontal bridges
+            edge_idx, t_raw = _prefer_horizontal_edge(
+                vertices, edge_lengths, edge_idx, t_raw, bridge_size, min_required_length=bridge_size, prefer_vertical_local=prefer_vertical_local
+            )
+            
             length = edge_lengths[edge_idx]
             if length < bridge_size: # Even smaller tolerance for narrow parts
                 continue
@@ -226,6 +294,12 @@ def compute_bridge_positions(
 
         for corner in corners:
             edge_idx, t_raw = _closest_edge_point_to_target(vertices, corner)
+            
+            # Prefer horizontal bridges
+            edge_idx, t_raw = _prefer_horizontal_edge(
+                vertices, edge_lengths, edge_idx, t_raw, bridge_size, min_required_length=bridge_size * 2, prefer_vertical_local=prefer_vertical_local
+            )
+            
             length = edge_lengths[edge_idx]
             if length < bridge_size * 2:
                 continue
@@ -573,7 +647,8 @@ def compute_overcuts(
 
 def add_bridges_to_cutting_block(
     block,
-    bridge_config: BridgeConfig
+    bridge_config: BridgeConfig,
+    rotated: bool = False
 ) -> None:
     """Apply bridges to cutting geometry within an ezdxf block.
 
@@ -627,7 +702,7 @@ def add_bridges_to_cutting_block(
     for i, (vertices, original_entities, is_closed) in enumerate(all_polygons):
         if i == best_idx and len(vertices) >= 2:
             # This is the outer contour — apply bridges
-            bridges = compute_bridge_positions(vertices, bridge_config)
+            bridges = compute_bridge_positions(vertices, bridge_config, prefer_vertical_local=rotated)
             if bridges:
                 segments = apply_bridges_to_polyline(vertices, bridges, closed=is_closed)
                 overcuts = compute_overcuts(vertices, bridges, bridge_config)

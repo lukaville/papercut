@@ -196,7 +196,6 @@ def load_step(path: Path) -> list[PartInstance]:
     shape_tool = XCAFDoc_DocumentTool.ShapeTool_s(doc.Main())
     labels = TDF_LabelSequence()
     shape_tool.GetFreeShapes(labels)
-    print(f"DEBUG: Found {labels.Length()} root labels")
 
     instances: list[PartInstance] = []
     identity = gp_Trsf()
