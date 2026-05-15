@@ -168,15 +168,33 @@ def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float, kerf
             # Offset inner wires INWARDS (-kerf_offset_mm)
             new_inners = []
             for inner in inners:
-                # Using intersection here as well for stability
-                off_list = inner.offset2D(-kerf_offset_mm, kind="intersection")
+                try:
+                    # Using intersection here as well for stability
+                    off_list = inner.offset2D(-kerf_offset_mm, kind="intersection")
+                except Exception:
+                    # Fallback for circular holes which fail with negative offset in OCP
+                    edges = inner.Edges()
+                    is_circle = len(edges) == 1 and edges[0].geomType() == "CIRCLE"
+                    if is_circle:
+                        bb = inner.BoundingBox()
+                        center = cq.Vector((bb.xmin + bb.xmax) / 2, (bb.ymin + bb.ymax) / 2, bb.zmin)
+                        radius = bb.xlen / 2
+                        new_radius = radius - kerf_offset_mm
+                        if new_radius > 0:
+                            new_wire = cq.Wire.makeCircle(new_radius, center, cq.Vector(0, 0, 1))
+                            off_list = [new_wire]
+                        else:
+                            off_list = []
+                    else:
+                        raise
                 if off_list:
                     new_inners.append(off_list[0])
             
             # Reconstruct the face
             oriented_profile = cq.Face.makeFromWires(new_outer, new_inners)
         except Exception as e:
-            print(f"Warning: Kerf compensation failed for a part: {e}. Using original geometry.")
+            print(f"Warning: Kerf compensation failed for part '{path.stem}': {e}. Using original geometry.")
+
 
     # Move the profile so its bottom-left is at (0,0)
     face_bb = oriented_profile.BoundingBox()

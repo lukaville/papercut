@@ -152,7 +152,7 @@
       ],
       "count": 2,
       "color": "#121212",
-      "model": "models/group_16_canopy_roof.stl"
+      "model": "models/group_16_Part_45.stl"
     },
     {
       "id": 17,
@@ -252,7 +252,7 @@
       ],
       "count": 2,
       "color": "#999999",
-      "model": "models/group_27_entrance_step_1.stl"
+      "model": "models/group_27_Part_43.stl"
     },
     {
       "id": 28,
@@ -298,7 +298,7 @@
       ],
       "count": 2,
       "color": "#999999",
-      "model": "models/group_32_entrance_step_0.stl"
+      "model": "models/group_32_Part_42.stl"
     },
     {
       "id": 33,
@@ -499,7 +499,7 @@
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 10
+      "sheet_part_id": 9
     },
     {
       "name": "inter_wall",
@@ -1243,7 +1243,7 @@
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 11
+      "sheet_part_id": 10
     },
     {
       "name": "ventilation_box_side_walls",
@@ -1267,7 +1267,7 @@
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 11
+      "sheet_part_id": 10
     },
     {
       "name": "ventilation_box_inter_roof",
@@ -1530,8 +1530,8 @@
         9.0,
         1.0
       ],
-      "sheet_label": "D",
-      "sheet_part_id": 8
+      "sheet_label": "F",
+      "sheet_part_id": 6
     },
     {
       "name": "roof_inner_wall_side",
@@ -1651,7 +1651,7 @@
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 11
+      "sheet_part_id": 10
     },
     {
       "name": "ventilation_box_walls",
@@ -1747,7 +1747,7 @@
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 11
+      "sheet_part_id": 10
     },
     {
       "name": "ventilation_box_side_walls",
@@ -1771,7 +1771,7 @@
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 11
+      "sheet_part_id": 10
     },
     {
       "name": "entrance_step_1",
@@ -1939,7 +1939,7 @@
         1.0
       ],
       "sheet_label": "F",
-      "sheet_part_id": 6
+      "sheet_part_id": 7
     },
     {
       "name": "balcony_side_left",
@@ -2107,7 +2107,7 @@
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 11
+      "sheet_part_id": 10
     },
     {
       "name": "ventilation_box_side_walls",
@@ -2131,7 +2131,7 @@
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 11
+      "sheet_part_id": 10
     },
     {
       "name": "ventilation_box_inter_roof",
@@ -2754,8 +2754,8 @@
         8.999999999999998,
         1.0
       ],
-      "sheet_label": "D",
-      "sheet_part_id": 8
+      "sheet_label": "F",
+      "sheet_part_id": 6
     },
     {
       "name": "balcony_side_left",
@@ -3379,7 +3379,7 @@
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 9
+      "sheet_part_id": 8
     },
     {
       "name": "entrance_door",
@@ -4128,100 +4128,82 @@
           "rotated": true
         },
         {
-          "name": "entrance_support_plate",
+          "name": "transformer_box_back",
           "id": 8,
           "x": 191.953333333333,
           "y": 83.4799999999999,
-          "w": 8.0,
-          "h": 17.0,
-          "rotated": false
-        },
-        {
-          "name": "entrance_support_plate",
-          "id": 8,
-          "x": 191.953333333333,
-          "y": 105.4799999999999,
-          "w": 8.0,
-          "h": 17.0,
-          "rotated": false
-        },
-        {
-          "name": "transformer_box_back",
-          "id": 9,
-          "x": 191.953333333333,
-          "y": 127.4799999999999,
           "w": 6.159999999999997,
           "h": 10.16,
           "rotated": false
         },
         {
           "name": "transformer_box_front",
-          "id": 10,
+          "id": 9,
           "x": 191.953333333333,
-          "y": 142.6399999999999,
+          "y": 98.6399999999999,
           "w": 6.159999999999997,
           "h": 10.035,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 11,
+          "id": 10,
           "x": 191.953333333333,
-          "y": 157.6749999999999,
+          "y": 113.6749999999999,
           "w": 6.159999999999602,
           "h": 6.159999999999997,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 11,
+          "id": 10,
           "x": 191.953333333333,
-          "y": 168.8349999999999,
+          "y": 124.8349999999999,
           "w": 6.159999999999602,
           "h": 6.159999999999997,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 11,
+          "id": 10,
           "x": 191.953333333333,
-          "y": 179.9949999999999,
+          "y": 135.9949999999999,
           "w": 6.159999999999602,
           "h": 6.159999999999997,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 11,
+          "id": 10,
           "x": 191.953333333333,
-          "y": 191.1549999999999,
+          "y": 147.1549999999999,
           "w": 6.159999999999602,
           "h": 6.159999999999997,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 11,
+          "id": 10,
           "x": 191.953333333333,
-          "y": 202.31499999999988,
+          "y": 158.31499999999988,
           "w": 6.159999999999602,
           "h": 6.159999999999997,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 11,
-          "x": 189.64,
-          "y": 280.7999999999999,
+          "id": 10,
+          "x": 191.953333333333,
+          "y": 169.47499999999988,
           "w": 6.159999999999602,
           "h": 6.159999999999997,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 11,
-          "x": 75.32000000000002,
-          "y": 280.63333333333344,
+          "id": 10,
+          "x": 191.953333333333,
+          "y": 180.63499999999988,
           "w": 6.159999999999602,
           "h": 6.159999999999997,
           "rotated": false
@@ -4387,10 +4369,28 @@
           "rotated": true
         },
         {
-          "name": "roof_exit_box_entrance_wall",
+          "name": "entrance_support_plate",
           "id": 6,
           "x": 73.47999999999999,
           "y": 263.6533333333333,
+          "w": 8.16,
+          "h": 17.16,
+          "rotated": false
+        },
+        {
+          "name": "entrance_support_plate",
+          "id": 6,
+          "x": 86.63999999999999,
+          "y": 263.6533333333333,
+          "w": 8.16,
+          "h": 17.16,
+          "rotated": false
+        },
+        {
+          "name": "roof_exit_box_entrance_wall",
+          "id": 7,
+          "x": 87.16,
+          "y": 238.16,
           "w": 15.160000000000016,
           "h": 13.609999999999605,
           "rotated": true
@@ -4542,7 +4542,7 @@
           "x": 48.32000000000001,
           "y": 261.48,
           "w": 5.160000000000002,
-          "h": 10.159999999999602,
+          "h": 10.159999999999606,
           "rotated": false
         }
       ]

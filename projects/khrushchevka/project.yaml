@@ -1,9 +1,13 @@
 import:
-  - file: https://cad.onshape.com/documents/49bc2b0284d7a2d765d08b30/w/d0db832b49c4d89b1167ef1b/e/2e3b8605966044f4fcf220db
+  - file: https://cad.onshape.com/documents/49bc2b0284d7a2d765d08b30/v/52e4dbd6c4afe98918dfd353/e/2e3b8605966044f4fcf220db
     parts:
+      outer_side:
+        flip_vertical: true
+      balcony_front:
+        flip_vertical: true
       balcony_side_left:
         flip_horizontal: true
-      outer_side:
+      roof_exit_box_door:
         flip_horizontal: true
 
 overlays: {}
