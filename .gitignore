@@ -3,6 +3,7 @@ __pycache__/
 .venv/
 .env
 .DS_Store
+.cache/
 
 # Project-specific generated outputs
 parts/

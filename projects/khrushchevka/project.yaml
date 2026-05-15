@@ -1,5 +1,5 @@
 import:
-  - file: source.step
+  - file: https://cad.onshape.com/documents/49bc2b0284d7a2d765d08b30/w/d0db832b49c4d89b1167ef1b/e/2e3b8605966044f4fcf220db
     parts:
       balcony_side_left:
         flip_horizontal: true

@@ -396,8 +396,18 @@ def export_sheets(
         for part in res.placed_parts:
             # Import Engraving Geometry (from overlay if exists)
             overlay_path = overlays_dir / f"{part.name}.dxf"
+            if not overlay_path.exists():
+                engravings_base = project_dir / ".cache" / "engravings"
+                if engravings_base.exists():
+                    for subdir in engravings_base.iterdir():
+                        if subdir.is_dir():
+                            cached_path = subdir / f"{part.name}.dxf"
+                            if cached_path.exists():
+                                overlay_path = cached_path
+                                break
+                                
             part_path = parts_dir / f"{part.name}.dxf"
-            if overlay_path.exists():
+            if overlay_path and overlay_path.exists():
                 _import_overlay_to_sheet(overlay_path, part_path, doc, msp, (part.x_mm, part.y_mm), part.rotated, part.width_mm, part.height_mm)
 
             # Add Part ID Label (e.g., 1, 2)
@@ -529,8 +539,18 @@ def export_preview_svg(
             
             # Add engraving if overlay exists
             overlay_path = project_dir / "overlays" / f"{part.name}.dxf"
+            if not overlay_path.exists():
+                engravings_base = project_dir / ".cache" / "engravings"
+                if engravings_base.exists():
+                    for subdir in engravings_base.iterdir():
+                        if subdir.is_dir():
+                            cached_path = subdir / f"{part.name}.dxf"
+                            if cached_path.exists():
+                                overlay_path = cached_path
+                                break
+                                
             part_path = project_dir / "parts" / f"{part.name}.dxf"
-            if overlay_path.exists() and part_path.exists():
+            if overlay_path and overlay_path.exists() and part_path.exists():
                 engraving_data = _get_overlay_svg_paths(overlay_path, part_path)
                 if engraving_data:
                     lines.append(f'    <path class="engraving" d="{engraving_data}" transform="{transform}" />')

@@ -201,7 +201,6 @@ def load_step(path: Path) -> list[PartInstance]:
     identity = gp_Trsf()
     for i in range(1, labels.Length() + 1):
         root_label = labels.Value(i)
-        print(f"DEBUG: Root label {i}: '{_get_name(root_label)}'")
         _extract_solids_with_metadata(doc, root_label, identity, instances)
 
     return instances

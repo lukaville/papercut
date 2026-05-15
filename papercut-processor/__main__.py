@@ -11,6 +11,7 @@ from OCP.BRepBuilderAPI import BRepBuilderAPI_Transform
 
 from config import load_config
 from step_reader import load_step
+from onshape_client import download_from_onshape, parse_onshape_url, export_engravings
 from thickness import detect_thickness
 from deduplicator import deduplicate, PartGroup, _mirror_solid
 from dxf_exporter import export_part_dxf
@@ -95,7 +96,29 @@ def main():
     # Step 1: Load all solids and instances from imported files
     all_instances = []
     for imp in config.imports:
-        step_path = project_dir / imp.file
+        if imp.file.startswith("http://") or imp.file.startswith("https://"):
+            # It's a URL
+            did, wvm, wvmid, eid = parse_onshape_url(imp.file)
+            cache_dir = project_dir / ".cache"
+            cache_file = cache_dir / f"onshape_{did}_{wvm}_{wvmid}_{eid}.step"
+            
+            if cache_file.exists():
+                print(f"Using cached file {cache_file} ...")
+                step_path = cache_file
+            else:
+                print(f"Downloading from OnShape: {imp.file} ...")
+                download_from_onshape(imp.file, str(cache_file))
+                step_path = cache_file
+                
+                # Export engravings
+                engravings_dir = project_dir / ".cache" / "engravings" / f"{did}_{eid}"
+                print(f"Exporting engravings to {engravings_dir} ...")
+                export_engravings(imp.file, str(engravings_dir))
+
+
+        else:
+            step_path = project_dir / imp.file
+            
         print(f"Loading {step_path} ...")
         instances = load_step(step_path)
         all_instances.extend(instances)
