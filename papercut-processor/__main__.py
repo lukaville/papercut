@@ -20,6 +20,24 @@ from overlay_manager import manage_overlays
 from placer import place_parts, export_sheets, export_preview_svg
 from viewer_exporter import export_viewer
 from models import Part, ProjectConfig, PartInstance
+import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import multiprocessing
+
+
+class Timer:
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        self.start = time.perf_counter()
+        return self
+
+    def __exit__(self, *args):
+        self.end = time.perf_counter()
+        self.duration = self.end - self.start
+        print(f"  [{self.name}] took {self.duration:.3f}s")
+
 
 
 def resolve_names(groups: list[PartGroup]) -> list[tuple[PartGroup, str, bool]]:
@@ -112,16 +130,17 @@ def main():
                 
                 # Export engravings
                 engravings_dir = project_dir / ".cache" / "engravings" / f"{did}_{eid}"
-                print(f"Exporting engravings to {engravings_dir} ...")
-                export_engravings(imp.file, str(engravings_dir))
+                with Timer(f"Exporting engravings to {engravings_dir}"):
+                    export_engravings(imp.file, str(engravings_dir))
 
 
         else:
             step_path = project_dir / imp.file
             
         print(f"Loading {step_path} ...")
-        instances = load_step(step_path)
-        all_instances.extend(instances)
+        with Timer(f"Load {step_path.name}"):
+            instances = load_step(step_path)
+            all_instances.extend(instances)
 
     if not all_instances:
         print("No parts found in STEP files.")
@@ -131,16 +150,18 @@ def main():
 
     # Step 1.5: Check for intersections (clashes)
     print("Checking for volumetric intersections (clash detection) ...")
-    try:
-        check_intersections(all_instances)
-        print("  No intersections found (tolerance: 0.0001 mm³).")
-    except ValueError as e:
-        print(str(e), file=sys.stderr)
-        sys.exit(1)
+    with Timer("Clash detection"):
+        try:
+            check_intersections(all_instances)
+            print("  No intersections found (tolerance: 0.0001 mm³).")
+        except ValueError as e:
+            print(str(e), file=sys.stderr)
+            sys.exit(1)
 
     # Step 2: Detect material thickness
     print("Detecting material thickness ...")
-    thickness = detect_thickness([inst.solid for inst in all_instances])
+    with Timer("Thickness detection"):
+        thickness = detect_thickness([inst.solid for inst in all_instances])
     print(f"  Detected material thickness: {thickness:.3f} mm")
 
     # Step 2.5: Apply flips based on configuration
@@ -170,7 +191,8 @@ def main():
 
     # Step 3: Deduplicate union of all solids
     print("Deduplicating union of all parts ...")
-    groups = deduplicate(all_instances)
+    with Timer("Deduplication"):
+        groups = deduplicate(all_instances)
     print(f"  Found {len(groups)} unique part(s)")
 
     # Step 4: Resolve names
@@ -191,46 +213,68 @@ def main():
     print()
     print(f"  {'Filename':<32} {'Count':>5}   {'Dimensions (bbox)':<27} {'Color (RGBA)'}")
     print(f"  {'─' * 24:32} {'─' * 6:>5}   {'─' * 25:27} {'─' * 15}")
+    
+    # Pre-export unique shapes to BREP files for stable multiprocessing
+    brep_cache_dir = project_dir / ".cache" / "breps"
+    brep_cache_dir.mkdir(parents=True, exist_ok=True)
+    
+    group_breps = {}
+    with Timer("BREP caching"):
+        for group in groups:
+            brep_path = brep_cache_dir / f"group_{group.id}.brep"
+            group.canonical.exportBrep(str(brep_path))
+            group_breps[group.id] = brep_path
 
-    placement_metadata = []
+    placement_metadata: list[Part] = []
     svg_paths = {} # Temporary store for preview
 
-    for group, filename, _ in group_names:
-        # Update instances in this group to have the resolved filename
-        for inst in all_instances:
-            if inst.group_id == group.id:
-                inst.name = filename # Use unique filename for viewer link
+    kerf_offset = config.kerf.offset_mm if config.kerf.compensation else 0.0
+    
+    with Timer("DXF Export"):
+        with ProcessPoolExecutor(max_workers=multiprocessing.cpu_count()) as executor:
+            future_to_part = {}
+            for group, filename, _ in group_names:
+                # Update instances in this group to have the resolved filename
+                for inst in all_instances:
+                    if inst.group_id == group.id:
+                        inst.name = filename
 
-        dxf_path = parts_dir / f"{filename}.dxf"
-        shape_to_export = group.canonical
+                dxf_path = parts_dir / f"{filename}.dxf"
+                ref_path = parts_dir / f"{filename}.ref.dxf" if config.kerf.compensation else None
+                
+                future = executor.submit(
+                    export_part_dxf, 
+                    group_breps[group.id], 
+                    dxf_path, 
+                    thickness, 
+                    kerf_offset, 
+                    ref_path
+                )
+                future_to_part[future] = (filename, group)
 
-        # Export and get dimensions
-        kerf_offset = config.kerf.offset_mm if config.kerf.compensation else 0.0
-        ref_path = parts_dir / f"{filename}.ref.dxf" if config.kerf.compensation else None
-        
-        width_mm, height_mm, area, svg_path = export_part_dxf(shape_to_export, dxf_path, thickness, kerf_offset, ref_path)
-        svg_paths[filename] = svg_path
+            for future in as_completed(future_to_part):
+                filename, group = future_to_part[future]
+                # No try-except here - let it raise and stop the process if a part fails
+                width_mm, height_mm, area, svg_path = future.result()
+                svg_paths[filename] = svg_path
+                
+                dim_str = f"{width_mm:.1f} × {height_mm:.1f} × {thickness:.1f}"
+                placement_metadata.append(Part(
+                    name=filename,
+                    width_mm=width_mm,
+                    height_mm=height_mm,
+                    area_mm2=area,
+                    count=group.count,
+                    color=group.color,
+                    group_id=group.id
+                ))
+                
+                color_str = "Default"
+                if group.color:
+                    c = group.color
+                    color_str = f"({c.r:.2f}, {c.g:.2f}, {c.b:.2f}, {c.a:.2f})"
+                print(f"  {filename:<26} {group.count:>5}×   {dim_str:<27} {color_str}")
 
-        dim_str = f"{width_mm:.1f} × {height_mm:.1f} × {thickness:.1f}"
-        
-        # Store for placement
-        placement_metadata.append(Part(
-            name=filename,
-            width_mm=width_mm,
-            height_mm=height_mm,
-            area_mm2=area,
-            count=group.count,
-            color=group.color,
-            group_id=group.id
-        ))
-        
-        # Get color info for reporting
-        color_str = "Default"
-        if group.color:
-            c = group.color
-            color_str = f"({c.r:.2f}, {c.g:.2f}, {c.b:.2f}, {c.a:.2f})"
-            
-        print(f"{filename:<26} {group.count:>5}×   {dim_str:<27} {color_str}")
 
     print()
     print(f"Done. {len(groups)} DXF file(s) written to {parts_dir}")
@@ -239,7 +283,8 @@ def main():
     overlays_dir = project_dir / "overlays"
     if overlays_dir.is_dir():
         print(f"Managing overlays in {overlays_dir} ...")
-        manage_overlays(project_dir, config.overlays)
+        with Timer("Overlay management"):
+            manage_overlays(project_dir, config.overlays)
 
     # Step 7: Place parts on sheets
     sheets_results = []
@@ -247,15 +292,17 @@ def main():
         print()
         print(f"Placing parts on sheets in {project_dir / 'sheets'} ...")
         
-        sheets_results = place_parts(
-            placement_metadata,
-            config.sheets,
-            config.placement,
-            all_instances
-        )
+        with Timer("Part placement"):
+            sheets_results = place_parts(
+                placement_metadata,
+                config.sheets,
+                config.placement,
+                all_instances
+            )
         
-        export_sheets(project_dir, sheets_results, config.placement, config.bridges)
-        export_preview_svg(project_dir, sheets_results, svg_paths, config.placement, config.bridges)
+        with Timer("Sheet export"):
+            export_sheets(project_dir, sheets_results, config.placement, config.bridges)
+            export_preview_svg(project_dir, sheets_results, svg_paths, config.placement, config.bridges)
 
         # Print part ID mapping
         print()
@@ -276,7 +323,8 @@ def main():
             print(f"  {part_name:<30} -> {', '.join(ids)}")
 
     # Step 8: Export 3D Viewer
-    export_viewer(project_dir, all_instances, groups, sheets_results)
+    with Timer("Viewer export"):
+        export_viewer(project_dir, all_instances, groups, sheets_results)
 
 
 if __name__ == "__main__":

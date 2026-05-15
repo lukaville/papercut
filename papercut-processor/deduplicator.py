@@ -97,8 +97,8 @@ def _principal_moments(solid: cq.Shape) -> tuple[float, float, float]:
     try:
         eigenvalues = np.sort(np.linalg.eigvalsh(inertia))
         return (float(eigenvalues[0]), float(eigenvalues[1]), float(eigenvalues[2]))
-    except:
-        return (0.0, 0.0, 0.0)
+    except Exception as e:
+        raise RuntimeError(f"Failed to compute principal moments of inertia: {e}") from e
 
 
 def _center_at_origin(solid: cq.Shape) -> cq.Shape:

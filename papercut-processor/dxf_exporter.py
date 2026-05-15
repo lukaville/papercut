@@ -1,8 +1,10 @@
 """DXF exporter — projects flat 3D solids onto 2D and exports as DXF."""
 
 from pathlib import Path
+from typing import Union
 import math
 import uuid
+import time
 
 import cadquery as cq
 import ezdxf
@@ -108,9 +110,27 @@ def _orient_face_to_xy(solid: cq.Shape, face: cq.Face) -> cq.Shape:
 
     # 2. Minimize Bounding Box by rotating around Z
     # We find all linear edges and try aligning them with X or Y axes.
-    profile_face = _find_profile_face(oriented, 0.0) # Thickness not needed here
+    # To optimize, we only rotate the 2D bounding box of the face, not the whole solid.
+    profile_face = _find_profile_face(oriented, 0.0)
     edges = profile_face.Edges()
     
+    # Get all points of the face in 2D
+    pts_2d = []
+    for edge in edges:
+        if edge.geomType() == "LINE":
+            p1, p2 = edge.startPoint(), edge.endPoint()
+            pts_2d.append((p1.x, p1.y))
+            pts_2d.append((p2.x, p2.y))
+        else:
+            # Use a coarser tolerance for orientation search (0.5mm is plenty)
+            res = edge.tessellate(0.5)
+            e_pts = res[0] if isinstance(res, tuple) else res
+            for p in e_pts:
+                pts_2d.append((p.X(), p.Y()))
+    
+    if not pts_2d:
+        return oriented
+
     candidate_angles = {0.0}
     for edge in edges:
         if edge.geomType() == "LINE":
@@ -123,37 +143,59 @@ def _orient_face_to_xy(solid: cq.Shape, face: cq.Face) -> cq.Shape:
                 candidate_angles.add(angle)
     
     best_area = float('inf')
-    best_shape = oriented
+    best_angle = 0.0
     
     for angle in candidate_angles:
-        # Rotate around Z by -angle
-        test_shape = oriented.rotate((0,0,0), (0,0,1), -math.degrees(angle))
-        bb = test_shape.BoundingBox()
-        area = bb.xlen * bb.ylen
+        cos_a = math.cos(-angle)
+        sin_a = math.sin(-angle)
+        
+        min_x, max_x = float('inf'), float('-inf')
+        min_y, max_y = float('inf'), float('-inf')
+        
+        for px, py in pts_2d:
+            rx = px * cos_a - py * sin_a
+            ry = px * sin_a + py * cos_a
+            if rx < min_x: min_x = rx
+            if rx > max_x: max_x = rx
+            if ry < min_y: min_y = ry
+            if ry > max_y: max_y = ry
+            
+        area = (max_x - min_x) * (max_y - min_y)
         if area < best_area:
             best_area = area
-            best_shape = test_shape
+            best_angle = angle
             
-    return best_shape
+    if abs(best_angle) > 1e-6:
+        return oriented.rotate((0,0,0), (0,0,1), -math.degrees(best_angle))
+    return oriented
 
 
-def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float, kerf_offset_mm: float = 0.0, ref_path: Path = None) -> tuple[float, float, float, str]:
+def export_part_dxf(solid_input: Union[cq.Shape, Path], path: Path, material_thickness: float, kerf_offset_mm: float = 0.0, ref_path: Path = None) -> tuple[float, float, float, str]:
     """Export the cutting profile of a flat solid as a 2D DXF file.
 
     Finds the profile face (based on material thickness), orients the solid
     so this face lies on the XY plane, then translates it so its bottom-left 
     is at (0,0). Returns (width_mm, height_mm, area_mm2, svg_path_string).
     """
+    if isinstance(solid_input, Path):
+        solid = cq.Shape.importBrep(str(solid_input))
+    else:
+        solid = solid_input
+
     # Find the profile face and orient the part.
+    t0 = time.perf_counter()
     profile_face = _find_profile_face(solid, material_thickness)
     oriented = _orient_face_to_xy(solid, profile_face)
+    t_orient = time.perf_counter() - t0
 
     # After orientation, find the profile face again on the oriented solid.
     oriented_profile = _find_profile_face(oriented, material_thickness)
-    original_profile = oriented_profile # Keep for reference export
+    original_profile = oriented_profile 
     
     # Apply kerf compensation if requested
+    t_kerf = 0.0
     if abs(kerf_offset_mm) > 1e-6:
+        t0_k = time.perf_counter()
         try:
             outer = oriented_profile.outerWire()
             inners = oriented_profile.innerWires()
@@ -193,8 +235,8 @@ def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float, kerf
             # Reconstruct the face
             oriented_profile = cq.Face.makeFromWires(new_outer, new_inners)
         except Exception as e:
-            print(f"Warning: Kerf compensation failed for part '{path.stem}': {e}. Using original geometry.")
-
+            raise RuntimeError(f"Kerf compensation failed for part '{path.stem}': {e}") from e
+        t_kerf = time.perf_counter() - t0_k
 
     # Move the profile so its bottom-left is at (0,0)
     face_bb = oriented_profile.BoundingBox()
@@ -214,11 +256,16 @@ def export_part_dxf(solid: cq.Shape, path: Path, material_thickness: float, kerf
     height_mm = final_bb.ylen
     
     # Build a Workplane with the face's wires for DXF export.
+    t0_e = time.perf_counter()
     wp = cq.Workplane("XY").add(oriented_profile)
 
     path.parent.mkdir(parents=True, exist_ok=True)
     cq.exporters.exportDXF(wp, str(path))
+    t_export = time.perf_counter() - t0_e
     
+    # Log individual times if they are significant
+    # print(f"    [DEBUG] {path.name}: orient={t_orient:.3f}s, kerf={t_kerf:.3f}s, export={t_export:.3f}s")
+
     # Fix units in the exported DXF
     try:
         doc = ezdxf.readfile(path)

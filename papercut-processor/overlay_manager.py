@@ -34,7 +34,7 @@ def manage_overlays(project_dir: Path, overlay_config: dict[str, Any]) -> None:
             raise ValueError(f"Overlay validation failed for '{part_name}': {e}")
 
 
-def get_engraving_entities(overlay_path: Path, part_path: Path) -> tuple[list, any]:
+def get_engraving_entities(overlay_path: Path, part_path: Path, flip_h: bool = False, flip_v: bool = False) -> tuple[list, any]:
     """Align overlay with part and return filtered engraving entities and transformation matrix."""
     from ezdxf import bbox
     from ezdxf.math import Matrix44, Vec3
@@ -45,6 +45,15 @@ def get_engraving_entities(overlay_path: Path, part_path: Path) -> tuple[list, a
     
     overlay_msp = overlay_doc.modelspace()
     part_msp = part_doc.modelspace()
+    
+    if flip_h or flip_v:
+        pre_mat = Matrix44()
+        if flip_h:
+            pre_mat @= Matrix44.scale(-1, 1, 1)
+        if flip_v:
+            pre_mat @= Matrix44.scale(1, -1, 1)
+        for e in overlay_msp:
+            e.transform(pre_mat)
     
     # 1. Use robust ezdxf.bbox
     overlay_bb = bbox.extents(overlay_msp.query('LINE LWPOLYLINE CIRCLE ARC'))
@@ -120,17 +129,25 @@ def get_engraving_entities(overlay_path: Path, part_path: Path) -> tuple[list, a
     matched_count = 0
     matched_length = 0
 
-    # 3. Filter entities using the best matrix
-    for e in overlay_msp:
+    # 3. Filter entities using the best matrix by geometrically subtracting overlaps
+    for e in list(overlay_msp):
         segs = _get_entity_segments(e)
         if not segs:
             engravings.append(e)
             continue
             
-        is_outline = True
-        entity_length = sum(_dist(s[0], s[1]) for s in segs)
-        entity_matched_length = 0
-        
+        has_overlap = False
+        for s_ov in segs:
+            for s_part in part_segments:
+                if _get_segments_overlap_interval(s_ov, s_part, mat, tol=0.01):
+                    has_overlap = True
+                    break
+            if has_overlap: break
+            
+        if not has_overlap:
+            engravings.append(e)
+            continue
+            
         for s_ov in segs:
             ov_len = _dist(s_ov[0], s_ov[1])
             ov_intervals = []
@@ -138,28 +155,35 @@ def get_engraving_entities(overlay_path: Path, part_path: Path) -> tuple[list, a
                 iv = _get_segments_overlap_interval(s_ov, s_part, mat, tol=0.01)
                 if iv: ov_intervals.append(iv)
             
-            ov_matched_len = 0
+            merged_intervals = []
             if ov_intervals:
                 ov_intervals.sort()
                 c_s, c_e = ov_intervals[0]
                 for n_s, n_e in ov_intervals[1:]:
                     if n_s <= c_e: c_e = max(c_e, n_e)
                     else:
-                        ov_matched_len += (c_e - c_s)
+                        merged_intervals.append((c_s, c_e))
                         c_s, c_e = n_s, n_e
-                ov_matched_len += (c_e - c_s)
+                merged_intervals.append((c_s, c_e))
             
-            if ov_matched_len > ov_len * 0.99: # 99% match for perfect
-                entity_matched_length += ov_len
-            else:
-                is_outline = False
-        
-        if is_outline and entity_matched_length > entity_length * 0.98: # 98% for perfect
-            matched_count += 1
-            matched_length += entity_matched_length
-            continue
-        
-        engravings.append(e)
+            curr = 0.0
+            remaining_intervals = []
+            for s, e_inv in merged_intervals:
+                if s > curr + 0.01:
+                    remaining_intervals.append((curr, s))
+                curr = max(curr, e_inv)
+            if ov_len > curr + 0.01:
+                remaining_intervals.append((curr, ov_len))
+                
+            for s, e_inv in remaining_intervals:
+                dir_vec = (s_ov[1] - s_ov[0]).normalize()
+                p_start = s_ov[0] + dir_vec * s
+                p_end = s_ov[0] + dir_vec * e_inv
+                new_line = overlay_msp.add_line(p_start, p_end)
+                new_line.dxf.layer = e.dxf.layer
+                if e.dxf.hasattr('color'):
+                    new_line.dxf.color = e.dxf.color
+                engravings.append(new_line)
 
     return engravings, mat
 

@@ -7,6 +7,7 @@ from models import Part, SheetConfig, PlacementConfig, SheetResult, PlacedPart, 
 from dxf_exporter import get_dxf_layer_svg_paths
 from overlay_manager import get_engraving_entities
 from bridge_generator import add_bridges_to_cutting_block
+from config import load_config
 
 def index_to_letters(n: int) -> str:
     """Convert a 0-indexed integer to spreadsheet letters (A, B, C, ..., AA, AB)."""
@@ -327,6 +328,8 @@ def export_sheets(
 
     parts_dir = project_dir / "parts"
     overlays_dir = project_dir / "overlays"
+    
+    config = load_config(project_dir)
 
     for res in sheets_results:
         filename = f"sheet_{res.label}_{res.config.name}.dxf"
@@ -407,8 +410,13 @@ def export_sheets(
                                 break
                                 
             part_path = parts_dir / f"{part.name}.dxf"
+            
+            o_config = config.overlays.get(part.name)
+            flip_h = o_config.flip_horizontal if o_config else False
+            flip_v = o_config.flip_vertical if o_config else False
+            
             if overlay_path and overlay_path.exists():
-                _import_overlay_to_sheet(overlay_path, part_path, doc, msp, (part.x_mm, part.y_mm), part.rotated, part.width_mm, part.height_mm)
+                _import_overlay_to_sheet(overlay_path, part_path, doc, msp, (part.x_mm, part.y_mm), part.rotated, part.width_mm, part.height_mm, flip_h, flip_v)
 
             # Add Part ID Label (e.g., 1, 2)
             if part.part_id is not None and part is label_carriers.get(part.name):
@@ -476,6 +484,8 @@ def export_preview_svg(
     
     l_size = placement_config.label_square_size_mm
     
+    config = load_config(project_dir)
+
     lines = [
         f'<svg width="{svg_w}" height="{svg_h}" viewBox="0 0 {svg_w} {svg_h}" xmlns="http://www.w3.org/2000/svg">',
         '  <rect width="100%" height="100%" fill="#f8f9fa" />',
@@ -549,9 +559,13 @@ def export_preview_svg(
                                 overlay_path = cached_path
                                 break
                                 
+            o_config = config.overlays.get(part.name)
+            flip_h = o_config.flip_horizontal if o_config else False
+            flip_v = o_config.flip_vertical if o_config else False
+            
             part_path = project_dir / "parts" / f"{part.name}.dxf"
             if overlay_path and overlay_path.exists() and part_path.exists():
-                engraving_data = _get_overlay_svg_paths(overlay_path, part_path)
+                engraving_data = _get_overlay_svg_paths(overlay_path, part_path, flip_h, flip_v)
                 if engraving_data:
                     lines.append(f'    <path class="engraving" d="{engraving_data}" transform="{transform}" />')
             
@@ -635,13 +649,15 @@ def _import_overlay_to_sheet(
     offset: tuple[float, float],
     rotated: bool,
     orig_w: float,
-    orig_h: float
+    orig_h: float,
+    flip_h: bool = False,
+    flip_v: bool = False
 ) -> None:
     """Import filtered engraving geometry from overlay_path into target_layout."""
     try:
         ref_path = part_path.with_suffix(".ref.dxf")
         match_path = ref_path if ref_path.exists() else part_path
-        engravings, align_mat = get_engraving_entities(overlay_path, match_path)
+        engravings, align_mat = get_engraving_entities(overlay_path, match_path, flip_h, flip_v)
         
         # Create a unique block name
         block_name = f"OVERLAY_{uuid.uuid4().hex}"
@@ -670,13 +686,13 @@ def _import_overlay_to_sheet(
         print(f"    Warning: Failed to import overlay {overlay_path.name}: {e}")
 
 
-def _get_overlay_svg_paths(overlay_path: Path, part_path: Path) -> str:
+def _get_overlay_svg_paths(overlay_path: Path, part_path: Path, flip_h: bool = False, flip_v: bool = False) -> str:
     """Extract SVG path data for filtered engravings in an overlay DXF."""
     from ezdxf import path
     try:
         ref_path = part_path.with_suffix(".ref.dxf")
         match_path = ref_path if ref_path.exists() else part_path
-        engravings, align_mat = get_engraving_entities(overlay_path, match_path)
+        engravings, align_mat = get_engraving_entities(overlay_path, match_path, flip_h, flip_v)
         
         svg_segments = []
         for entity in engravings:

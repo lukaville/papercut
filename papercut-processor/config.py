@@ -31,8 +31,15 @@ def load_config(project_dir: Path) -> ProjectConfig:
         
     # Parse overlays
     overlay_data = data.get("overlays", {})
-    if isinstance(overlay_data, list):
-        overlay_data = {name: {} for name in overlay_data}
+    overlays = {}
+    if isinstance(overlay_data, dict):
+        for name, o_data in overlay_data.items():
+            if o_data is None:
+                o_data = {}
+            overlays[name] = PartConfig(
+                flip_horizontal=o_data.get("flip_horizontal", False),
+                flip_vertical=o_data.get("flip_vertical", False)
+            )
     
     # Parse sheets
     sheet_data = []
@@ -72,7 +79,7 @@ def load_config(project_dir: Path) -> ProjectConfig:
     
     return ProjectConfig(
         imports=file_imports, 
-        overlays=overlay_data,
+        overlays=overlays,
         sheets=sheet_data,
         placement=placement,
         bridges=bridges,
