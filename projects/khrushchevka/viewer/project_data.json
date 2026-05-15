@@ -243,7 +243,7 @@
       ],
       "count": 2,
       "color": "#999999",
-      "model": "models/group_26_Part_42.stl"
+      "model": "models/group_26_entrance_step_0.stl"
     },
     {
       "id": 27,
@@ -253,7 +253,7 @@
       ],
       "count": 2,
       "color": "#999999",
-      "model": "models/group_27_Part_44.stl"
+      "model": "models/group_27_entrance_canopy.stl"
     },
     {
       "id": 28,
@@ -281,7 +281,7 @@
       ],
       "count": 2,
       "color": "#121212",
-      "model": "models/group_30_Part_45.stl"
+      "model": "models/group_30_canopy_roof.stl"
     },
     {
       "id": 31,

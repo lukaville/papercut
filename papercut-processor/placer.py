@@ -364,11 +364,22 @@ def export_sheets(
         label_x = margin
         label_y = res.config.height_mm - margin - l_size
         
-        msp.add_lwpolyline([
-            (label_x, label_y), (label_x + l_size, label_y),
-            (label_x + l_size, label_y + l_size),
-            (label_x, label_y + l_size), (label_x, label_y)
-        ], dxfattribs={'layer': 'engraving'})
+        r = min(2.0, l_size / 4)
+        x0, y0 = label_x, label_y
+        x1, y1 = label_x + l_size, label_y + l_size
+        
+        box_points = [
+            (x0 + r, y0, 0),
+            (x1 - r, y0, 0.414213562),
+            (x1, y0 + r, 0),
+            (x1, y1 - r, 0.414213562),
+            (x1 - r, y1, 0),
+            (x0 + r, y1, 0.414213562),
+            (x0, y1 - r, 0),
+            (x0, y0 + r, 0.414213562)
+        ]
+        
+        msp.add_lwpolyline(box_points, close=True, dxfattribs={'layer': 'engraving'})
         
         text = msp.add_text(
             res.label, 
@@ -498,7 +509,8 @@ def export_preview_svg(
         
         # Identification Square and Label (Top-Left)
         margin = placement_config.sheet_margin_mm
-        lines.append(f'    <rect class="sheet-id-box" x="{margin}" y="{margin}" width="{l_size}" height="{l_size}" />')
+        r_svg = min(2.0, l_size / 4)
+        lines.append(f'    <rect class="sheet-id-box" x="{margin}" y="{margin}" width="{l_size}" height="{l_size}" rx="{r_svg}" ry="{r_svg}" />')
         lines.append(f'    <text class="sheet-id-text" x="{margin + l_size/2}" y="{margin + l_size/2}">{res.label}</text>')
 
         # Parts
