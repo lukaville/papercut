@@ -4,6 +4,7 @@ import sys
 import os
 import re
 from pathlib import Path
+from typing import Optional, Any
 
 import cadquery as cq
 from OCP.gp import gp_Pnt, gp_Ax2, gp_Dir, gp_Trsf
@@ -19,7 +20,7 @@ from clash_detection import check_intersections
 from overlay_manager import manage_overlays
 from placer import place_parts, export_sheets, export_preview_svg
 from viewer_exporter import export_viewer
-from models import Part, ProjectConfig, PartInstance
+from models import Part, ProjectConfig, PartInstance, Color
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import multiprocessing
@@ -40,18 +41,27 @@ class Timer:
 
 
 
-def resolve_names(groups: list[PartGroup]) -> list[tuple[PartGroup, str, bool]]:
+def get_color_name(color: Optional[Color], config: ProjectConfig) -> str:
+    """Find a friendly name for a color from the project config."""
+    if not color:
+        return ""
+    hex_val = color.hex.lower()
+    for sheet in config.sheets:
+        if sheet.color.lower() == hex_val:
+            return sheet.name
+    return hex_val.replace("#", "")
+
+
+def resolve_names(groups: list[PartGroup], config: ProjectConfig) -> list[tuple[PartGroup, str, str, bool]]:
     """Resolve a unique filename for each part group and determine flipping."""
-    resolved = []
-    used_names = set()
     
+    # Pass 1: Determine base names for all groups
+    base_names = []
     for i, group in enumerate(groups):
-        # 1. Try to find a meaningful name
         candidate = None
         meaningful_names = [n for n in group.names if not re.match(r"Part \d+", n)]
         
         if len(meaningful_names) == 0:
-            # All names are 'Part N', pick the one with lowest N
             part_numbers = []
             for n in group.names:
                 m = re.match(r"Part (\d+)", n)
@@ -65,21 +75,38 @@ def resolve_names(groups: list[PartGroup]) -> list[tuple[PartGroup, str, bool]]:
         elif len(meaningful_names) == 1:
             candidate = meaningful_names[0].lower().replace(" ", "_")
         else:
-            # Multiple meaningful names - check if they match after normalization
             normalized = {n.lower().replace(" ", "_") for n in meaningful_names}
-            if len(normalized) == 1:
-                candidate = list(normalized)[0]
-            else:
-                # Conflict!
-                candidate = list(normalized)[0]
+            candidate = list(normalized)[0]
         
         # Ensure candidate is alphanumeric-ish
         candidate = "".join(c if c.isalnum() or c in "_-" else "_" for c in candidate)
+        base_names.append(candidate)
+
+    # Pass 2: Disambiguate if necessary (multi-pass check for unique names)
+    from collections import Counter
+    counts = Counter(base_names)
+    
+    resolved = []
+    used_names = set()
+    
+    for i, group in enumerate(groups):
+        base = base_names[i]
+        
+        # If multiple groups share the same base name, try to disambiguate by color
+        if counts[base] > 1:
+            color_name = get_color_name(group.color, config)
+            if color_name:
+                candidate = f"{base}_{color_name}"
+            else:
+                # Fallback to index if color matching fails
+                candidate = f"{base}_{i}"
+        else:
+            candidate = base
         
         # Ensure global uniqueness - FAIL on conflict as requested
         if candidate in used_names:
             # Find which groups have this name
-            conflicting_groups = [g.names for g, name, _ in resolved if name == candidate]
+            conflicting_groups = [g.names for g, name, _, _ in resolved if name == candidate]
             raise ValueError(
                 f"Naming Conflict: Multiple different part geometries share the name '{candidate}'.\n"
                 f"Conflicting groups names: {group.names} vs {conflicting_groups}\n"
@@ -87,7 +114,7 @@ def resolve_names(groups: list[PartGroup]) -> list[tuple[PartGroup, str, bool]]:
             )
         used_names.add(candidate)
         
-        resolved.append((group, candidate, False))
+        resolved.append((group, candidate, base, False))
         
     return resolved
 
@@ -196,7 +223,7 @@ def main():
     print(f"  Found {len(groups)} unique part(s)")
 
     # Step 4: Resolve names
-    group_names = resolve_names(groups)
+    group_names = resolve_names(groups, config)
 
     # Step 5: Export DXF files
     parts_dir = project_dir / "parts"
@@ -233,7 +260,7 @@ def main():
     with Timer("DXF Export"):
         with ProcessPoolExecutor(max_workers=multiprocessing.cpu_count()) as executor:
             future_to_part = {}
-            for group, filename, _ in group_names:
+            for group, filename, base_name, _ in group_names:
                 # Update instances in this group to have the resolved filename
                 for inst in all_instances:
                     if inst.group_id == group.id:
@@ -250,10 +277,10 @@ def main():
                     kerf_offset, 
                     ref_path
                 )
-                future_to_part[future] = (filename, group)
+                future_to_part[future] = (filename, base_name, group)
 
             for future in as_completed(future_to_part):
-                filename, group = future_to_part[future]
+                filename, base_name, group = future_to_part[future]
                 # No try-except here - let it raise and stop the process if a part fails
                 width_mm, height_mm, area, svg_path = future.result()
                 svg_paths[filename] = svg_path
@@ -261,6 +288,7 @@ def main():
                 dim_str = f"{width_mm:.1f} × {height_mm:.1f} × {thickness:.1f}"
                 placement_metadata.append(Part(
                     name=filename,
+                    base_name=base_name,
                     width_mm=width_mm,
                     height_mm=height_mm,
                     area_mm2=area,

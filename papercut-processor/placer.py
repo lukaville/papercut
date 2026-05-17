@@ -228,7 +228,7 @@ def place_parts(
                         final_x < -0.01 or final_y < -0.01):
                         raise ValueError(f"Placement BUG: Part '{p.name}' placed outside sheet '{sheet_config.name}' at ({final_x:.1f}, {final_y:.1f}) with size {rw:.1f}x{rh:.1f}.")
 
-                    res.placed_parts.append(PlacedPart(p.name, final_x, final_y, p.width_mm, p.height_mm, rotated))
+                    res.placed_parts.append(PlacedPart(p.name, final_x, final_y, p.width_mm, p.height_mm, rotated, base_name=p.base_name))
                     res.total_parts_area_mm2 += p.area_mm2
                     placed = True
                     break
@@ -272,7 +272,7 @@ def place_parts(
                     config=sheet_config,
                     index=len(results) + 1,
                     label=sheet_label,
-                    placed_parts=[PlacedPart(p.name, final_x, final_y, p.width_mm, p.height_mm, rotated)],
+                    placed_parts=[PlacedPart(p.name, final_x, final_y, p.width_mm, p.height_mm, rotated, base_name=p.base_name)],
                     total_parts_area_mm2=p.area_mm2
                 )
                 
@@ -398,13 +398,20 @@ def export_sheets(
         # 2. Engraving Layer (Part-level: Overlays and ID labels)
         for part in res.placed_parts:
             # Import Engraving Geometry (from overlay if exists)
+            # Try exact name match first, then base_name fallback
             overlay_path = overlays_dir / f"{part.name}.dxf"
+            if not overlay_path.exists() and part.base_name:
+                overlay_path = overlays_dir / f"{part.base_name}.dxf"
+                
             if not overlay_path.exists():
                 engravings_base = project_dir / ".cache" / "engravings"
                 if engravings_base.exists():
                     for subdir in engravings_base.iterdir():
                         if subdir.is_dir():
                             cached_path = subdir / f"{part.name}.dxf"
+                            if not cached_path.exists() and part.base_name:
+                                cached_path = subdir / f"{part.base_name}.dxf"
+                            
                             if cached_path.exists():
                                 overlay_path = cached_path
                                 break
@@ -548,13 +555,20 @@ def export_preview_svg(
             lines.append(f'    <path class="part-box" d="{path_data}" transform="{transform}" />')
             
             # Add engraving if overlay exists
+            # Try exact name match first, then base_name fallback
             overlay_path = project_dir / "overlays" / f"{part.name}.dxf"
+            if not overlay_path.exists() and part.base_name:
+                overlay_path = project_dir / "overlays" / f"{part.base_name}.dxf"
+
             if not overlay_path.exists():
                 engravings_base = project_dir / ".cache" / "engravings"
                 if engravings_base.exists():
                     for subdir in engravings_base.iterdir():
                         if subdir.is_dir():
                             cached_path = subdir / f"{part.name}.dxf"
+                            if not cached_path.exists() and part.base_name:
+                                cached_path = subdir / f"{part.base_name}.dxf"
+                                
                             if cached_path.exists():
                                 overlay_path = cached_path
                                 break

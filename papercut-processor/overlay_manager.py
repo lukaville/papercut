@@ -20,11 +20,18 @@ def manage_overlays(project_dir: Path, overlay_config: dict[str, Any]) -> None:
     for overlay_path in overlay_files:
         part_name = overlay_path.stem
         part_dxf_path = parts_dir / f"{part_name}.dxf"
+        
+        # If exact match doesn't exist, look for disambiguated versions (e.g. part_name_grey.dxf)
+        if not part_dxf_path.exists():
+            matches = list(parts_dir.glob(f"{part_name}_*.dxf"))
+            if matches:
+                part_dxf_path = matches[0] # Use any one for geometry validation
+        
         ref_path = part_dxf_path.with_suffix(".ref.dxf")
         match_path = ref_path if ref_path.exists() else part_dxf_path
 
         if not match_path.exists():
-            print(f"Warning: Cannot validate overlay '{overlay_path.name}', part DXF not found at {part_dxf_path}", file=sys.stderr)
+            print(f"Warning: Cannot validate overlay '{overlay_path.name}', part DXF not found at {parts_dir / f'{part_name}.dxf'}", file=sys.stderr)
             continue
 
         try:

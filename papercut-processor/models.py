@@ -28,6 +28,7 @@ class Part:
     count: int
     color: Optional[Color]
     group_id: Optional[int] = None # Link to deduplication group
+    base_name: Optional[str] = None # Original CAD name before disambiguation
 
 
 @dataclass
@@ -60,6 +61,7 @@ class PlacedPart:
     height_mm: float
     rotated: bool = False
     part_id: Optional[int] = None
+    base_name: Optional[str] = None
 
 
 @dataclass
