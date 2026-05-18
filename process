@@ -30,8 +30,8 @@ source "$VENV_DIR/bin/activate"
 MARKER="$VENV_DIR/.requirements.stamp"
 if [ ! -f "$MARKER" ] || [ "$REQUIREMENTS" -nt "$MARKER" ]; then
     echo "Installing dependencies ..."
-    pip install --quiet --upgrade pip
-    pip install --quiet -r "$REQUIREMENTS"
+    pip install --index-url https://pypi.org/simple/ --quiet --upgrade pip
+    pip install --index-url https://pypi.org/simple/ --quiet -r "$REQUIREMENTS"
     touch "$MARKER"
 fi
 
