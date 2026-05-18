@@ -22,4 +22,4 @@ bridges:
 
 kerf:
   compensation: true
-  offset_mm: 0.08
+  offset_mm: 0.06

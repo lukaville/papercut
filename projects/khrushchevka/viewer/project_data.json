@@ -3,56 +3,56 @@
     {
       "id": 0,
       "names": [
-        "transformer_box_roof"
+        "ventilation_box_walls"
       ],
-      "count": 1,
+      "count": 8,
       "color": "#999999",
-      "model": "models/group_0_transformer_box_roof.stl"
+      "model": "models/group_0_ventilation_box_walls.stl"
     },
     {
       "id": 1,
       "names": [
-        "window_bars"
+        "inter_wall"
       ],
-      "count": 18,
+      "count": 2,
       "color": "#d1d1d1",
-      "model": "models/group_1_window_bars.stl"
+      "model": "models/group_1_inter_wall.stl"
     },
     {
       "id": 2,
       "names": [
-        "inter_wall"
-      ],
-      "count": 7,
-      "color": "#999999",
-      "model": "models/group_2_inter_wall.stl"
-    },
-    {
-      "id": 3,
-      "names": [
-        "balcony_side"
+        "balcony_front"
       ],
       "count": 8,
       "color": "#999999",
-      "model": "models/group_3_balcony_side.stl"
+      "model": "models/group_2_balcony_front.stl"
     },
     {
-      "id": 4,
+      "id": 3,
       "names": [
         "ventialtion_box_roof"
       ],
       "count": 4,
       "color": "#121212",
-      "model": "models/group_4_ventialtion_box_roof.stl"
+      "model": "models/group_3_ventialtion_box_roof.stl"
+    },
+    {
+      "id": 4,
+      "names": [
+        "inter_wall"
+      ],
+      "count": 7,
+      "color": "#999999",
+      "model": "models/group_4_inter_wall.stl"
     },
     {
       "id": 5,
       "names": [
-        "transformer_box_front"
+        "balcony_floor"
       ],
-      "count": 1,
+      "count": 8,
       "color": "#999999",
-      "model": "models/group_5_transformer_box_front.stl"
+      "model": "models/group_5_balcony_floor.stl"
     },
     {
       "id": 6,
@@ -66,29 +66,29 @@
     {
       "id": 7,
       "names": [
-        "inter_wall"
+        "balcony_side_left"
       ],
-      "count": 2,
-      "color": "#d1d1d1",
-      "model": "models/group_7_inter_wall.stl"
+      "count": 8,
+      "color": "#999999",
+      "model": "models/group_7_balcony_side_left.stl"
     },
     {
       "id": 8,
       "names": [
-        "balcony_floor"
+        "window_bars"
       ],
-      "count": 8,
-      "color": "#999999",
-      "model": "models/group_8_balcony_floor.stl"
+      "count": 18,
+      "color": "#d1d1d1",
+      "model": "models/group_8_window_bars.stl"
     },
     {
       "id": 9,
       "names": [
-        "ground"
+        "balcony_side"
       ],
-      "count": 1,
+      "count": 8,
       "color": "#999999",
-      "model": "models/group_9_ground.stl"
+      "model": "models/group_9_balcony_side.stl"
     },
     {
       "id": 10,
@@ -102,231 +102,231 @@
     {
       "id": 11,
       "names": [
-        "balcony_side_left"
+        "roof_exit_box_back_wall"
       ],
-      "count": 8,
-      "color": "#999999",
-      "model": "models/group_11_balcony_side_left.stl"
+      "count": 1,
+      "color": "#d1d1d1",
+      "model": "models/group_11_roof_exit_box_back_wall.stl"
     },
     {
       "id": 12,
-      "names": [
-        "roof_exit_box_door"
-      ],
-      "count": 1,
-      "color": "#c04931",
-      "model": "models/group_12_roof_exit_box_door.stl"
-    },
-    {
-      "id": 13,
       "names": [
         "inner_front"
       ],
       "count": 1,
       "color": "#d1d1d1",
-      "model": "models/group_13_inner_front.stl"
+      "model": "models/group_12_inner_front.stl"
     },
     {
-      "id": 14,
-      "names": [
-        "roof_exit_box_roof"
-      ],
-      "count": 1,
-      "color": "#121212",
-      "model": "models/group_14_roof_exit_box_roof.stl"
-    },
-    {
-      "id": 15,
-      "names": [
-        "balcony_front"
-      ],
-      "count": 8,
-      "color": "#999999",
-      "model": "models/group_15_balcony_front.stl"
-    },
-    {
-      "id": 16,
-      "names": [
-        "ventilation_box_side_walls"
-      ],
-      "count": 8,
-      "color": "#999999",
-      "model": "models/group_16_ventilation_box_side_walls.stl"
-    },
-    {
-      "id": 17,
-      "names": [
-        "roof_inner_wall"
-      ],
-      "count": 2,
-      "color": "#121212",
-      "model": "models/group_17_roof_inner_wall.stl"
-    },
-    {
-      "id": 18,
-      "names": [
-        "Part 45",
-        "canopy_roof"
-      ],
-      "count": 2,
-      "color": "#121212",
-      "model": "models/group_18_canopy_roof.stl"
-    },
-    {
-      "id": 19,
-      "names": [
-        "inter_floor"
-      ],
-      "count": 4,
-      "color": "#999999",
-      "model": "models/group_19_inter_floor.stl"
-    },
-    {
-      "id": 20,
-      "names": [
-        "roof_inner_wall_side"
-      ],
-      "count": 2,
-      "color": "#121212",
-      "model": "models/group_20_roof_inner_wall_side.stl"
-    },
-    {
-      "id": 21,
-      "names": [
-        "ventilation_box_walls"
-      ],
-      "count": 8,
-      "color": "#999999",
-      "model": "models/group_21_ventilation_box_walls.stl"
-    },
-    {
-      "id": 22,
-      "names": [
-        "skirt"
-      ],
-      "count": 2,
-      "color": "#c04931",
-      "model": "models/group_22_skirt.stl"
-    },
-    {
-      "id": 23,
-      "names": [
-        "ventilation_box_inter_roof"
-      ],
-      "count": 4,
-      "color": "#999999",
-      "model": "models/group_23_ventilation_box_inter_roof.stl"
-    },
-    {
-      "id": 24,
-      "names": [
-        "roof_exit_box_back_wall"
-      ],
-      "count": 1,
-      "color": "#d1d1d1",
-      "model": "models/group_24_roof_exit_box_back_wall.stl"
-    },
-    {
-      "id": 25,
+      "id": 13,
       "names": [
         "roof_exit_box_side_walls"
       ],
       "count": 2,
       "color": "#999999",
-      "model": "models/group_25_roof_exit_box_side_walls.stl"
+      "model": "models/group_13_roof_exit_box_side_walls.stl"
     },
     {
-      "id": 26,
-      "names": [
-        "entrance_support_plate"
-      ],
-      "count": 2,
-      "color": "#999999",
-      "model": "models/group_26_entrance_support_plate.stl"
-    },
-    {
-      "id": 27,
-      "names": [
-        "inner_side"
-      ],
-      "count": 2,
-      "color": "#d1d1d1",
-      "model": "models/group_27_inner_side.stl"
-    },
-    {
-      "id": 28,
-      "names": [
-        "entrance_door"
-      ],
-      "count": 2,
-      "color": "#c04931",
-      "model": "models/group_28_entrance_door.stl"
-    },
-    {
-      "id": 29,
+      "id": 14,
       "names": [
         "Part 43",
         "entrance_step_1"
       ],
       "count": 2,
       "color": "#999999",
-      "model": "models/group_29_entrance_step_1.stl"
+      "model": "models/group_14_Part_43.stl"
     },
     {
-      "id": 30,
+      "id": 15,
       "names": [
-        "roof_exit_box_entrance_wall"
+        "roof_exit_box_door"
       ],
       "count": 1,
-      "color": "#999999",
-      "model": "models/group_30_roof_exit_box_entrance_wall.stl"
+      "color": "#c04931",
+      "model": "models/group_15_roof_exit_box_door.stl"
     },
     {
-      "id": 31,
+      "id": 16,
       "names": [
-        "outer_front"
-      ],
-      "count": 1,
-      "color": "#999999",
-      "model": "models/group_31_outer_front.stl"
-    },
-    {
-      "id": 32,
-      "names": [
-        "outer_side"
+        "entrance_door"
       ],
       "count": 2,
-      "color": "#999999",
-      "model": "models/group_32_outer_side.stl"
+      "color": "#c04931",
+      "model": "models/group_16_entrance_door.stl"
     },
     {
-      "id": 33,
+      "id": 17,
+      "names": [
+        "roof_exit_box_roof"
+      ],
+      "count": 1,
+      "color": "#121212",
+      "model": "models/group_17_roof_exit_box_roof.stl"
+    },
+    {
+      "id": 18,
+      "names": [
+        "inter_floor"
+      ],
+      "count": 4,
+      "color": "#999999",
+      "model": "models/group_18_inter_floor.stl"
+    },
+    {
+      "id": 19,
+      "names": [
+        "skirt"
+      ],
+      "count": 2,
+      "color": "#c04931",
+      "model": "models/group_19_skirt.stl"
+    },
+    {
+      "id": 20,
       "names": [
         "entrance_around"
       ],
       "count": 2,
       "color": "#999999",
-      "model": "models/group_33_entrance_around.stl"
+      "model": "models/group_20_entrance_around.stl"
     },
     {
-      "id": 34,
+      "id": 21,
+      "names": [
+        "ventilation_box_side_walls"
+      ],
+      "count": 8,
+      "color": "#999999",
+      "model": "models/group_21_ventilation_box_side_walls.stl"
+    },
+    {
+      "id": 22,
       "names": [
         "Part 42",
         "entrance_step_0"
       ],
       "count": 2,
       "color": "#999999",
-      "model": "models/group_34_Part_42.stl"
+      "model": "models/group_22_Part_42.stl"
     },
     {
-      "id": 35,
+      "id": 23,
+      "names": [
+        "Part 45",
+        "canopy_roof"
+      ],
+      "count": 2,
+      "color": "#121212",
+      "model": "models/group_23_canopy_roof.stl"
+    },
+    {
+      "id": 24,
+      "names": [
+        "ventilation_box_inter_roof"
+      ],
+      "count": 4,
+      "color": "#999999",
+      "model": "models/group_24_ventilation_box_inter_roof.stl"
+    },
+    {
+      "id": 25,
       "names": [
         "Part 44",
         "entrance_canopy"
       ],
       "count": 2,
       "color": "#999999",
-      "model": "models/group_35_Part_44.stl"
+      "model": "models/group_25_Part_44.stl"
+    },
+    {
+      "id": 26,
+      "names": [
+        "roof_exit_box_entrance_wall"
+      ],
+      "count": 1,
+      "color": "#999999",
+      "model": "models/group_26_roof_exit_box_entrance_wall.stl"
+    },
+    {
+      "id": 27,
+      "names": [
+        "transformer_box_back"
+      ],
+      "count": 1,
+      "color": "#999999",
+      "model": "models/group_27_transformer_box_back.stl"
+    },
+    {
+      "id": 28,
+      "names": [
+        "inner_side"
+      ],
+      "count": 2,
+      "color": "#d1d1d1",
+      "model": "models/group_28_inner_side.stl"
+    },
+    {
+      "id": 29,
+      "names": [
+        "roof_inner_wall_side"
+      ],
+      "count": 2,
+      "color": "#121212",
+      "model": "models/group_29_roof_inner_wall_side.stl"
+    },
+    {
+      "id": 30,
+      "names": [
+        "outer_front"
+      ],
+      "count": 1,
+      "color": "#999999",
+      "model": "models/group_30_outer_front.stl"
+    },
+    {
+      "id": 31,
+      "names": [
+        "outer_side"
+      ],
+      "count": 2,
+      "color": "#999999",
+      "model": "models/group_31_outer_side.stl"
+    },
+    {
+      "id": 32,
+      "names": [
+        "entrance_support_plate"
+      ],
+      "count": 2,
+      "color": "#999999",
+      "model": "models/group_32_entrance_support_plate.stl"
+    },
+    {
+      "id": 33,
+      "names": [
+        "transformer_box_roof"
+      ],
+      "count": 1,
+      "color": "#999999",
+      "model": "models/group_33_transformer_box_roof.stl"
+    },
+    {
+      "id": 34,
+      "names": [
+        "transformer_box_front"
+      ],
+      "count": 1,
+      "color": "#999999",
+      "model": "models/group_34_transformer_box_front.stl"
+    },
+    {
+      "id": 35,
+      "names": [
+        "roof_inner_wall"
+      ],
+      "count": 2,
+      "color": "#121212",
+      "model": "models/group_35_roof_inner_wall.stl"
     },
     {
       "id": 36,
@@ -349,34 +349,34 @@
     {
       "id": 38,
       "names": [
+        "ground"
+      ],
+      "count": 1,
+      "color": "#999999",
+      "model": "models/group_38_ground.stl"
+    },
+    {
+      "id": 39,
+      "names": [
         "roof_exit_box_inter_roof"
       ],
       "count": 1,
       "color": "#999999",
-      "model": "models/group_38_roof_exit_box_inter_roof.stl"
+      "model": "models/group_39_roof_exit_box_inter_roof.stl"
     },
     {
-      "id": 39,
+      "id": 40,
       "names": [
         "roof"
       ],
       "count": 1,
       "color": "#121212",
-      "model": "models/group_39_roof.stl"
-    },
-    {
-      "id": 40,
-      "names": [
-        "transformer_box_back"
-      ],
-      "count": 1,
-      "color": "#999999",
-      "model": "models/group_40_transformer_box_back.stl"
+      "model": "models/group_40_roof.stl"
     }
   ],
   "instances": [
     {
-      "name": "transformer_box_roof",
+      "name": "ventilation_box_walls",
       "group_id": 0,
       "matrix": [
         1.0,
@@ -391,16 +391,16 @@
         0.0,
         1.0,
         0.0,
-        112.81765254607393,
-        -26.400000000000002,
-        10.178280965082601,
+        -68.66666666666667,
+        -20.649999999999995,
+        100.26191584163375,
         1.0
       ],
-      "sheet_label": "B",
+      "sheet_label": "C",
       "sheet_part_id": 6
     },
     {
-      "name": "window_bars",
+      "name": "inter_wall_white",
       "group_id": 1,
       "matrix": [
         1.0,
@@ -415,16 +415,16 @@
         0.0,
         1.0,
         0.0,
-        -8.607819820507315,
-        -39.149999999999984,
-        16.236415425866458,
+        -73.3333333333333,
+        0.10414333398962564,
+        48.7530624377096,
         1.0
       ],
-      "sheet_label": "I",
-      "sheet_part_id": 4
+      "sheet_label": "J",
+      "sheet_part_id": 2
     },
     {
-      "name": "inter_wall_grey",
+      "name": "balcony_front",
       "group_id": 2,
       "matrix": [
         1.0,
@@ -439,41 +439,17 @@
         0.0,
         1.0,
         0.0,
-        -56.000000000000014,
-        0.11723902515017061,
-        48.786741672737755,
+        28.000000000000092,
+        -46.15000000000001,
+        57.361114887831434,
         1.0
       ],
-      "sheet_label": "C",
-      "sheet_part_id": 2
-    },
-    {
-      "name": "balcony_side",
-      "group_id": 3,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        18.083333333333407,
-        42.29460370994945,
-        57.41163575042164,
-        1.0
-      ],
-      "sheet_label": "B",
+      "sheet_label": "D",
       "sheet_part_id": 3
     },
     {
       "name": "ventialtion_box_roof",
-      "group_id": 4,
+      "group_id": 3,
       "matrix": [
         1.0,
         0.0,
@@ -496,7 +472,31 @@
       "sheet_part_id": 5
     },
     {
-      "name": "transformer_box_front",
+      "name": "inter_wall_grey",
+      "group_id": 4,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -55.99999999999999,
+        0.10414333398962411,
+        48.7530624377096,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 2
+    },
+    {
+      "name": "balcony_floor",
       "group_id": 5,
       "matrix": [
         1.0,
@@ -511,13 +511,13 @@
         0.0,
         1.0,
         0.0,
-        112.74999999999997,
-        -26.4,
-        4.9375,
+        28.000000000000046,
+        -42.26638954869359,
+        95.75000000000001,
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 9
+      "sheet_part_id": 5
     },
     {
       "name": "inter_wall_black",
@@ -535,16 +535,16 @@
         0.0,
         1.0,
         0.0,
-        -90.66666666666673,
-        0.11723902515016883,
-        48.786741672737755,
+        -90.66666666666674,
+        0.10414333398962426,
+        48.7530624377096,
         1.0
       ],
       "sheet_label": "A",
       "sheet_part_id": 3
     },
     {
-      "name": "inter_wall_white",
+      "name": "balcony_side_left",
       "group_id": 7,
       "matrix": [
         1.0,
@@ -559,16 +559,40 @@
         0.0,
         1.0,
         0.0,
-        -73.3333333333333,
-        0.11723902515017158,
-        48.78674167273775,
+        18.083333333333396,
+        -42.294603709949406,
+        57.41163575042162,
         1.0
       ],
-      "sheet_label": "J",
-      "sheet_part_id": 2
+      "sheet_label": "C",
+      "sheet_part_id": 4
     },
     {
-      "name": "balcony_floor",
+      "name": "balcony_side_left",
+      "group_id": 7,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -111.25000000000003,
+        -42.29460370994944,
+        57.41163575042163,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "window_bars",
       "group_id": 8,
       "matrix": [
         1.0,
@@ -583,17 +607,17 @@
         0.0,
         1.0,
         0.0,
-        28.00000000000005,
-        42.26638954869359,
-        95.75000000000001,
+        -8.607819820507315,
+        -39.149999999999984,
+        16.236415425866458,
         1.0
       ],
-      "sheet_label": "D",
-      "sheet_part_id": 6
+      "sheet_label": "I",
+      "sheet_part_id": 4
     },
     {
-      "name": "window_bars",
-      "group_id": 1,
+      "name": "balcony_floor",
+      "group_id": 5,
       "matrix": [
         1.0,
         0.0,
@@ -607,16 +631,16 @@
         0.0,
         1.0,
         0.0,
-        -112.25,
-        -8.725513512826078,
-        14.936415425866349,
+        -101.33333333333333,
+        42.2663895486936,
+        95.75,
         1.0
       ],
-      "sheet_label": "I",
-      "sheet_part_id": 4
+      "sheet_label": "D",
+      "sheet_part_id": 5
     },
     {
-      "name": "ground",
+      "name": "balcony_side",
       "group_id": 9,
       "matrix": [
         1.0,
@@ -631,13 +655,13 @@
         0.0,
         1.0,
         0.0,
-        0.29235063153413976,
-        -4.592944320923407,
-        -0.2500000000000003,
+        -91.41666666666679,
+        -42.29460370994944,
+        57.41163575042163,
         1.0
       ],
       "sheet_label": "B",
-      "sheet_part_id": 1
+      "sheet_part_id": 3
     },
     {
       "name": "skirt_side",
@@ -664,8 +688,8 @@
       "sheet_part_id": 2
     },
     {
-      "name": "window_bars",
-      "group_id": 1,
+      "name": "balcony_front",
+      "group_id": 2,
       "matrix": [
         1.0,
         0.0,
@@ -679,16 +703,16 @@
         0.0,
         1.0,
         0.0,
-        -112.25000000000007,
-        8.6078198205073,
-        14.936415425866345,
+        -101.3333333333333,
+        -46.14999999999999,
+        57.36111488783142,
         1.0
       ],
-      "sheet_label": "I",
-      "sheet_part_id": 4
+      "sheet_label": "D",
+      "sheet_part_id": 3
     },
     {
-      "name": "balcony_side_left",
+      "name": "roof_exit_box_back_wall",
       "group_id": 11,
       "matrix": [
         1.0,
@@ -703,17 +727,89 @@
         0.0,
         1.0,
         0.0,
-        111.25000000000003,
-        42.29460370994944,
-        57.41163575042163,
+        -74.41666666666667,
+        6.599999999999993,
+        103.83333333333319,
         1.0
       ],
-      "sheet_label": "C",
+      "sheet_label": "I",
+      "sheet_part_id": 3
+    },
+    {
+      "name": "inner_front",
+      "group_id": 12,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        1.8103536629337406e-14,
+        -38.15000000000021,
+        48.05472533172518,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 1
+    },
+    {
+      "name": "roof_exit_box_side_walls",
+      "group_id": 13,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -64.46296661538223,
+        14.350000000000001,
+        104.21597210532254,
+        1.0
+      ],
+      "sheet_label": "D",
       "sheet_part_id": 4
     },
     {
+      "name": "entrance_step_1",
+      "group_id": 14,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -64.63152380952378,
+        -43.15,
+        0.75,
+        1.0
+      ],
+      "sheet_label": "F",
+      "sheet_part_id": 5
+    },
+    {
       "name": "roof_exit_box_door",
-      "group_id": 12,
+      "group_id": 15,
       "matrix": [
         1.0,
         0.0,
@@ -736,8 +832,8 @@
       "sheet_part_id": 4
     },
     {
-      "name": "inner_front",
-      "group_id": 13,
+      "name": "entrance_door",
+      "group_id": 16,
       "matrix": [
         1.0,
         0.0,
@@ -751,41 +847,17 @@
         0.0,
         1.0,
         0.0,
-        1.712336482348989e-14,
-        -38.150000000000034,
-        48.13600176526036,
+        -60.749999999999986,
+        -39.15,
+        8.250000000000002,
         1.0
       ],
-      "sheet_label": "J",
-      "sheet_part_id": 1
-    },
-    {
-      "name": "window_bars",
-      "group_id": 1,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -47.392180179492584,
-        39.14999999999998,
-        16.23641542586646,
-        1.0
-      ],
-      "sheet_label": "I",
-      "sheet_part_id": 4
+      "sheet_label": "H",
+      "sheet_part_id": 3
     },
     {
       "name": "roof_exit_box_roof",
-      "group_id": 14,
+      "group_id": 17,
       "matrix": [
         1.0,
         0.0,
@@ -808,8 +880,8 @@
       "sheet_part_id": 6
     },
     {
-      "name": "window_bars",
-      "group_id": 1,
+      "name": "inter_floor",
+      "group_id": 18,
       "matrix": [
         1.0,
         0.0,
@@ -823,9 +895,537 @@
         0.0,
         1.0,
         0.0,
-        -8.725513512825993,
-        39.15,
-        16.236415425866475,
+        7.73607490647337e-15,
+        -0.22084440982942155,
+        42.25000000000002,
+        1.0
+      ],
+      "sheet_label": "B",
+      "sheet_part_id": 2
+    },
+    {
+      "name": "entrance_door",
+      "group_id": 16,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        68.5833333333334,
+        -39.15,
+        8.250000000000002,
+        1.0
+      ],
+      "sheet_label": "H",
+      "sheet_part_id": 3
+    },
+    {
+      "name": "balcony_side_left",
+      "group_id": 7,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        91.41666666666677,
+        -42.2946037099494,
+        57.41163575042163,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "skirt",
+      "group_id": 19,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        7.180604029402659e-16,
+        -38.64999999999999,
+        2.9999999999999996,
+        1.0
+      ],
+      "sheet_label": "H",
+      "sheet_part_id": 1
+    },
+    {
+      "name": "ventilation_box_walls",
+      "group_id": 0,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        68.66666666666671,
+        -26.15,
+        100.26191584163381,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 6
+    },
+    {
+      "name": "inter_wall_grey",
+      "group_id": 4,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -38.66666666666666,
+        0.10414333398962308,
+        48.753062437709616,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 2
+    },
+    {
+      "name": "entrance_around",
+      "group_id": 20,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        62.689712993292815,
+        -39.150000000000006,
+        9.396934955545156,
+        1.0
+      ],
+      "sheet_label": "E",
+      "sheet_part_id": 3
+    },
+    {
+      "name": "balcony_front",
+      "group_id": 2,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        101.3333333333333,
+        -46.14999999999999,
+        57.36111488783142,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 3
+    },
+    {
+      "name": "inter_floor",
+      "group_id": 18,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        6.9225039190821075e-15,
+        -0.22084440982942136,
+        78.24999999999994,
+        1.0
+      ],
+      "sheet_label": "E",
+      "sheet_part_id": 1
+    },
+    {
+      "name": "entrance_step_1",
+      "group_id": 14,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        64.70180952380954,
+        -43.14999999999999,
+        0.7499999999999999,
+        1.0
+      ],
+      "sheet_label": "F",
+      "sheet_part_id": 5
+    },
+    {
+      "name": "balcony_side",
+      "group_id": 9,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        37.91666666666672,
+        -42.294603709949385,
+        57.41163575042163,
+        1.0
+      ],
+      "sheet_label": "B",
+      "sheet_part_id": 3
+    },
+    {
+      "name": "ventilation_box_side_walls",
+      "group_id": 21,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        81.41666666666671,
+        -23.400000000000006,
+        100.83333333333321,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 9
+    },
+    {
+      "name": "inter_floor",
+      "group_id": 18,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        7.73607490647337e-15,
+        -0.22084440982942155,
+        60.25000000000004,
+        1.0
+      ],
+      "sheet_label": "E",
+      "sheet_part_id": 1
+    },
+    {
+      "name": "entrance_step_0",
+      "group_id": 22,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        64.66666666666669,
+        -43.399999999999984,
+        0.24999999999999994,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 6
+    },
+    {
+      "name": "balcony_floor",
+      "group_id": 5,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        101.33333333333333,
+        -42.2663895486936,
+        95.75,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 5
+    },
+    {
+      "name": "ventilation_box_side_walls",
+      "group_id": 21,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        55.9166666666667,
+        -23.400000000000002,
+        100.8333333333332,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 8
+    },
+    {
+      "name": "canopy_roof",
+      "group_id": 23,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        64.6666666666667,
+        -43.14999999999999,
+        17.749999999999996,
+        1.0
+      ],
+      "sheet_label": "A",
+      "sheet_part_id": 7
+    },
+    {
+      "name": "window_bars",
+      "group_id": 8,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -47.27448648717393,
+        -39.15000000000005,
+        16.23641542586645,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "balcony_side_left",
+      "group_id": 7,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        111.25000000000003,
+        42.29460370994944,
+        57.41163575042163,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "ventilation_box_inter_roof",
+      "group_id": 24,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        68.66666666666673,
+        -23.400000000000002,
+        103.58333333333312,
+        1.0
+      ],
+      "sheet_label": "B",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "entrance_canopy",
+      "group_id": 25,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        64.7027159046503,
+        -42.747889800703405,
+        17.249999999999996,
+        1.0
+      ],
+      "sheet_label": "E",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "ventilation_box_walls",
+      "group_id": 0,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        68.66666666666671,
+        -20.650000000000002,
+        100.26191584163384,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 6
+    },
+    {
+      "name": "window_bars",
+      "group_id": 8,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        81.94115315384069,
+        39.14999999999997,
+        16.236415425866447,
         1.0
       ],
       "sheet_label": "I",
@@ -833,7 +1433,7 @@
     },
     {
       "name": "balcony_side",
-      "group_id": 3,
+      "group_id": 9,
       "matrix": [
         1.0,
         0.0,
@@ -856,8 +1456,32 @@
       "sheet_part_id": 3
     },
     {
+      "name": "window_bars",
+      "group_id": 8,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        82.05884684615933,
+        -39.15,
+        16.236415425866465,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 4
+    },
+    {
       "name": "balcony_front",
-      "group_id": 15,
+      "group_id": 2,
       "matrix": [
         1.0,
         0.0,
@@ -876,12 +1500,12 @@
         57.36111488783142,
         1.0
       ],
-      "sheet_label": "D",
-      "sheet_part_id": 3
+      "sheet_label": "E",
+      "sheet_part_id": 2
     },
     {
-      "name": "window_bars",
-      "group_id": 1,
+      "name": "ventialtion_box_roof",
+      "group_id": 3,
       "matrix": [
         1.0,
         0.0,
@@ -895,17 +1519,17 @@
         0.0,
         1.0,
         0.0,
-        -82.05884684615933,
-        39.15,
-        16.236415425866465,
+        68.6666666666667,
+        -23.400000000000002,
+        104.08333333333302,
         1.0
       ],
-      "sheet_label": "I",
-      "sheet_part_id": 4
+      "sheet_label": "A",
+      "sheet_part_id": 5
     },
     {
-      "name": "window_bars",
-      "group_id": 1,
+      "name": "balcony_side_left",
+      "group_id": 7,
       "matrix": [
         1.0,
         0.0,
@@ -919,17 +1543,17 @@
         0.0,
         1.0,
         0.0,
-        64.60781982050733,
-        39.15,
-        16.23641542586643,
+        -91.41666666666677,
+        42.2946037099494,
+        57.41163575042163,
         1.0
       ],
-      "sheet_label": "I",
+      "sheet_label": "C",
       "sheet_part_id": 4
     },
     {
       "name": "balcony_side_left",
-      "group_id": 11,
+      "group_id": 7,
       "matrix": [
         1.0,
         0.0,
@@ -943,8 +1567,8 @@
         0.0,
         1.0,
         0.0,
-        37.91666666666675,
-        42.29460370994944,
+        -37.91666666666675,
+        -42.29460370994944,
         57.41163575042162,
         1.0
       ],
@@ -952,8 +1576,8 @@
       "sheet_part_id": 4
     },
     {
-      "name": "ventilation_box_side_walls",
-      "group_id": 16,
+      "name": "roof_exit_box_entrance_wall",
+      "group_id": 26,
       "matrix": [
         1.0,
         0.0,
@@ -967,88 +1591,16 @@
         0.0,
         1.0,
         0.0,
-        -55.9166666666667,
-        -23.400000000000002,
-        100.8333333333332,
+        -54.9166666666667,
+        6.5999999999999925,
+        104.56626480541442,
         1.0
       ],
-      "sheet_label": "C",
-      "sheet_part_id": 7
-    },
-    {
-      "name": "roof_inner_wall",
-      "group_id": 17,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        4.0862105616726745e-16,
-        38.15,
-        99.8333333333332,
-        1.0
-      ],
-      "sheet_label": "A",
-      "sheet_part_id": 1
+      "sheet_label": "F",
+      "sheet_part_id": 6
     },
     {
       "name": "window_bars",
-      "group_id": 1,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -64.725513512826,
-        39.150000000000006,
-        16.23641542586646,
-        1.0
-      ],
-      "sheet_label": "I",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "canopy_roof",
-      "group_id": 18,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -64.66666666666664,
-        -43.15,
-        17.75,
-        1.0
-      ],
-      "sheet_label": "A",
-      "sheet_part_id": 7
-    },
-    {
-      "name": "balcony_floor",
       "group_id": 8,
       "matrix": [
         1.0,
@@ -1063,17 +1615,305 @@
         0.0,
         1.0,
         0.0,
-        101.33333333333333,
-        42.26638954869359,
+        112.25,
+        8.725513512826078,
+        14.936415425866349,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "balcony_side",
+      "group_id": 9,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -111.25000000000003,
+        42.294603709949385,
+        57.411635750421596,
+        1.0
+      ],
+      "sheet_label": "B",
+      "sheet_part_id": 3
+    },
+    {
+      "name": "balcony_floor",
+      "group_id": 5,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -101.33333333333333,
+        -42.26638954869359,
         95.75,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 5
+    },
+    {
+      "name": "balcony_front",
+      "group_id": 2,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -28.000000000000092,
+        -46.15000000000001,
+        57.361114887831434,
+        1.0
+      ],
+      "sheet_label": "E",
+      "sheet_part_id": 2
+    },
+    {
+      "name": "entrance_step_0",
+      "group_id": 22,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -64.66666666666664,
+        -43.4,
+        0.25,
         1.0
       ],
       "sheet_label": "D",
       "sheet_part_id": 6
     },
     {
+      "name": "balcony_side",
+      "group_id": 9,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -18.083333333333407,
+        -42.29460370994945,
+        57.41163575042164,
+        1.0
+      ],
+      "sheet_label": "B",
+      "sheet_part_id": 3
+    },
+    {
+      "name": "entrance_around",
+      "group_id": 20,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -66.64362034004053,
+        -39.15,
+        9.396934955545156,
+        1.0
+      ],
+      "sheet_label": "E",
+      "sheet_part_id": 3
+    },
+    {
+      "name": "ventilation_box_walls",
+      "group_id": 0,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -68.66666666666671,
+        -26.150000000000002,
+        100.26191584163374,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 6
+    },
+    {
+      "name": "transformer_box_back",
+      "group_id": 27,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        112.24999999999999,
+        -26.399999999999995,
+        5.0,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 7
+    },
+    {
+      "name": "inner_side",
+      "group_id": 28,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        111.25000000000007,
+        -2.8977297543005066e-16,
+        48.74329347522162,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 2
+    },
+    {
+      "name": "balcony_side",
+      "group_id": 9,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        111.25000000000003,
+        -42.294603709949385,
+        57.411635750421596,
+        1.0
+      ],
+      "sheet_label": "B",
+      "sheet_part_id": 3
+    },
+    {
+      "name": "entrance_canopy",
+      "group_id": 25,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -64.63061742868308,
+        -42.74788980070341,
+        17.25000000000001,
+        1.0
+      ],
+      "sheet_label": "F",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "balcony_floor",
+      "group_id": 5,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -28.00000000000005,
+        -42.26638954869359,
+        95.75000000000001,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 5
+    },
+    {
       "name": "inter_floor",
-      "group_id": 19,
+      "group_id": 18,
       "matrix": [
         1.0,
         0.0,
@@ -1092,12 +1932,12 @@
         24.24999999999999,
         1.0
       ],
-      "sheet_label": "B",
-      "sheet_part_id": 2
+      "sheet_label": "F",
+      "sheet_part_id": 1
     },
     {
-      "name": "balcony_front",
-      "group_id": 15,
+      "name": "ventilation_box_walls",
+      "group_id": 0,
       "matrix": [
         1.0,
         0.0,
@@ -1111,17 +1951,17 @@
         0.0,
         1.0,
         0.0,
-        28.000000000000092,
-        46.15000000000001,
-        57.361114887831434,
+        -68.66666666666671,
+        26.15,
+        100.26191584163381,
         1.0
       ],
-      "sheet_label": "D",
-      "sheet_part_id": 3
+      "sheet_label": "C",
+      "sheet_part_id": 6
     },
     {
       "name": "roof_inner_wall_side",
-      "group_id": 20,
+      "group_id": 29,
       "matrix": [
         1.0,
         0.0,
@@ -1145,7 +1985,7 @@
     },
     {
       "name": "window_bars",
-      "group_id": 1,
+      "group_id": 8,
       "matrix": [
         1.0,
         0.0,
@@ -1159,208 +1999,16 @@
         0.0,
         1.0,
         0.0,
-        -47.27448648717393,
-        -39.15000000000005,
-        16.23641542586645,
+        64.60781982050733,
+        39.15,
+        16.23641542586643,
         1.0
       ],
       "sheet_label": "I",
       "sheet_part_id": 4
-    },
-    {
-      "name": "ventilation_box_walls",
-      "group_id": 21,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        68.66666666666671,
-        -26.15,
-        100.26191584163381,
-        1.0
-      ],
-      "sheet_label": "C",
-      "sheet_part_id": 6
-    },
-    {
-      "name": "skirt",
-      "group_id": 22,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        2.240253602093041e-14,
-        -38.65,
-        2.999999999999998,
-        1.0
-      ],
-      "sheet_label": "H",
-      "sheet_part_id": 1
     },
     {
       "name": "inter_wall_grey",
-      "group_id": 2,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -38.66666666666665,
-        0.11723902515017146,
-        48.78674167273773,
-        1.0
-      ],
-      "sheet_label": "C",
-      "sheet_part_id": 2
-    },
-    {
-      "name": "ventilation_box_side_walls",
-      "group_id": 16,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        81.41666666666671,
-        -23.400000000000006,
-        100.83333333333321,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 10
-    },
-    {
-      "name": "ventilation_box_side_walls",
-      "group_id": 16,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        55.9166666666667,
-        -23.400000000000002,
-        100.8333333333332,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 10
-    },
-    {
-      "name": "ventilation_box_inter_roof",
-      "group_id": 23,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        68.66666666666673,
-        -23.400000000000002,
-        103.58333333333312,
-        1.0
-      ],
-      "sheet_label": "B",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "ventilation_box_walls",
-      "group_id": 21,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        68.66666666666671,
-        -20.650000000000002,
-        100.26191584163384,
-        1.0
-      ],
-      "sheet_label": "C",
-      "sheet_part_id": 6
-    },
-    {
-      "name": "roof_exit_box_back_wall",
-      "group_id": 24,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -74.41666666666667,
-        6.599999999999993,
-        103.83333333333319,
-        1.0
-      ],
-      "sheet_label": "I",
-      "sheet_part_id": 3
-    },
-    {
-      "name": "ventialtion_box_roof",
       "group_id": 4,
       "matrix": [
         1.0,
@@ -1375,41 +2023,17 @@
         0.0,
         1.0,
         0.0,
-        68.6666666666667,
-        -23.400000000000002,
-        104.08333333333302,
-        1.0
-      ],
-      "sheet_label": "A",
-      "sheet_part_id": 5
-    },
-    {
-      "name": "roof_exit_box_side_walls",
-      "group_id": 25,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -64.46296661538223,
-        14.350000000000001,
-        104.21597210532254,
+        -17.33333333333335,
+        0.10414333398962498,
+        48.7530624377096,
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 5
+      "sheet_part_id": 2
     },
     {
-      "name": "balcony_side_left",
-      "group_id": 11,
+      "name": "ventilation_box_side_walls",
+      "group_id": 21,
       "matrix": [
         1.0,
         0.0,
@@ -1423,17 +2047,65 @@
         0.0,
         1.0,
         0.0,
-        -91.41666666666677,
-        42.2946037099494,
-        57.41163575042163,
+        -55.9166666666667,
+        -23.400000000000002,
+        100.8333333333332,
         1.0
       ],
-      "sheet_label": "C",
-      "sheet_part_id": 4
+      "sheet_label": "D",
+      "sheet_part_id": 8
+    },
+    {
+      "name": "ventilation_box_side_walls",
+      "group_id": 21,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -81.41666666666671,
+        23.400000000000006,
+        100.83333333333321,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 8
+    },
+    {
+      "name": "ventilation_box_side_walls",
+      "group_id": 21,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -55.9166666666667,
+        23.400000000000002,
+        100.8333333333332,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 8
     },
     {
       "name": "balcony_side",
-      "group_id": 3,
+      "group_id": 9,
       "matrix": [
         1.0,
         0.0,
@@ -1452,12 +2124,12 @@
         57.41163575042163,
         1.0
       ],
-      "sheet_label": "B",
+      "sheet_label": "C",
       "sheet_part_id": 3
     },
     {
-      "name": "balcony_side",
-      "group_id": 3,
+      "name": "ventilation_box_inter_roof",
+      "group_id": 24,
       "matrix": [
         1.0,
         0.0,
@@ -1471,17 +2143,41 @@
         0.0,
         1.0,
         0.0,
-        -111.25000000000003,
-        42.294603709949385,
-        57.411635750421596,
+        -68.66666666666673,
+        23.400000000000002,
+        103.58333333333312,
         1.0
       ],
       "sheet_label": "B",
-      "sheet_part_id": 3
+      "sheet_part_id": 4
+    },
+    {
+      "name": "ventilation_box_walls",
+      "group_id": 0,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -68.66666666666671,
+        20.650000000000002,
+        100.26191584163384,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 6
     },
     {
       "name": "balcony_side_left",
-      "group_id": 11,
+      "group_id": 7,
       "matrix": [
         1.0,
         0.0,
@@ -1505,7 +2201,7 @@
     },
     {
       "name": "balcony_front",
-      "group_id": 15,
+      "group_id": 2,
       "matrix": [
         1.0,
         0.0,
@@ -1524,468 +2220,12 @@
         57.361114887831434,
         1.0
       ],
-      "sheet_label": "D",
-      "sheet_part_id": 3
-    },
-    {
-      "name": "entrance_support_plate",
-      "group_id": 26,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -68.08333333333333,
-        -42.97674026532438,
-        9.0,
-        1.0
-      ],
-      "sheet_label": "F",
-      "sheet_part_id": 6
-    },
-    {
-      "name": "roof_inner_wall_side",
-      "group_id": 20,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        111.25,
-        -1.1693404165408132e-16,
-        99.8333333333332,
-        1.0
-      ],
-      "sheet_label": "A",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "balcony_floor",
-      "group_id": 8,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -28.000000000000046,
-        42.26638954869359,
-        95.75000000000001,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 6
-    },
-    {
-      "name": "roof_inner_wall",
-      "group_id": 17,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        4.086210561672626e-16,
-        -38.15,
-        99.8333333333332,
-        1.0
-      ],
-      "sheet_label": "A",
-      "sheet_part_id": 1
-    },
-    {
-      "name": "inner_side",
-      "group_id": 27,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        111.25000000000007,
-        -2.8977297543005066e-16,
-        48.74329347522162,
-        1.0
-      ],
-      "sheet_label": "I",
-      "sheet_part_id": 2
-    },
-    {
-      "name": "ventilation_box_side_walls",
-      "group_id": 16,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -81.41666666666671,
-        -23.400000000000006,
-        100.83333333333321,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 10
-    },
-    {
-      "name": "ventilation_box_walls",
-      "group_id": 21,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -68.66666666666671,
-        26.15,
-        100.26191584163381,
-        1.0
-      ],
-      "sheet_label": "C",
-      "sheet_part_id": 6
-    },
-    {
-      "name": "entrance_door",
-      "group_id": 28,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -60.749999999999986,
-        -39.15,
-        8.250000000000002,
-        1.0
-      ],
-      "sheet_label": "H",
-      "sheet_part_id": 3
-    },
-    {
-      "name": "inter_wall_grey",
-      "group_id": 2,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -17.333333333333353,
-        0.1172390251501705,
-        48.78674167273775,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 2
-    },
-    {
-      "name": "ventilation_box_side_walls",
-      "group_id": 16,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -81.41666666666671,
-        23.400000000000006,
-        100.83333333333321,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 10
-    },
-    {
-      "name": "ventilation_box_side_walls",
-      "group_id": 16,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -55.9166666666667,
-        23.400000000000002,
-        100.8333333333332,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 10
-    },
-    {
-      "name": "entrance_step_1",
-      "group_id": 29,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -64.63152380952378,
-        -43.15,
-        0.75,
-        1.0
-      ],
-      "sheet_label": "F",
-      "sheet_part_id": 5
-    },
-    {
-      "name": "window_bars",
-      "group_id": 1,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        47.392180179492584,
-        -39.14999999999998,
-        16.23641542586646,
-        1.0
-      ],
-      "sheet_label": "I",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "balcony_front",
-      "group_id": 15,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        28.000000000000092,
-        -46.15000000000001,
-        57.361114887831434,
-        1.0
-      ],
       "sheet_label": "E",
       "sheet_part_id": 2
     },
     {
-      "name": "ventilation_box_inter_roof",
-      "group_id": 23,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -68.66666666666673,
-        23.400000000000002,
-        103.58333333333312,
-        1.0
-      ],
-      "sheet_label": "B",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "balcony_floor",
-      "group_id": 8,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        28.000000000000046,
-        -42.26638954869359,
-        95.75000000000001,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 6
-    },
-    {
-      "name": "ventilation_box_walls",
-      "group_id": 21,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -68.66666666666671,
-        20.650000000000002,
-        100.26191584163384,
-        1.0
-      ],
-      "sheet_label": "C",
-      "sheet_part_id": 6
-    },
-    {
-      "name": "roof_exit_box_entrance_wall",
-      "group_id": 30,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -54.9166666666667,
-        6.5999999999999925,
-        104.56626480541442,
-        1.0
-      ],
-      "sheet_label": "F",
-      "sheet_part_id": 7
-    },
-    {
-      "name": "balcony_side_left",
-      "group_id": 11,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        18.083333333333396,
-        -42.294603709949406,
-        57.41163575042162,
-        1.0
-      ],
-      "sheet_label": "C",
-      "sheet_part_id": 4
-    },
-    {
       "name": "ventialtion_box_roof",
-      "group_id": 4,
+      "group_id": 3,
       "matrix": [
         1.0,
         0.0,
@@ -2009,7 +2249,7 @@
     },
     {
       "name": "outer_front",
-      "group_id": 31,
+      "group_id": 30,
       "matrix": [
         1.0,
         0.0,
@@ -2023,9 +2263,9 @@
         0.0,
         1.0,
         0.0,
-        8.649341583763832e-15,
-        -38.65000000000029,
-        54.023825926190526,
+        4.849567252894846e-15,
+        -38.650000000000006,
+        54.00736731145379,
         1.0
       ],
       "sheet_label": "C",
@@ -2033,7 +2273,7 @@
     },
     {
       "name": "window_bars",
-      "group_id": 1,
+      "group_id": 8,
       "matrix": [
         1.0,
         0.0,
@@ -2047,17 +2287,65 @@
         0.0,
         1.0,
         0.0,
-        112.25,
-        8.725513512826078,
-        14.936415425866349,
+        47.392180179492584,
+        -39.14999999999998,
+        16.23641542586646,
         1.0
       ],
       "sheet_label": "I",
       "sheet_part_id": 4
     },
     {
+      "name": "window_bars",
+      "group_id": 8,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        8.607819820507315,
+        39.149999999999984,
+        16.236415425866458,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "ventilation_box_side_walls",
+      "group_id": 21,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        55.9166666666667,
+        23.400000000000002,
+        100.8333333333332,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 8
+    },
+    {
       "name": "balcony_front",
-      "group_id": 15,
+      "group_id": 2,
       "matrix": [
         1.0,
         0.0,
@@ -2080,8 +2368,128 @@
       "sheet_part_id": 2
     },
     {
+      "name": "balcony_side_left",
+      "group_id": 7,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        37.91666666666675,
+        42.29460370994944,
+        57.41163575042162,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "roof_exit_box_side_walls",
+      "group_id": 13,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -64.46296661538223,
+        -1.15,
+        104.21597210532254,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "outer_side",
+      "group_id": 31,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        111.75000000000003,
+        -1.3146647424024819e-15,
+        54.04397370789739,
+        1.0
+      ],
+      "sheet_label": "G",
+      "sheet_part_id": 2
+    },
+    {
+      "name": "window_bars",
+      "group_id": 8,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        47.27448648717393,
+        39.15000000000005,
+        16.23641542586645,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "window_bars",
+      "group_id": 8,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        112.25000000000007,
+        -8.6078198205073,
+        14.936415425866345,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 4
+    },
+    {
       "name": "ventilation_box_walls",
-      "group_id": 21,
+      "group_id": 0,
       "matrix": [
         1.0,
         0.0,
@@ -2104,8 +2512,128 @@
       "sheet_part_id": 6
     },
     {
+      "name": "entrance_support_plate",
+      "group_id": 32,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        61.25,
+        -42.97674026532438,
+        8.999999999999998,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 7
+    },
+    {
+      "name": "balcony_floor",
+      "group_id": 5,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        101.33333333333333,
+        42.26638954869359,
+        95.75,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 5
+    },
+    {
+      "name": "window_bars",
+      "group_id": 8,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -47.392180179492584,
+        39.14999999999998,
+        16.23641542586646,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "ventilation_box_walls",
+      "group_id": 0,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        68.66666666666667,
+        20.649999999999995,
+        100.26191584163375,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 6
+    },
+    {
+      "name": "window_bars",
+      "group_id": 8,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -8.725513512825993,
+        39.15,
+        16.236415425866475,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 4
+    },
+    {
       "name": "ventilation_box_side_walls",
-      "group_id": 16,
+      "group_id": 21,
       "matrix": [
         1.0,
         0.0,
@@ -2125,11 +2653,11 @@
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 10
+      "sheet_part_id": 8
     },
     {
-      "name": "ventilation_box_side_walls",
-      "group_id": 16,
+      "name": "balcony_front",
+      "group_id": 2,
       "matrix": [
         1.0,
         0.0,
@@ -2143,17 +2671,137 @@
         0.0,
         1.0,
         0.0,
-        55.9166666666667,
-        23.400000000000002,
-        100.8333333333332,
+        28.000000000000092,
+        46.15000000000001,
+        57.361114887831434,
+        1.0
+      ],
+      "sheet_label": "F",
+      "sheet_part_id": 3
+    },
+    {
+      "name": "balcony_floor",
+      "group_id": 5,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        28.00000000000005,
+        42.26638954869359,
+        95.75000000000001,
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 10
+      "sheet_part_id": 5
+    },
+    {
+      "name": "ventialtion_box_roof",
+      "group_id": 3,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        68.6666666666667,
+        23.4,
+        104.083333333333,
+        1.0
+      ],
+      "sheet_label": "A",
+      "sheet_part_id": 5
+    },
+    {
+      "name": "transformer_box_roof",
+      "group_id": 33,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        112.81765254607393,
+        -26.400000000000002,
+        10.178280965082601,
+        1.0
+      ],
+      "sheet_label": "B",
+      "sheet_part_id": 6
+    },
+    {
+      "name": "window_bars",
+      "group_id": 8,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -82.05884684615933,
+        39.15,
+        16.236415425866465,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "balcony_side",
+      "group_id": 9,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        18.083333333333407,
+        42.29460370994945,
+        57.41163575042164,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 3
     },
     {
       "name": "ventilation_box_inter_roof",
-      "group_id": 23,
+      "group_id": 24,
       "matrix": [
         1.0,
         0.0,
@@ -2174,6 +2822,30 @@
       ],
       "sheet_label": "C",
       "sheet_part_id": 5
+    },
+    {
+      "name": "transformer_box_front",
+      "group_id": 34,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        112.74999999999997,
+        -26.4,
+        4.9375,
+        1.0
+      ],
+      "sheet_label": "C",
+      "sheet_part_id": 8
     },
     {
       "name": "skirt_side",
@@ -2200,8 +2872,8 @@
       "sheet_part_id": 2
     },
     {
-      "name": "ventilation_box_walls",
-      "group_id": 21,
+      "name": "roof_inner_wall",
+      "group_id": 35,
       "matrix": [
         1.0,
         0.0,
@@ -2215,17 +2887,41 @@
         0.0,
         1.0,
         0.0,
-        68.66666666666667,
-        20.649999999999995,
-        100.26191584163375,
+        4.0862105616726745e-16,
+        38.15,
+        99.8333333333332,
         1.0
       ],
-      "sheet_label": "C",
-      "sheet_part_id": 6
+      "sheet_label": "A",
+      "sheet_part_id": 1
+    },
+    {
+      "name": "window_bars",
+      "group_id": 8,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -64.725513512826,
+        39.150000000000006,
+        16.23641542586646,
+        1.0
+      ],
+      "sheet_label": "I",
+      "sheet_part_id": 4
     },
     {
       "name": "outer_side",
-      "group_id": 32,
+      "group_id": 31,
       "matrix": [
         1.0,
         0.0,
@@ -2239,17 +2935,17 @@
         0.0,
         1.0,
         0.0,
-        -111.75000000000003,
-        6.756219683310803e-16,
-        54.05058192827956,
+        -111.75000000000006,
+        -1.5833715563056919e-15,
+        54.043973707897415,
         1.0
       ],
       "sheet_label": "G",
       "sheet_part_id": 2
     },
     {
-      "name": "ventilation_box_walls",
-      "group_id": 21,
+      "name": "canopy_roof",
+      "group_id": 23,
       "matrix": [
         1.0,
         0.0,
@@ -2263,16 +2959,16 @@
         0.0,
         1.0,
         0.0,
-        -68.66666666666667,
-        -20.649999999999995,
-        100.26191584163375,
+        -64.66666666666664,
+        -43.15,
+        17.75,
         1.0
       ],
-      "sheet_label": "D",
-      "sheet_part_id": 4
+      "sheet_label": "A",
+      "sheet_part_id": 7
     },
     {
-      "name": "ventialtion_box_roof",
+      "name": "inter_wall_grey",
       "group_id": 4,
       "matrix": [
         1.0,
@@ -2287,113 +2983,17 @@
         0.0,
         1.0,
         0.0,
-        68.6666666666667,
-        23.4,
-        104.083333333333,
-        1.0
-      ],
-      "sheet_label": "A",
-      "sheet_part_id": 5
-    },
-    {
-      "name": "balcony_side",
-      "group_id": 3,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -18.083333333333407,
-        -42.29460370994945,
-        57.41163575042164,
-        1.0
-      ],
-      "sheet_label": "B",
-      "sheet_part_id": 3
-    },
-    {
-      "name": "inter_wall_grey",
-      "group_id": 2,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        17.33333333333335,
-        0.1172390251501742,
-        48.786741672737755,
+        17.333333333333353,
+        0.10414333398962548,
+        48.753062437709616,
         1.0
       ],
       "sheet_label": "D",
       "sheet_part_id": 2
     },
     {
-      "name": "entrance_around",
-      "group_id": 33,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -66.64362034004053,
-        -39.15,
-        9.396934955545156,
-        1.0
-      ],
-      "sheet_label": "E",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "entrance_step_1",
-      "group_id": 29,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        64.70180952380954,
-        -43.14999999999999,
-        0.7499999999999999,
-        1.0
-      ],
-      "sheet_label": "F",
-      "sheet_part_id": 5
-    },
-    {
       "name": "inner_side",
-      "group_id": 27,
+      "group_id": 28,
       "matrix": [
         1.0,
         0.0,
@@ -2416,8 +3016,8 @@
       "sheet_part_id": 2
     },
     {
-      "name": "inter_floor",
-      "group_id": 19,
+      "name": "ventilation_box_side_walls",
+      "group_id": 21,
       "matrix": [
         1.0,
         0.0,
@@ -2431,209 +3031,17 @@
         0.0,
         1.0,
         0.0,
-        6.9225039190821075e-15,
-        -0.22084440982942136,
-        78.24999999999994,
-        1.0
-      ],
-      "sheet_label": "E",
-      "sheet_part_id": 1
-    },
-    {
-      "name": "entrance_step_0",
-      "group_id": 34,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        64.66666666666669,
-        -43.399999999999984,
-        0.24999999999999994,
-        1.0
-      ],
-      "sheet_label": "E",
-      "sheet_part_id": 3
-    },
-    {
-      "name": "ventilation_box_inter_roof",
-      "group_id": 23,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -68.66666666666673,
-        -23.400000000000002,
-        103.58333333333312,
-        1.0
-      ],
-      "sheet_label": "C",
-      "sheet_part_id": 5
-    },
-    {
-      "name": "inter_floor",
-      "group_id": 19,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        7.73607490647337e-15,
-        -0.22084440982942155,
-        60.25000000000004,
-        1.0
-      ],
-      "sheet_label": "E",
-      "sheet_part_id": 1
-    },
-    {
-      "name": "inter_wall_grey",
-      "group_id": 2,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -3.9067820833640466e-18,
-        0.11723902515017061,
-        48.786741672737755,
-        1.0
-      ],
-      "sheet_label": "F",
-      "sheet_part_id": 2
-    },
-    {
-      "name": "balcony_side",
-      "group_id": 3,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        111.25000000000003,
-        -42.294603709949385,
-        57.411635750421596,
-        1.0
-      ],
-      "sheet_label": "B",
-      "sheet_part_id": 3
-    },
-    {
-      "name": "inter_wall_grey",
-      "group_id": 2,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        56.000000000000014,
-        0.11723902515017043,
-        48.78674167273776,
-        1.0
-      ],
-      "sheet_label": "F",
-      "sheet_part_id": 2
-    },
-    {
-      "name": "canopy_roof",
-      "group_id": 18,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        64.6666666666667,
-        -43.14999999999999,
-        17.749999999999996,
-        1.0
-      ],
-      "sheet_label": "A",
-      "sheet_part_id": 7
-    },
-    {
-      "name": "balcony_floor",
-      "group_id": 8,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -28.00000000000005,
-        -42.26638954869359,
-        95.75000000000001,
+        -81.41666666666671,
+        -23.400000000000006,
+        100.83333333333321,
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 6
+      "sheet_part_id": 8
     },
     {
       "name": "inter_wall_grey",
-      "group_id": 2,
+      "group_id": 4,
       "matrix": [
         1.0,
         0.0,
@@ -2647,17 +3055,113 @@
         0.0,
         1.0,
         0.0,
-        38.666666666666636,
-        0.11723902515017044,
-        48.78674167273774,
+        -3.9040988416252806e-18,
+        0.10414333398962411,
+        48.7530624377096,
+        1.0
+      ],
+      "sheet_label": "F",
+      "sheet_part_id": 2
+    },
+    {
+      "name": "entrance_support_plate",
+      "group_id": 32,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -68.08333333333333,
+        -42.97674026532438,
+        9.0,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 7
+    },
+    {
+      "name": "roof_inner_wall_side",
+      "group_id": 29,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        111.25,
+        -1.1693404165408132e-16,
+        99.8333333333332,
+        1.0
+      ],
+      "sheet_label": "A",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "inter_wall_grey",
+      "group_id": 4,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        55.999999999999986,
+        0.10414333398962153,
+        48.7530624377096,
+        1.0
+      ],
+      "sheet_label": "F",
+      "sheet_part_id": 2
+    },
+    {
+      "name": "inter_wall_grey",
+      "group_id": 4,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        38.66666666666666,
+        0.10414333398962483,
+        48.753062437709616,
         1.0
       ],
       "sheet_label": "G",
       "sheet_part_id": 1
     },
     {
-      "name": "entrance_step_0",
-      "group_id": 34,
+      "name": "inter_wall_black",
+      "group_id": 6,
       "matrix": [
         1.0,
         0.0,
@@ -2671,17 +3175,17 @@
         0.0,
         1.0,
         0.0,
-        -64.66666666666664,
-        -43.4,
-        0.25,
+        90.6666666666667,
+        0.10414333398962287,
+        48.75306243770961,
         1.0
       ],
-      "sheet_label": "E",
+      "sheet_label": "A",
       "sheet_part_id": 3
     },
     {
-      "name": "entrance_canopy",
-      "group_id": 35,
+      "name": "inner_back",
+      "group_id": 36,
       "matrix": [
         1.0,
         0.0,
@@ -2695,17 +3199,89 @@
         0.0,
         1.0,
         0.0,
-        64.7027159046503,
-        -42.747889800703405,
-        17.249999999999996,
+        1.4417516590831296e-14,
+        38.15000000000006,
+        48.1437097938227,
+        1.0
+      ],
+      "sheet_label": "J",
+      "sheet_part_id": 1
+    },
+    {
+      "name": "inter_wall_white",
+      "group_id": 1,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        73.33333333333327,
+        0.10414333398962283,
+        48.75306243770961,
+        1.0
+      ],
+      "sheet_label": "J",
+      "sheet_part_id": 2
+    },
+    {
+      "name": "skirt",
+      "group_id": 19,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        7.180604029402659e-16,
+        38.64999999999999,
+        2.9999999999999996,
+        1.0
+      ],
+      "sheet_label": "H",
+      "sheet_part_id": 1
+    },
+    {
+      "name": "outer_back",
+      "group_id": 37,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        4.148040290445588e-15,
+        38.650000000000134,
+        54.135886105202786,
         1.0
       ],
       "sheet_label": "D",
-      "sheet_part_id": 7
+      "sheet_part_id": 1
     },
     {
       "name": "window_bars",
-      "group_id": 1,
+      "group_id": 8,
       "matrix": [
         1.0,
         0.0,
@@ -2729,7 +3305,7 @@
     },
     {
       "name": "window_bars",
-      "group_id": 1,
+      "group_id": 8,
       "matrix": [
         1.0,
         0.0,
@@ -2752,319 +3328,7 @@
       "sheet_part_id": 4
     },
     {
-      "name": "entrance_support_plate",
-      "group_id": 26,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        61.25,
-        -42.97674026532438,
-        8.999999999999998,
-        1.0
-      ],
-      "sheet_label": "F",
-      "sheet_part_id": 6
-    },
-    {
-      "name": "balcony_side_left",
-      "group_id": 11,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        91.41666666666677,
-        -42.2946037099494,
-        57.41163575042163,
-        1.0
-      ],
-      "sheet_label": "C",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "inter_wall_black",
-      "group_id": 6,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        90.6666666666667,
-        0.11723902515017029,
-        48.786741672737755,
-        1.0
-      ],
-      "sheet_label": "A",
-      "sheet_part_id": 3
-    },
-    {
       "name": "window_bars",
-      "group_id": 1,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        81.94115315384069,
-        39.14999999999997,
-        16.236415425866447,
-        1.0
-      ],
-      "sheet_label": "I",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "inner_back",
-      "group_id": 36,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        2.213088771026888e-14,
-        38.14999999999994,
-        48.22663741977213,
-        1.0
-      ],
-      "sheet_label": "I",
-      "sheet_part_id": 1
-    },
-    {
-      "name": "balcony_front",
-      "group_id": 15,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        101.3333333333333,
-        -46.14999999999999,
-        57.36111488783142,
-        1.0
-      ],
-      "sheet_label": "E",
-      "sheet_part_id": 2
-    },
-    {
-      "name": "inter_wall_white",
-      "group_id": 7,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        73.33333333333331,
-        0.11723902515017039,
-        48.78674167273776,
-        1.0
-      ],
-      "sheet_label": "J",
-      "sheet_part_id": 2
-    },
-    {
-      "name": "window_bars",
-      "group_id": 1,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        82.05884684615933,
-        -39.15,
-        16.236415425866465,
-        1.0
-      ],
-      "sheet_label": "I",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "skirt",
-      "group_id": 22,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        2.240253602093041e-14,
-        38.65,
-        2.999999999999998,
-        1.0
-      ],
-      "sheet_label": "H",
-      "sheet_part_id": 1
-    },
-    {
-      "name": "balcony_side",
-      "group_id": 3,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        37.91666666666672,
-        -42.294603709949385,
-        57.41163575042163,
-        1.0
-      ],
-      "sheet_label": "C",
-      "sheet_part_id": 3
-    },
-    {
-      "name": "outer_side",
-      "group_id": 32,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        111.75000000000003,
-        8.881537487626614e-16,
-        54.05058192827957,
-        1.0
-      ],
-      "sheet_label": "G",
-      "sheet_part_id": 2
-    },
-    {
-      "name": "window_bars",
-      "group_id": 1,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        8.607819820507315,
-        39.149999999999984,
-        16.236415425866458,
-        1.0
-      ],
-      "sheet_label": "I",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "outer_back",
-      "group_id": 37,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        6.303202828008002e-15,
-        38.65000000000016,
-        54.15280195464928,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 1
-    },
-    {
-      "name": "balcony_floor",
       "group_id": 8,
       "matrix": [
         1.0,
@@ -3079,80 +3343,8 @@
         0.0,
         1.0,
         0.0,
-        101.33333333333333,
-        -42.2663895486936,
-        95.75,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 6
-    },
-    {
-      "name": "roof_exit_box_side_walls",
-      "group_id": 25,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -64.46296661538223,
-        -1.15,
-        104.21597210532254,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 5
-    },
-    {
-      "name": "window_bars",
-      "group_id": 1,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        47.27448648717393,
-        39.15000000000005,
-        16.23641542586645,
-        1.0
-      ],
-      "sheet_label": "I",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "window_bars",
-      "group_id": 1,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        112.25000000000007,
-        -8.6078198205073,
+        -112.25000000000007,
+        8.6078198205073,
         14.936415425866345,
         1.0
       ],
@@ -3161,6 +3353,30 @@
     },
     {
       "name": "balcony_floor",
+      "group_id": 5,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -28.000000000000046,
+        42.26638954869359,
+        95.75000000000001,
+        1.0
+      ],
+      "sheet_label": "D",
+      "sheet_part_id": 5
+    },
+    {
+      "name": "window_bars",
       "group_id": 8,
       "matrix": [
         1.0,
@@ -3175,17 +3391,41 @@
         0.0,
         1.0,
         0.0,
-        -101.33333333333333,
-        42.2663895486936,
-        95.75,
+        -112.25,
+        -8.725513512826078,
+        14.936415425866349,
         1.0
       ],
-      "sheet_label": "D",
-      "sheet_part_id": 6
+      "sheet_label": "I",
+      "sheet_part_id": 4
+    },
+    {
+      "name": "ground",
+      "group_id": 38,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.29394977168950265,
+        -4.568493150684903,
+        -0.2499999999999997,
+        1.0
+      ],
+      "sheet_label": "B",
+      "sheet_part_id": 1
     },
     {
       "name": "roof_exit_box_inter_roof",
-      "group_id": 38,
+      "group_id": 39,
       "matrix": [
         1.0,
         0.0,
@@ -3208,8 +3448,8 @@
       "sheet_part_id": 5
     },
     {
-      "name": "balcony_front",
-      "group_id": 15,
+      "name": "ventilation_box_inter_roof",
+      "group_id": 24,
       "matrix": [
         1.0,
         0.0,
@@ -3223,41 +3463,41 @@
         0.0,
         1.0,
         0.0,
-        -101.3333333333333,
-        -46.14999999999999,
-        57.36111488783142,
-        1.0
-      ],
-      "sheet_label": "E",
-      "sheet_part_id": 2
-    },
-    {
-      "name": "balcony_side_left",
-      "group_id": 11,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -111.25000000000003,
-        -42.29460370994944,
-        57.41163575042163,
+        -68.66666666666673,
+        -23.400000000000002,
+        103.58333333333312,
         1.0
       ],
       "sheet_label": "C",
-      "sheet_part_id": 4
+      "sheet_part_id": 5
+    },
+    {
+      "name": "roof_inner_wall",
+      "group_id": 35,
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        4.086210561672626e-16,
+        -38.15,
+        99.8333333333332,
+        1.0
+      ],
+      "sheet_label": "A",
+      "sheet_part_id": 1
     },
     {
       "name": "roof",
-      "group_id": 39,
+      "group_id": 40,
       "matrix": [
         1.0,
         0.0,
@@ -3278,246 +3518,6 @@
       ],
       "sheet_label": "A",
       "sheet_part_id": 2
-    },
-    {
-      "name": "balcony_floor",
-      "group_id": 8,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -101.33333333333333,
-        -42.26638954869359,
-        95.75,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 6
-    },
-    {
-      "name": "ventilation_box_walls",
-      "group_id": 21,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -68.66666666666671,
-        -26.150000000000002,
-        100.26191584163374,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "entrance_canopy",
-      "group_id": 35,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -64.63061742868308,
-        -42.74788980070341,
-        17.25000000000001,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 7
-    },
-    {
-      "name": "balcony_side",
-      "group_id": 3,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -91.41666666666679,
-        -42.29460370994944,
-        57.41163575042163,
-        1.0
-      ],
-      "sheet_label": "C",
-      "sheet_part_id": 3
-    },
-    {
-      "name": "transformer_box_back",
-      "group_id": 40,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        112.24999999999999,
-        -26.399999999999995,
-        5.0,
-        1.0
-      ],
-      "sheet_label": "D",
-      "sheet_part_id": 8
-    },
-    {
-      "name": "entrance_door",
-      "group_id": 28,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        68.5833333333334,
-        -39.15,
-        8.250000000000002,
-        1.0
-      ],
-      "sheet_label": "H",
-      "sheet_part_id": 3
-    },
-    {
-      "name": "balcony_front",
-      "group_id": 15,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -28.000000000000092,
-        -46.15000000000001,
-        57.361114887831434,
-        1.0
-      ],
-      "sheet_label": "F",
-      "sheet_part_id": 3
-    },
-    {
-      "name": "inter_floor",
-      "group_id": 19,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        7.73607490647337e-15,
-        -0.22084440982942155,
-        42.25000000000002,
-        1.0
-      ],
-      "sheet_label": "F",
-      "sheet_part_id": 1
-    },
-    {
-      "name": "entrance_around",
-      "group_id": 33,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        62.689712993292815,
-        -39.150000000000006,
-        9.396934955545156,
-        1.0
-      ],
-      "sheet_label": "F",
-      "sheet_part_id": 4
-    },
-    {
-      "name": "balcony_side_left",
-      "group_id": 11,
-      "matrix": [
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        -37.91666666666675,
-        -42.29460370994944,
-        57.41163575042162,
-        1.0
-      ],
-      "sheet_label": "C",
-      "sheet_part_id": 4
     }
   ],
   "sheets": [
@@ -3532,125 +3532,125 @@
           "id": 1,
           "x": 10.0,
           "y": 10.0,
-          "w": 223.16000000000003,
-          "h": 3.1599999999996022,
+          "w": 223.12,
+          "h": 3.1199999999996066,
           "rotated": true
         },
         {
           "name": "roof_inner_wall",
           "id": 1,
-          "x": 18.159999999999602,
+          "x": 18.119999999999607,
           "y": 10.0,
-          "w": 223.16000000000003,
-          "h": 3.1599999999996022,
+          "w": 223.12,
+          "h": 3.1199999999996066,
           "rotated": true
         },
         {
           "name": "roof",
           "id": 2,
-          "x": 26.319999999999204,
+          "x": 26.239999999999213,
           "y": 10.0,
-          "w": 223.16000000000003,
-          "h": 76.96,
+          "w": 223.12,
+          "h": 76.92000000000002,
           "rotated": true
         },
         {
           "name": "inter_wall_black",
           "id": 3,
-          "x": 108.2799999999992,
+          "x": 108.15999999999923,
           "y": 10.0,
-          "w": 98.4933333333334,
-          "h": 76.46000000000001,
+          "w": 98.4533333333334,
+          "h": 76.42000000000002,
           "rotated": true
         },
         {
           "name": "inter_wall_black",
           "id": 3,
-          "x": 108.2799999999992,
-          "y": 113.4933333333334,
-          "w": 98.4933333333334,
-          "h": 76.46000000000001,
+          "x": 108.15999999999923,
+          "y": 113.4533333333334,
+          "w": 98.4533333333334,
+          "h": 76.42000000000002,
           "rotated": true
         },
         {
           "name": "roof_inner_wall_side",
           "id": 4,
-          "x": 189.7399999999992,
+          "x": 189.57999999999925,
           "y": 10.0,
-          "w": 75.96000000000002,
-          "h": 3.159999999999629,
+          "w": 75.92000000000002,
+          "h": 3.1199999999996355,
           "rotated": true
         },
         {
           "name": "roof_inner_wall_side",
           "id": 4,
-          "x": 189.7399999999992,
-          "y": 90.96000000000002,
-          "w": 75.96000000000002,
-          "h": 3.159999999999629,
+          "x": 189.57999999999925,
+          "y": 90.92000000000002,
+          "w": 75.92000000000002,
+          "h": 3.1199999999996355,
           "rotated": true
         },
         {
           "name": "ventialtion_box_roof",
           "id": 5,
           "x": 25.0,
-          "y": 238.16000000000003,
-          "w": 30.160000000000004,
-          "h": 10.160000000000004,
+          "y": 238.12,
+          "w": 30.120000000000005,
+          "h": 10.120000000000005,
           "rotated": true
         },
         {
           "name": "ventialtion_box_roof",
           "id": 5,
-          "x": 40.160000000000004,
-          "y": 238.16000000000003,
-          "w": 30.160000000000004,
-          "h": 10.160000000000004,
+          "x": 40.120000000000005,
+          "y": 238.12,
+          "w": 30.120000000000005,
+          "h": 10.120000000000005,
           "rotated": true
         },
         {
           "name": "ventialtion_box_roof",
           "id": 5,
-          "x": 55.32000000000001,
-          "y": 238.16000000000003,
-          "w": 30.160000000000004,
-          "h": 10.160000000000004,
+          "x": 55.24000000000001,
+          "y": 238.12,
+          "w": 30.120000000000005,
+          "h": 10.120000000000005,
           "rotated": true
         },
         {
           "name": "ventialtion_box_roof",
           "id": 5,
-          "x": 70.48000000000002,
-          "y": 238.16000000000003,
-          "w": 30.160000000000004,
-          "h": 10.160000000000004,
+          "x": 70.36000000000001,
+          "y": 238.12,
+          "w": 30.120000000000005,
+          "h": 10.120000000000005,
           "rotated": true
         },
         {
           "name": "roof_exit_box_roof",
           "id": 6,
-          "x": 85.64000000000001,
-          "y": 238.16000000000003,
-          "w": 24.216171120131637,
-          "h": 20.160000000000032,
+          "x": 85.48000000000002,
+          "y": 238.12,
+          "w": 24.176171120131638,
+          "h": 20.120000000000033,
           "rotated": true
         },
         {
           "name": "canopy_roof",
           "id": 7,
           "x": 25.0,
-          "y": 273.32000000000005,
-          "w": 18.493333333333304,
-          "h": 8.660000000000002,
+          "y": 273.24,
+          "w": 18.4533333333334,
+          "h": 8.620000000000003,
           "rotated": false
         },
         {
           "name": "canopy_roof",
           "id": 7,
-          "x": 48.493333333333304,
-          "y": 273.32000000000005,
-          "w": 18.493333333333304,
-          "h": 8.660000000000002,
+          "x": 48.453333333333404,
+          "y": 273.24,
+          "w": 18.4533333333334,
+          "h": 8.620000000000003,
           "rotated": false
         }
       ]
@@ -3666,107 +3666,107 @@
           "id": 1,
           "x": 10.0,
           "y": 10.0,
-          "w": 92.96000000000002,
-          "h": 230.16000000000003,
+          "w": 92.92,
+          "h": 230.12000000000003,
           "rotated": false
         },
         {
           "name": "inter_floor",
           "id": 2,
-          "x": 107.96000000000002,
+          "x": 107.92,
           "y": 10.0,
-          "w": 223.16,
-          "h": 91.96000000000001,
+          "w": 223.12,
+          "h": 91.92000000000003,
           "rotated": true
         },
         {
           "name": "balcony_side",
           "id": 3,
           "x": 10.0,
-          "y": 245.16000000000003,
-          "w": 72.16000000000001,
-          "h": 7.660000000000011,
+          "y": 245.12000000000003,
+          "w": 72.12000000000002,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side",
           "id": 3,
           "x": 10.0,
-          "y": 257.82000000000005,
-          "w": 72.16000000000001,
-          "h": 7.660000000000011,
+          "y": 257.74,
+          "w": 72.12000000000002,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side",
           "id": 3,
           "x": 25.0,
-          "y": 270.4800000000001,
-          "w": 72.16000000000001,
-          "h": 7.660000000000011,
+          "y": 270.36000000000007,
+          "w": 72.12000000000002,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side",
           "id": 3,
-          "x": 87.16000000000001,
-          "y": 245.16000000000003,
-          "w": 72.16000000000001,
-          "h": 7.660000000000011,
+          "x": 87.12000000000002,
+          "y": 245.12000000000003,
+          "w": 72.12000000000002,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side",
           "id": 3,
-          "x": 87.16000000000001,
-          "y": 257.82000000000005,
-          "w": 72.16000000000001,
-          "h": 7.660000000000011,
+          "x": 87.12000000000002,
+          "y": 257.74,
+          "w": 72.12000000000002,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side",
           "id": 3,
-          "x": 102.16000000000001,
-          "y": 270.4800000000001,
-          "w": 72.16000000000001,
-          "h": 7.660000000000011,
+          "x": 102.12000000000002,
+          "y": 270.36000000000007,
+          "w": 72.12000000000002,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "ventilation_box_inter_roof",
           "id": 4,
-          "x": 164.32000000000002,
-          "y": 238.16,
-          "w": 28.16,
-          "h": 8.16,
+          "x": 164.24000000000004,
+          "y": 238.12,
+          "w": 28.12,
+          "h": 8.120000000000001,
           "rotated": false
         },
         {
           "name": "ventilation_box_inter_roof",
           "id": 4,
-          "x": 164.32000000000002,
-          "y": 251.32,
-          "w": 28.16,
-          "h": 8.16,
+          "x": 164.24000000000004,
+          "y": 251.24,
+          "w": 28.12,
+          "h": 8.120000000000001,
           "rotated": false
         },
         {
           "name": "roof_exit_box_inter_roof",
           "id": 5,
-          "x": 179.32000000000002,
-          "y": 264.48,
-          "w": 22.2161711201317,
-          "h": 18.16,
+          "x": 179.24000000000004,
+          "y": 264.36,
+          "w": 22.176171120131702,
+          "h": 18.12,
           "rotated": true
         },
         {
           "name": "transformer_box_roof",
           "id": 6,
-          "x": 107.96000000000002,
-          "y": 238.16,
-          "w": 1.6600000000000095,
-          "h": 7.16,
+          "x": 107.92,
+          "y": 238.12,
+          "w": 1.6200000000000097,
+          "h": 7.120000000000001,
           "rotated": true
         }
       ]
@@ -3782,197 +3782,233 @@
           "id": 1,
           "x": 10.0,
           "y": 10.0,
-          "w": 224.16000000000003,
-          "h": 95.493333333333,
+          "w": 224.12,
+          "h": 95.45333333333302,
           "rotated": true
         },
         {
           "name": "inter_wall_grey",
           "id": 2,
-          "x": 110.493333333333,
+          "x": 110.45333333333302,
           "y": 10.0,
-          "w": 98.4933333333334,
-          "h": 76.46000000000001,
+          "w": 98.4533333333334,
+          "h": 76.42000000000002,
           "rotated": true
         },
         {
           "name": "inter_wall_grey",
           "id": 2,
-          "x": 110.493333333333,
-          "y": 113.4933333333334,
-          "w": 98.4933333333334,
-          "h": 76.46000000000001,
+          "x": 110.45333333333302,
+          "y": 113.4533333333334,
+          "w": 98.4533333333334,
+          "h": 76.42000000000002,
           "rotated": true
         },
         {
           "name": "balcony_side",
           "id": 3,
-          "x": 110.493333333333,
-          "y": 216.9866666666668,
-          "w": 72.16000000000001,
-          "h": 7.660000000000011,
+          "x": 110.45333333333302,
+          "y": 216.9066666666668,
+          "w": 72.12000000000002,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side",
           "id": 3,
-          "x": 110.493333333333,
-          "y": 229.64666666666682,
-          "w": 72.16000000000001,
-          "h": 7.660000000000011,
+          "x": 110.45333333333302,
+          "y": 229.5266666666668,
+          "w": 72.12000000000002,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side_left",
           "id": 4,
           "x": 25.0,
-          "y": 239.16000000000003,
-          "w": 72.16000000000001,
-          "h": 7.660000000000016,
+          "y": 239.12,
+          "w": 72.12,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side_left",
           "id": 4,
           "x": 10.0,
-          "y": 251.82000000000005,
-          "w": 72.16000000000001,
-          "h": 7.660000000000016,
+          "y": 251.74,
+          "w": 72.12,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side_left",
           "id": 4,
           "x": 25.0,
-          "y": 264.4800000000001,
-          "w": 72.16000000000001,
-          "h": 7.660000000000016,
+          "y": 264.36,
+          "w": 72.12,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side_left",
           "id": 4,
-          "x": 87.16000000000001,
-          "y": 251.82000000000005,
-          "w": 72.16000000000001,
-          "h": 7.660000000000016,
+          "x": 102.12,
+          "y": 242.14666666666682,
+          "w": 72.12,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side_left",
           "id": 4,
-          "x": 102.16000000000001,
-          "y": 264.4800000000001,
-          "w": 72.16000000000001,
-          "h": 7.660000000000016,
+          "x": 102.12,
+          "y": 254.76666666666682,
+          "w": 72.12,
+          "h": 7.620000000000013,
+          "rotated": false
+        },
+        {
+          "name": "balcony_side_left",
+          "id": 4,
+          "x": 102.12,
+          "y": 267.3866666666668,
+          "w": 72.12,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side_left",
           "id": 4,
           "x": 25.0,
-          "y": 277.1400000000001,
-          "w": 72.16000000000001,
-          "h": 7.660000000000016,
+          "y": 276.98,
+          "w": 72.12,
+          "h": 7.620000000000013,
           "rotated": false
         },
         {
           "name": "balcony_side_left",
           "id": 4,
-          "x": 102.16000000000001,
-          "y": 277.1400000000001,
-          "w": 72.16000000000001,
-          "h": 7.660000000000016,
-          "rotated": false
-        },
-        {
-          "name": "balcony_side_left",
-          "id": 4,
-          "x": 191.953333333333,
+          "x": 191.87333333333305,
           "y": 10.0,
-          "w": 72.16000000000001,
-          "h": 7.660000000000016,
+          "w": 72.12,
+          "h": 7.620000000000013,
           "rotated": true
         },
         {
           "name": "ventilation_box_inter_roof",
           "id": 5,
-          "x": 164.32000000000002,
-          "y": 242.30666666666684,
-          "w": 28.16,
-          "h": 8.16,
-          "rotated": false
+          "x": 179.24,
+          "y": 242.14666666666682,
+          "w": 28.12,
+          "h": 8.120000000000001,
+          "rotated": true
         },
         {
           "name": "ventilation_box_inter_roof",
           "id": 5,
-          "x": 179.32000000000002,
-          "y": 255.46666666666684,
-          "w": 28.16,
-          "h": 8.16,
+          "x": 191.87333333333305,
+          "y": 87.12,
+          "w": 28.12,
+          "h": 8.120000000000001,
           "rotated": true
         },
         {
           "name": "ventilation_box_walls",
           "id": 6,
-          "x": 191.953333333333,
-          "y": 87.16000000000001,
-          "w": 6.159999999999705,
-          "h": 25.16,
+          "x": 192.36,
+          "y": 120.24000000000001,
+          "w": 6.119999999999704,
+          "h": 25.120000000000005,
           "rotated": false
         },
         {
           "name": "ventilation_box_walls",
           "id": 6,
-          "x": 191.953333333333,
-          "y": 117.32000000000001,
-          "w": 6.159999999999705,
-          "h": 25.16,
+          "x": 192.36,
+          "y": 150.36,
+          "w": 6.119999999999704,
+          "h": 25.120000000000005,
           "rotated": false
         },
         {
           "name": "ventilation_box_walls",
           "id": 6,
-          "x": 191.953333333333,
-          "y": 147.48000000000002,
-          "w": 6.159999999999705,
-          "h": 25.16,
+          "x": 192.36,
+          "y": 180.48000000000002,
+          "w": 6.119999999999704,
+          "h": 25.120000000000005,
           "rotated": false
         },
         {
           "name": "ventilation_box_walls",
           "id": 6,
-          "x": 191.953333333333,
-          "y": 177.64000000000001,
-          "w": 6.159999999999705,
-          "h": 25.16,
+          "x": 192.36,
+          "y": 210.60000000000002,
+          "w": 6.119999999999704,
+          "h": 25.120000000000005,
           "rotated": false
         },
         {
           "name": "ventilation_box_walls",
           "id": 6,
-          "x": 191.953333333333,
-          "y": 207.8,
-          "w": 6.159999999999705,
-          "h": 25.16,
+          "x": 192.36,
+          "y": 240.72000000000003,
+          "w": 6.119999999999704,
+          "h": 25.120000000000005,
           "rotated": false
         },
         {
           "name": "ventilation_box_walls",
           "id": 6,
+          "x": 102.12,
+          "y": 280.00666666666683,
+          "w": 6.119999999999704,
+          "h": 25.120000000000005,
+          "rotated": true
+        },
+        {
+          "name": "ventilation_box_walls",
+          "id": 6,
+          "x": 132.24,
+          "y": 280.00666666666683,
+          "w": 6.119999999999704,
+          "h": 25.120000000000005,
+          "rotated": true
+        },
+        {
+          "name": "ventilation_box_walls",
+          "id": 6,
+          "x": 162.36,
+          "y": 280.00666666666683,
+          "w": 6.119999999999704,
+          "h": 25.120000000000005,
+          "rotated": true
+        },
+        {
+          "name": "transformer_box_back",
+          "id": 7,
           "x": 192.48000000000002,
-          "y": 255.46666666666684,
-          "w": 6.159999999999705,
-          "h": 25.16,
+          "y": 270.84000000000003,
+          "w": 6.12,
+          "h": 10.120000000000001,
           "rotated": false
+        },
+        {
+          "name": "transformer_box_front",
+          "id": 8,
+          "x": 87.12,
+          "y": 251.74,
+          "w": 6.119999999999999,
+          "h": 9.995000000000001,
+          "rotated": true
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 7,
+          "id": 9,
           "x": 10.0,
-          "y": 239.16000000000003,
-          "w": 6.159999999999606,
-          "h": 6.159999999999998,
+          "y": 239.12,
+          "w": 6.119999999999607,
+          "h": 6.119999999999999,
           "rotated": false
         }
       ]
@@ -3988,260 +4024,242 @@
           "id": 1,
           "x": 10.0,
           "y": 10.0,
-          "w": 224.16000000000003,
-          "h": 95.493333333333,
+          "w": 224.12,
+          "h": 95.453333333333,
           "rotated": true
         },
         {
           "name": "inter_wall_grey",
           "id": 2,
-          "x": 110.493333333333,
+          "x": 110.453333333333,
           "y": 10.0,
-          "w": 98.4933333333334,
-          "h": 76.46000000000001,
+          "w": 98.4533333333334,
+          "h": 76.42000000000002,
           "rotated": true
         },
         {
           "name": "inter_wall_grey",
           "id": 2,
-          "x": 110.493333333333,
-          "y": 113.4933333333334,
-          "w": 98.4933333333334,
-          "h": 76.46000000000001,
+          "x": 110.453333333333,
+          "y": 113.4533333333334,
+          "w": 98.4533333333334,
+          "h": 76.42000000000002,
           "rotated": true
         },
         {
           "name": "balcony_front",
           "id": 3,
           "x": 10.0,
-          "y": 239.16000000000003,
-          "w": 72.16,
-          "h": 20.4933333333333,
+          "y": 239.12,
+          "w": 72.12,
+          "h": 20.453333333333312,
           "rotated": false
         },
         {
           "name": "balcony_front",
           "id": 3,
-          "x": 110.493333333333,
-          "y": 216.9866666666668,
-          "w": 72.16,
-          "h": 20.4933333333333,
+          "x": 110.453333333333,
+          "y": 216.9066666666668,
+          "w": 72.12,
+          "h": 20.453333333333312,
           "rotated": false
         },
         {
           "name": "balcony_front",
           "id": 3,
-          "x": 87.16,
-          "y": 242.4800000000001,
-          "w": 72.16,
-          "h": 20.4933333333333,
+          "x": 87.12,
+          "y": 242.36000000000013,
+          "w": 72.12,
+          "h": 20.453333333333312,
           "rotated": false
-        },
-        {
-          "name": "ventilation_box_walls",
-          "id": 4,
-          "x": 187.653333333333,
-          "y": 216.9866666666668,
-          "w": 6.159999999999705,
-          "h": 25.16,
-          "rotated": false
-        },
-        {
-          "name": "ventilation_box_walls",
-          "id": 4,
-          "x": 164.32,
-          "y": 247.1466666666668,
-          "w": 6.159999999999705,
-          "h": 25.16,
-          "rotated": true
         },
         {
           "name": "roof_exit_box_side_walls",
-          "id": 5,
+          "id": 4,
           "x": 25.0,
-          "y": 267.9733333333334,
-          "w": 20.16000000000009,
-          "h": 13.288308536803179,
+          "y": 267.81333333333345,
+          "w": 20.12000000000009,
+          "h": 13.246868751640575,
           "rotated": false
         },
         {
           "name": "roof_exit_box_side_walls",
+          "id": 4,
+          "x": 50.12000000000009,
+          "y": 267.81333333333345,
+          "w": 20.12000000000009,
+          "h": 13.246868751640575,
+          "rotated": false
+        },
+        {
+          "name": "balcony_floor",
           "id": 5,
-          "x": 50.16000000000009,
-          "y": 267.9733333333334,
-          "w": 20.16000000000009,
-          "h": 13.288308536803179,
+          "x": 75.24000000000018,
+          "y": 267.81333333333345,
+          "w": 19.453333333333305,
+          "h": 7.62000000000001,
           "rotated": false
         },
         {
           "name": "balcony_floor",
-          "id": 6,
-          "x": 164.32,
-          "y": 258.3066666666665,
-          "w": 19.493333333333307,
-          "h": 7.66000000000001,
+          "id": 5,
+          "x": 99.69333333333348,
+          "y": 267.81333333333345,
+          "w": 19.453333333333305,
+          "h": 7.62000000000001,
+          "rotated": false
+        },
+        {
+          "name": "balcony_floor",
+          "id": 5,
+          "x": 124.14666666666679,
+          "y": 267.81333333333345,
+          "w": 19.453333333333305,
+          "h": 7.62000000000001,
+          "rotated": false
+        },
+        {
+          "name": "balcony_floor",
+          "id": 5,
+          "x": 148.60000000000008,
+          "y": 267.81333333333345,
+          "w": 19.453333333333305,
+          "h": 7.62000000000001,
+          "rotated": false
+        },
+        {
+          "name": "balcony_floor",
+          "id": 5,
+          "x": 164.24,
+          "y": 242.36000000000013,
+          "w": 19.453333333333305,
+          "h": 7.62000000000001,
           "rotated": true
         },
         {
           "name": "balcony_floor",
-          "id": 6,
-          "x": 176.98000000000002,
-          "y": 258.3066666666665,
-          "w": 19.493333333333307,
-          "h": 7.66000000000001,
+          "id": 5,
+          "x": 173.0533333333334,
+          "y": 266.81333333333345,
+          "w": 19.453333333333305,
+          "h": 7.62000000000001,
+          "rotated": false
+        },
+        {
+          "name": "balcony_floor",
+          "id": 5,
+          "x": 176.86,
+          "y": 242.36000000000013,
+          "w": 19.453333333333305,
+          "h": 7.62000000000001,
           "rotated": true
         },
         {
           "name": "balcony_floor",
-          "id": 6,
-          "x": 75.32000000000018,
-          "y": 267.9733333333334,
-          "w": 19.493333333333307,
-          "h": 7.66000000000001,
-          "rotated": false
-        },
-        {
-          "name": "balcony_floor",
-          "id": 6,
-          "x": 99.81333333333349,
-          "y": 267.9733333333334,
-          "w": 19.493333333333307,
-          "h": 7.66000000000001,
-          "rotated": false
-        },
-        {
-          "name": "balcony_floor",
-          "id": 6,
-          "x": 124.3066666666668,
-          "y": 267.9733333333334,
-          "w": 19.493333333333307,
-          "h": 7.66000000000001,
-          "rotated": false
-        },
-        {
-          "name": "balcony_floor",
-          "id": 6,
-          "x": 191.953333333333,
+          "id": 5,
+          "x": 191.87333333333302,
           "y": 10.0,
-          "w": 19.493333333333307,
-          "h": 7.66000000000001,
+          "w": 19.453333333333305,
+          "h": 7.62000000000001,
           "rotated": true
         },
         {
-          "name": "balcony_floor",
+          "name": "entrance_step_0",
           "id": 6,
-          "x": 191.953333333333,
-          "y": 34.49333333333331,
-          "w": 19.493333333333307,
-          "h": 7.66000000000001,
+          "x": 189.48000000000002,
+          "y": 216.9066666666668,
+          "w": 17.4533333333334,
+          "h": 9.120000000000001,
           "rotated": true
         },
         {
-          "name": "balcony_floor",
+          "name": "entrance_step_0",
           "id": 6,
-          "x": 191.953333333333,
-          "y": 58.986666666666615,
-          "w": 19.493333333333307,
-          "h": 7.66000000000001,
+          "x": 189.48000000000002,
+          "y": 239.3600000000002,
+          "w": 17.4533333333334,
+          "h": 9.120000000000001,
           "rotated": true
         },
         {
-          "name": "entrance_canopy",
+          "name": "entrance_support_plate",
           "id": 7,
-          "x": 189.64000000000004,
-          "y": 258.3066666666665,
-          "w": 17.493333333333403,
-          "h": 8.66,
-          "rotated": true
+          "x": 191.87333333333302,
+          "y": 34.453333333333305,
+          "w": 8.120000000000001,
+          "h": 17.12,
+          "rotated": false
         },
         {
-          "name": "entrance_canopy",
+          "name": "entrance_support_plate",
           "id": 7,
-          "x": 148.8000000000001,
-          "y": 267.9733333333334,
-          "w": 17.493333333333403,
-          "h": 8.66,
-          "rotated": true
+          "x": 191.87333333333302,
+          "y": 56.57333333333331,
+          "w": 8.120000000000001,
+          "h": 17.12,
+          "rotated": false
         },
         {
-          "name": "transformer_box_back",
+          "name": "ventilation_box_side_walls",
           "id": 8,
-          "x": 191.953333333333,
-          "y": 83.47999999999992,
-          "w": 6.160000000000001,
-          "h": 10.16,
-          "rotated": false
-        },
-        {
-          "name": "transformer_box_front",
-          "id": 9,
-          "x": 191.953333333333,
-          "y": 98.63999999999992,
-          "w": 6.160000000000001,
-          "h": 10.035,
+          "x": 191.87333333333302,
+          "y": 78.69333333333331,
+          "w": 6.119999999999607,
+          "h": 6.119999999999999,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 10,
-          "x": 191.953333333333,
-          "y": 113.67499999999991,
-          "w": 6.159999999999606,
-          "h": 6.159999999999998,
+          "id": 8,
+          "x": 191.87333333333302,
+          "y": 89.81333333333332,
+          "w": 6.119999999999607,
+          "h": 6.119999999999999,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 10,
-          "x": 191.953333333333,
-          "y": 124.83499999999991,
-          "w": 6.159999999999606,
-          "h": 6.159999999999998,
+          "id": 8,
+          "x": 191.87333333333302,
+          "y": 100.93333333333332,
+          "w": 6.119999999999607,
+          "h": 6.119999999999999,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 10,
-          "x": 191.953333333333,
-          "y": 135.9949999999999,
-          "w": 6.159999999999606,
-          "h": 6.159999999999998,
+          "id": 8,
+          "x": 191.87333333333302,
+          "y": 112.05333333333333,
+          "w": 6.119999999999607,
+          "h": 6.119999999999999,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 10,
-          "x": 191.953333333333,
-          "y": 147.15499999999992,
-          "w": 6.159999999999606,
-          "h": 6.159999999999998,
+          "id": 8,
+          "x": 191.87333333333302,
+          "y": 123.17333333333333,
+          "w": 6.119999999999607,
+          "h": 6.119999999999999,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 10,
-          "x": 191.953333333333,
-          "y": 158.3149999999999,
-          "w": 6.159999999999606,
-          "h": 6.159999999999998,
+          "id": 8,
+          "x": 191.87333333333302,
+          "y": 134.29333333333335,
+          "w": 6.119999999999607,
+          "h": 6.119999999999999,
           "rotated": false
         },
         {
           "name": "ventilation_box_side_walls",
-          "id": 10,
-          "x": 191.953333333333,
-          "y": 169.4749999999999,
-          "w": 6.159999999999606,
-          "h": 6.159999999999998,
-          "rotated": false
-        },
-        {
-          "name": "ventilation_box_side_walls",
-          "id": 10,
-          "x": 191.953333333333,
-          "y": 180.6349999999999,
-          "w": 6.159999999999606,
-          "h": 6.159999999999998,
+          "id": 8,
+          "x": 191.87333333333302,
+          "y": 145.41333333333333,
+          "w": 6.119999999999607,
+          "h": 6.119999999999999,
           "rotated": false
         }
       ]
@@ -4257,81 +4275,81 @@
           "id": 1,
           "x": 10.0,
           "y": 10.0,
-          "w": 223.16,
-          "h": 91.96000000000001,
+          "w": 223.12,
+          "h": 91.92000000000003,
           "rotated": true
         },
         {
           "name": "inter_floor",
           "id": 1,
-          "x": 106.96000000000001,
+          "x": 106.92000000000003,
           "y": 10.0,
-          "w": 223.16,
-          "h": 91.96000000000001,
+          "w": 223.12,
+          "h": 91.92000000000003,
           "rotated": true
         },
         {
           "name": "balcony_front",
           "id": 2,
           "x": 10.0,
-          "y": 238.16,
-          "w": 72.16,
-          "h": 20.4933333333333,
+          "y": 238.12,
+          "w": 72.12,
+          "h": 20.453333333333312,
           "rotated": false
         },
         {
           "name": "balcony_front",
           "id": 2,
-          "x": 87.16,
-          "y": 238.16,
-          "w": 72.16,
-          "h": 20.4933333333333,
+          "x": 87.12,
+          "y": 238.12,
+          "w": 72.12,
+          "h": 20.453333333333312,
           "rotated": false
         },
         {
           "name": "balcony_front",
           "id": 2,
           "x": 25.0,
-          "y": 263.6533333333333,
-          "w": 72.16,
-          "h": 20.4933333333333,
+          "y": 263.5733333333333,
+          "w": 72.12,
+          "h": 20.453333333333312,
           "rotated": false
         },
         {
           "name": "balcony_front",
           "id": 2,
-          "x": 102.16,
-          "y": 263.6533333333333,
-          "w": 72.16,
-          "h": 20.4933333333333,
+          "x": 102.12,
+          "y": 263.5733333333333,
+          "w": 72.12,
+          "h": 20.453333333333312,
           "rotated": false
         },
         {
-          "name": "entrance_step_0",
+          "name": "entrance_around",
           "id": 3,
-          "x": 164.32,
-          "y": 238.16,
-          "w": 17.4933333333334,
-          "h": 9.16,
-          "rotated": true
-        },
-        {
-          "name": "entrance_step_0",
-          "id": 3,
-          "x": 178.48,
-          "y": 238.16,
-          "w": 17.4933333333334,
-          "h": 9.16,
+          "x": 164.24,
+          "y": 238.12,
+          "w": 17.4533333333334,
+          "h": 16.12,
           "rotated": true
         },
         {
           "name": "entrance_around",
-          "id": 4,
-          "x": 179.32,
-          "y": 260.6533333333334,
-          "w": 17.493333333333304,
-          "h": 16.16,
+          "id": 3,
+          "x": 179.24,
+          "y": 260.5733333333334,
+          "w": 17.4533333333334,
+          "h": 16.12,
           "rotated": false
+        },
+        {
+          "name": "entrance_canopy",
+          "id": 4,
+          "x": 185.36,
+          "y": 238.12,
+          "w": 17.4533333333334,
+          "h": 8.620000000000001,
+          "rotated": true
         }
       ]
     },
@@ -4346,89 +4364,71 @@
           "id": 1,
           "x": 10.0,
           "y": 10.0,
-          "w": 223.16,
-          "h": 91.96000000000001,
+          "w": 223.12,
+          "h": 91.92000000000003,
           "rotated": true
         },
         {
           "name": "inter_wall_grey",
           "id": 2,
-          "x": 106.96000000000001,
+          "x": 106.92000000000003,
           "y": 10.0,
-          "w": 98.4933333333334,
-          "h": 76.46000000000001,
+          "w": 98.4533333333334,
+          "h": 76.42000000000002,
           "rotated": true
         },
         {
           "name": "inter_wall_grey",
           "id": 2,
-          "x": 106.96000000000001,
-          "y": 113.4933333333334,
-          "w": 98.4933333333334,
-          "h": 76.46000000000001,
+          "x": 106.92000000000003,
+          "y": 113.4533333333334,
+          "w": 98.4533333333334,
+          "h": 76.42000000000002,
           "rotated": true
         },
         {
           "name": "balcony_front",
           "id": 3,
           "x": 10.0,
-          "y": 238.16,
-          "w": 72.16,
-          "h": 20.4933333333333,
+          "y": 238.12,
+          "w": 72.12,
+          "h": 20.453333333333312,
           "rotated": false
         },
         {
-          "name": "entrance_around",
+          "name": "entrance_canopy",
           "id": 4,
           "x": 25.0,
-          "y": 263.6533333333333,
-          "w": 17.493333333333304,
-          "h": 16.16,
+          "y": 263.5733333333333,
+          "w": 17.4533333333334,
+          "h": 8.620000000000001,
           "rotated": true
         },
         {
           "name": "entrance_step_1",
           "id": 5,
-          "x": 46.16,
-          "y": 263.6533333333333,
-          "w": 17.4933333333333,
-          "h": 8.66,
+          "x": 38.620000000000005,
+          "y": 263.5733333333333,
+          "w": 17.4533333333333,
+          "h": 8.620000000000001,
           "rotated": true
         },
         {
           "name": "entrance_step_1",
           "id": 5,
-          "x": 59.81999999999999,
-          "y": 263.6533333333333,
-          "w": 17.4933333333333,
-          "h": 8.66,
+          "x": 52.24,
+          "y": 263.5733333333333,
+          "w": 17.4533333333333,
+          "h": 8.620000000000001,
           "rotated": true
-        },
-        {
-          "name": "entrance_support_plate",
-          "id": 6,
-          "x": 73.47999999999999,
-          "y": 263.6533333333333,
-          "w": 8.16,
-          "h": 17.16,
-          "rotated": false
-        },
-        {
-          "name": "entrance_support_plate",
-          "id": 6,
-          "x": 86.63999999999999,
-          "y": 263.6533333333333,
-          "w": 8.16,
-          "h": 17.16,
-          "rotated": false
         },
         {
           "name": "roof_exit_box_entrance_wall",
-          "id": 7,
-          "x": 87.16,
-          "y": 238.16,
-          "w": 15.16000000000002,
-          "h": 13.609999999999605,
+          "id": 6,
+          "x": 65.86,
+          "y": 263.5733333333333,
+          "w": 15.120000000000019,
+          "h": 13.569999999999604,
           "rotated": true
         }
       ]
@@ -4444,26 +4444,26 @@
           "id": 1,
           "x": 25.0,
           "y": 10.0,
-          "w": 98.4933333333334,
-          "h": 76.46000000000001,
+          "w": 98.4533333333334,
+          "h": 76.42000000000002,
           "rotated": false
         },
         {
           "name": "outer_side",
           "id": 2,
           "x": 25.0,
-          "y": 91.46000000000001,
-          "w": 76.96,
-          "h": 95.49333333333303,
+          "y": 91.42000000000002,
+          "w": 76.92000000000002,
+          "h": 95.453333333333,
           "rotated": true
         },
         {
           "name": "outer_side",
           "id": 2,
           "x": 25.0,
-          "y": 173.42000000000002,
-          "w": 76.96,
-          "h": 95.49333333333303,
+          "y": 173.34000000000003,
+          "w": 76.92000000000002,
+          "h": 95.453333333333,
           "rotated": false
         }
       ]
@@ -4479,62 +4479,62 @@
           "id": 1,
           "x": 10.0,
           "y": 10.0,
-          "w": 224.16000000000003,
-          "h": 6.160000000000014,
+          "w": 224.12,
+          "h": 6.1200000000000045,
           "rotated": true
         },
         {
           "name": "skirt",
           "id": 1,
-          "x": 21.160000000000014,
+          "x": 21.120000000000005,
           "y": 10.0,
-          "w": 224.16000000000003,
-          "h": 6.160000000000014,
+          "w": 224.12,
+          "h": 6.1200000000000045,
           "rotated": true
         },
         {
           "name": "skirt_side",
           "id": 2,
           "x": 10.0,
-          "y": 239.16000000000003,
-          "w": 76.96000000000001,
-          "h": 6.1600000000000055,
+          "y": 239.12,
+          "w": 76.92000000000002,
+          "h": 6.120000000000012,
           "rotated": false
         },
         {
           "name": "skirt_side",
           "id": 2,
           "x": 10.0,
-          "y": 250.32000000000002,
-          "w": 76.96000000000001,
-          "h": 6.1600000000000055,
+          "y": 250.24,
+          "w": 76.92000000000002,
+          "h": 6.120000000000012,
           "rotated": false
         },
         {
           "name": "entrance_door",
           "id": 3,
           "x": 25.0,
-          "y": 261.48,
-          "w": 6.660000000000002,
-          "h": 14.660000000000002,
+          "y": 261.36,
+          "w": 6.620000000000001,
+          "h": 14.620000000000001,
           "rotated": false
         },
         {
           "name": "entrance_door",
           "id": 3,
-          "x": 36.660000000000004,
-          "y": 261.48,
-          "w": 6.660000000000002,
-          "h": 14.660000000000002,
+          "x": 36.620000000000005,
+          "y": 261.36,
+          "w": 6.620000000000001,
+          "h": 14.620000000000001,
           "rotated": false
         },
         {
           "name": "roof_exit_box_door",
           "id": 4,
-          "x": 48.32000000000001,
-          "y": 261.48,
-          "w": 5.160000000000004,
-          "h": 10.159999999999602,
+          "x": 48.24,
+          "y": 261.36,
+          "w": 5.120000000000003,
+          "h": 10.119999999999601,
           "rotated": false
         }
       ]
@@ -4546,201 +4546,201 @@
       "height": 297.0,
       "parts": [
         {
-          "name": "inner_back",
+          "name": "inner_front",
           "id": 1,
           "x": 10.0,
           "y": 10.0,
-          "w": 98.99333333333342,
-          "h": 223.16000000000008,
-          "rotated": false
+          "w": 223.12000000000012,
+          "h": 98.95333333333343,
+          "rotated": true
         },
         {
           "name": "inner_side",
           "id": 2,
-          "x": 113.99333333333342,
+          "x": 113.95333333333343,
           "y": 10.0,
-          "w": 76.96000000000001,
-          "h": 98.99333333333341,
+          "w": 76.92000000000002,
+          "h": 98.95333333333342,
           "rotated": false
         },
         {
           "name": "inner_side",
           "id": 2,
-          "x": 113.99333333333342,
-          "y": 113.99333333333341,
-          "w": 76.96000000000001,
-          "h": 98.99333333333341,
+          "x": 113.95333333333343,
+          "y": 113.95333333333342,
+          "w": 76.92000000000002,
+          "h": 98.95333333333342,
           "rotated": false
         },
         {
           "name": "roof_exit_box_back_wall",
           "id": 3,
           "x": 10.0,
-          "y": 238.16000000000008,
-          "w": 15.160000000000014,
-          "h": 12.159999999999602,
+          "y": 238.12000000000012,
+          "w": 15.120000000000013,
+          "h": 12.119999999999601,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
           "x": 25.0,
-          "y": 258.3200000000001,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "y": 258.2400000000001,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 27.159999999999602,
-          "y": 238.16000000000008,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 27.1199999999996,
+          "y": 238.12000000000012,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 40.8266666666667,
-          "y": 254.2533333333334,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 40.786666666666704,
+          "y": 254.1733333333334,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 42.98666666666631,
-          "y": 238.16000000000008,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 42.906666666666304,
+          "y": 238.12000000000012,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
+          "rotated": false
+        },
+        {
+          "name": "window_bars",
+          "id": 4,
+          "x": 40.786666666666704,
+          "y": 270.2266666666667,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 40.8266666666667,
-          "y": 270.3466666666667,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 56.57333333333341,
+          "y": 253.9066666666668,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 56.65333333333341,
-          "y": 254.2533333333334,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 56.57333333333341,
+          "y": 269.9600000000001,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 58.81333333333301,
-          "y": 238.16000000000008,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 72.36000000000011,
+          "y": 238.12000000000012,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 56.65333333333341,
-          "y": 270.3466666666667,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 72.36000000000011,
+          "y": 254.1733333333334,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 72.4800000000001,
-          "y": 254.2533333333334,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 72.36000000000011,
+          "y": 270.2266666666667,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 74.63999999999972,
-          "y": 238.16000000000008,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 88.14666666666682,
+          "y": 238.12000000000012,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 72.4800000000001,
-          "y": 270.3466666666667,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 88.14666666666682,
+          "y": 254.1733333333334,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 88.30666666666681,
-          "y": 254.2533333333334,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 88.14666666666682,
+          "y": 270.2266666666667,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 90.46666666666643,
-          "y": 238.16000000000008,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 103.93333333333352,
+          "y": 238.12000000000012,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 88.30666666666681,
-          "y": 270.3466666666667,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 113.95333333333343,
+          "y": 217.90666666666684,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 104.13333333333352,
-          "y": 254.2533333333334,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 103.93333333333352,
+          "y": 254.1733333333334,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 106.29333333333314,
-          "y": 238.16000000000008,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 103.93333333333352,
+          "y": 270.2266666666667,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         },
         {
           "name": "window_bars",
           "id": 4,
-          "x": 104.13333333333352,
-          "y": 270.3466666666667,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
-          "rotated": true
-        },
-        {
-          "name": "window_bars",
-          "id": 4,
-          "x": 113.99333333333342,
-          "y": 217.98666666666682,
-          "w": 11.093333333333302,
-          "h": 10.826666666666705,
+          "x": 119.72000000000023,
+          "y": 233.96000000000015,
+          "w": 11.0533333333333,
+          "h": 10.786666666666704,
           "rotated": true
         }
       ]
@@ -4752,30 +4752,30 @@
       "height": 297.0,
       "parts": [
         {
-          "name": "inner_front",
+          "name": "inner_back",
           "id": 1,
           "x": 10.0,
           "y": 10.0,
-          "w": 98.99333333333341,
-          "h": 223.16000000000005,
-          "rotated": false
-        },
-        {
-          "name": "inter_wall_white",
-          "id": 2,
-          "x": 113.99333333333341,
-          "y": 10.0,
-          "w": 98.4933333333334,
-          "h": 76.46000000000001,
+          "w": 223.12,
+          "h": 98.95333333333343,
           "rotated": true
         },
         {
           "name": "inter_wall_white",
           "id": 2,
-          "x": 113.99333333333341,
-          "y": 113.4933333333334,
-          "w": 98.4933333333334,
-          "h": 76.46000000000001,
+          "x": 113.95333333333343,
+          "y": 10.0,
+          "w": 98.4533333333334,
+          "h": 76.42000000000002,
+          "rotated": true
+        },
+        {
+          "name": "inter_wall_white",
+          "id": 2,
+          "x": 113.95333333333343,
+          "y": 113.4533333333334,
+          "w": 98.4533333333334,
+          "h": 76.42000000000002,
           "rotated": true
         }
       ]
