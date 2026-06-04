@@ -19,7 +19,8 @@ from dxf_exporter import export_part_dxf
 from clash_detection import check_intersections
 from overlay_manager import manage_overlays
 from placer import place_parts, export_sheets, export_preview_svg
-from viewer_exporter import export_viewer
+from naming import resolve_names
+from manual_exporter import export_manual_model
 from models import Part, ProjectConfig, PartInstance, Color
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -39,84 +40,6 @@ class Timer:
         self.duration = self.end - self.start
         print(f"  [{self.name}] took {self.duration:.3f}s")
 
-
-
-def get_color_name(color: Optional[Color], config: ProjectConfig) -> str:
-    """Find a friendly name for a color from the project config."""
-    if not color:
-        return ""
-    hex_val = color.hex.lower()
-    for sheet in config.sheets:
-        if sheet.color.lower() == hex_val:
-            return sheet.name
-    return hex_val.replace("#", "")
-
-
-def resolve_names(groups: list[PartGroup], config: ProjectConfig) -> list[tuple[PartGroup, str, str, bool]]:
-    """Resolve a unique filename for each part group and determine flipping."""
-    
-    # Pass 1: Determine base names for all groups
-    base_names = []
-    for i, group in enumerate(groups):
-        candidate = None
-        meaningful_names = [n for n in group.names if not re.match(r"Part \d+", n)]
-        
-        if len(meaningful_names) == 0:
-            part_numbers = []
-            for n in group.names:
-                m = re.match(r"Part (\d+)", n)
-                if m:
-                    part_numbers.append(int(m.group(1)))
-            
-            if part_numbers:
-                candidate = f"part_{min(part_numbers)}"
-            else:
-                candidate = f"part_{i}"
-        elif len(meaningful_names) == 1:
-            candidate = meaningful_names[0].lower().replace(" ", "_")
-        else:
-            normalized = {n.lower().replace(" ", "_") for n in meaningful_names}
-            candidate = list(normalized)[0]
-        
-        # Ensure candidate is alphanumeric-ish
-        candidate = "".join(c if c.isalnum() or c in "_-" else "_" for c in candidate)
-        base_names.append(candidate)
-
-    # Pass 2: Disambiguate if necessary (multi-pass check for unique names)
-    from collections import Counter
-    counts = Counter(base_names)
-    
-    resolved = []
-    used_names = set()
-    
-    for i, group in enumerate(groups):
-        base = base_names[i]
-        
-        # If multiple groups share the same base name, try to disambiguate by color
-        if counts[base] > 1:
-            color_name = get_color_name(group.color, config)
-            if color_name:
-                candidate = f"{base}_{color_name}"
-            else:
-                # Fallback to index if color matching fails
-                candidate = f"{base}_{i}"
-        else:
-            candidate = base
-        
-        # Ensure global uniqueness - FAIL on conflict as requested
-        if candidate in used_names:
-            # Find which groups have this name
-            conflicting_groups = [g.names for g, name, _, _ in resolved if name == candidate]
-            raise ValueError(
-                f"Naming Conflict: Multiple different part geometries share the name '{candidate}'.\n"
-                f"Conflicting groups names: {group.names} vs {conflicting_groups}\n"
-                f"Please rename parts in the CAD model to ensure each unique geometry has a unique name."
-            )
-        used_names.add(candidate)
-        
-        resolved.append((group, candidate, base, False))
-        
-    return resolved
 
 
 def main():
@@ -350,9 +273,18 @@ def main():
             ids = sorted(list(mapping[part_name]), key=natural_key)
             print(f"  {part_name:<30} -> {', '.join(ids)}")
 
-    # Step 8: Export 3D Viewer
-    with Timer("Viewer export"):
-        export_viewer(project_dir, all_instances, groups, sheets_results)
+    # Step 8: Export the 3D model consumed by the manual-builder web app.
+    print()
+    print("Exporting manual model ...")
+    with Timer("Manual model export"):
+        model_path = export_manual_model(
+            project_dir,
+            all_instances,
+            groups,
+            sheets_results,
+            thickness_mm=thickness,
+        )
+    print(f"  Manual model written to: {model_path}")
 
 
 if __name__ == "__main__":

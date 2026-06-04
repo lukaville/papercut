@@ -1,0 +1,480 @@
+{
+  "schemaVersion": 1,
+  "title": "1Assembly Manual",
+  "defaults": {
+    "upAxis": "z",
+    "view": {
+      "azimuthDeg": 45,
+      "elevationDeg": 35.264,
+      "zoom": 1
+    }
+  },
+  "steps": [
+    {
+      "id": "171fb0a9-13dd-4507-a437-c2acc459cddb",
+      "title": "",
+      "description": "Front",
+      "view": {
+        "azimuthDeg": 135,
+        "elevationDeg": 35.264,
+        "zoom": 1.405
+      },
+      "dependsOn": [],
+      "added": [
+        "outer_front#0",
+        "inner_front#0"
+      ],
+      "parts": {
+        "outer_front#0": {
+          "explode": {
+            "distance_mm": 40,
+            "direction": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      },
+      "repeat": null,
+      "connections": [
+        {
+          "id": "d42bf548-c133-4cfe-b860-1102c6960a45",
+          "from": {
+            "instance": "inner_front#0",
+            "vertex": 19
+          },
+          "toPart": "outer_front#0"
+        },
+        {
+          "id": "a47b8b03-d5e3-4090-8e25-134277741d20",
+          "from": {
+            "instance": "inner_front#0",
+            "vertex": 29
+          },
+          "toPart": "outer_front#0"
+        }
+      ]
+    },
+    {
+      "id": "a8706da3-2a24-43c9-a4c4-9c3fd5ff5069",
+      "title": "",
+      "description": "Back",
+      "view": {
+        "azimuthDeg": 45,
+        "elevationDeg": 35.264,
+        "zoom": 1.405
+      },
+      "dependsOn": [],
+      "added": [
+        "inner_back#0",
+        "outer_back#0"
+      ],
+      "parts": {
+        "outer_back#0": {
+          "explode": {
+            "distance_mm": 40,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        }
+      },
+      "repeat": null,
+      "connections": [
+        {
+          "id": "93d6941d-ad0e-48e4-ace8-b39ad6760691",
+          "from": {
+            "instance": "inner_back#0",
+            "vertex": 797
+          },
+          "toPart": "outer_back#0"
+        },
+        {
+          "id": "826418f3-7ae4-4194-b711-740f25dde7a2",
+          "from": {
+            "instance": "inner_back#0",
+            "vertex": 23
+          },
+          "toPart": "outer_back#0"
+        }
+      ]
+    },
+    {
+      "id": "a669012b-9e16-48c8-b53c-3af2972dc5a1",
+      "title": "",
+      "description": "Sides",
+      "view": {
+        "azimuthDeg": 45,
+        "elevationDeg": 35.264,
+        "zoom": 1.405
+      },
+      "dependsOn": [],
+      "added": [
+        "inner_side#1",
+        "outer_side#1"
+      ],
+      "parts": {
+        "outer_side#1": {
+          "explode": {
+            "distance_mm": 40,
+            "direction": [
+              1,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "repeat": {
+        "copies": [
+          {
+            "id": "907604e4-2d8a-48f7-bf12-6c6de395c3b7",
+            "map": {
+              "inner_side#1": "inner_side#0",
+              "outer_side#1": "outer_side#0"
+            }
+          }
+        ]
+      },
+      "connections": [
+        {
+          "id": "33964404-8c75-46d0-898d-83f404368b6e",
+          "from": {
+            "instance": "inner_side#1",
+            "vertex": 98
+          },
+          "toPart": "outer_side#1"
+        },
+        {
+          "id": "2726686d-c86c-4cdc-9734-dbe1b9abe19e",
+          "from": {
+            "instance": "inner_side#1",
+            "vertex": 83
+          },
+          "toPart": "outer_side#1"
+        }
+      ]
+    },
+    {
+      "id": "fdca7f83-d690-43b3-b71d-37148f31ad22",
+      "title": "",
+      "description": "Inter floors",
+      "view": {
+        "azimuthDeg": 45,
+        "elevationDeg": 35.264,
+        "zoom": 1.346
+      },
+      "dependsOn": [
+        "171fb0a9-13dd-4507-a437-c2acc459cddb"
+      ],
+      "added": [
+        "inter_floor#1",
+        "inter_floor#2",
+        "inter_floor#3",
+        "inter_floor#0"
+      ],
+      "connections": [
+        {
+          "id": "188e3be9-9849-4232-b505-a52b918198a4",
+          "from": {
+            "instance": "inter_floor#3",
+            "vertex": 97
+          },
+          "toPart": "inner_front#0"
+        },
+        {
+          "id": "2b0b50bf-b9c6-46f1-803b-15b30eaf6e9e",
+          "from": {
+            "instance": "inter_floor#2",
+            "vertex": 97
+          },
+          "toPart": "inner_front#0"
+        },
+        {
+          "id": "9be4b7e9-d79a-4b2c-81a5-ab1351d38f76",
+          "from": {
+            "instance": "inter_floor#1",
+            "vertex": 97
+          },
+          "toPart": "inner_front#0"
+        },
+        {
+          "id": "7e9381d7-355a-44fd-80cd-f9e7fe2cba75",
+          "from": {
+            "instance": "inter_floor#0",
+            "vertex": 97
+          },
+          "toPart": "inner_front#0"
+        },
+        {
+          "id": "140e95f9-a4cb-47e4-a3b1-16b74209fb5d",
+          "from": {
+            "instance": "inter_floor#3",
+            "vertex": 51
+          },
+          "toPart": "inner_front#0"
+        },
+        {
+          "id": "7d4f9eee-2841-4995-bd86-aeca4a7fcfda",
+          "from": {
+            "instance": "inter_floor#2",
+            "vertex": 51
+          },
+          "toPart": "inner_front#0"
+        },
+        {
+          "id": "bdaf654a-d719-4a00-a64a-fc29d023e3cc",
+          "from": {
+            "instance": "inter_floor#1",
+            "vertex": 51
+          },
+          "toPart": "inner_front#0"
+        },
+        {
+          "id": "c14d89c2-d5d9-4e9e-adfc-d492671824dd",
+          "from": {
+            "instance": "inter_floor#0",
+            "vertex": 51
+          },
+          "toPart": "inner_front#0"
+        }
+      ],
+      "parts": {
+        "inter_floor#1": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "inter_floor#3": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "inter_floor#2": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "inter_floor#0": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "9ecb4272-ba32-45a9-944b-ae4bdf625544",
+      "title": "",
+      "description": "",
+      "view": null,
+      "dependsOn": [
+        "fdca7f83-d690-43b3-b71d-37148f31ad22",
+        "a669012b-9e16-48c8-b53c-3af2972dc5a1"
+      ],
+      "added": [],
+      "connections": [],
+      "parts": {
+        "inner_side#1": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        "outer_side#1": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        "inner_side#0": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              -1,
+              0,
+              0
+            ]
+          }
+        },
+        "outer_side#0": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              -1,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "5a4d96ad-7bf5-4f47-b7e5-ade17f92bd9c",
+      "title": "",
+      "description": "",
+      "view": null,
+      "dependsOn": [
+        "9ecb4272-ba32-45a9-944b-ae4bdf625544",
+        "a8706da3-2a24-43c9-a4c4-9c3fd5ff5069"
+      ],
+      "added": [],
+      "connections": [],
+      "parts": {
+        "inner_back#0": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "outer_back#0": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "4511c322-d43d-43c1-9af5-db6020aded7b",
+      "title": "",
+      "description": "",
+      "view": null,
+      "dependsOn": [
+        "5a4d96ad-7bf5-4f47-b7e5-ade17f92bd9c"
+      ],
+      "added": [
+        "ground#0"
+      ],
+      "connections": [],
+      "parts": {
+        "ground#0": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              0,
+              -1
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "1faeea90-d70e-4fdf-a618-00f8ca06626c",
+      "title": "",
+      "description": "",
+      "view": null,
+      "dependsOn": [
+        "4511c322-d43d-43c1-9af5-db6020aded7b"
+      ],
+      "added": [
+        "roof#0"
+      ],
+      "connections": [],
+      "parts": {
+        "roof#0": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              0,
+              1
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "4b48e00b-7986-40a6-9981-eb4a1fc6a17c",
+      "title": "",
+      "description": "",
+      "view": {
+        "azimuthDeg": -45,
+        "elevationDeg": 35.264,
+        "zoom": 1.172
+      },
+      "dependsOn": [
+        "1faeea90-d70e-4fdf-a618-00f8ca06626c"
+      ],
+      "added": [
+        "balcony_floor#7",
+        "balcony_floor#6",
+        "balcony_floor#0",
+        "balcony_floor#1",
+        "balcony_floor#2",
+        "balcony_floor#3",
+        "balcony_floor#4",
+        "balcony_floor#5"
+      ],
+      "connections": [
+        {
+          "id": "03b20dae-0dce-4bcd-8e2e-c6f1000f4ef9",
+          "from": {
+            "instance": "balcony_floor#6",
+            "vertex": 1
+          },
+          "toPart": "outer_side#1"
+        },
+        {
+          "id": "91a9a7c0-a151-42d2-9e36-55e6d50f0cd0",
+          "from": {
+            "instance": "balcony_floor#6",
+            "vertex": 10
+          },
+          "toPart": "outer_side#1"
+        }
+      ],
+      "parts": {
+        "balcony_floor#6": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

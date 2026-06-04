@@ -11,6 +11,8 @@ Automated manufacturing pipeline for converting 3D CAD assemblies (STEP) into ne
 - **`dxf_exporter.py`**: Projects 3D profiles to 2D, aligns bottom-left to `(0,0)`, and exports to DXF.
 - **`overlay_manager.py`**: Manages manual engraving details preserved across CAD updates.
 - **`placer.py`**: Implements Shelf-Packing (NFDH) for automated nesting onto infinite sheets.
+- **`naming.py`**: Resolves stable, unique 3D part names per deduplicated group (shared by the pipeline and the manual exporter).
+- **`manual_exporter.py`**: Exports the 3D model (meshes + stable topological vertices + instance placements) consumed by the `manual-builder` app, into `[project]/manual/model/`.
 - **`models.py`**: Centralized typed data structures.
 
 ## Useful Commands
@@ -57,6 +59,13 @@ pip install -r papercut-processor/requirements.txt
 ### 5. Validation
 - Fail fast with descriptive errors.
 - Enforce strict clash detection (tolerance: 0.0001 mm³).
+
+## Manual Builder Subproject (`manual-builder/`)
+A browser-only web app (React + TypeScript + Vite, [caplin/FlexLayout](https://github.com/caplin/FlexLayout) panels, react-three-fiber) for authoring step-by-step assembly manuals.
+- **No backend**: project directories are read/written directly via the Chrome File System Access API; the directory handle persists in IndexedDB across refreshes.
+- **Data**: reads the generated `[project]/manual/model/` and reads/writes the authored `[project]/manual/manual.json`.
+- **Robustness**: anchors on 3D part names (not sheet labels), stable instance ids (`partKey#ordinal`), and vertex indices — so authored manuals survive dimensional CAD changes. See `manual-builder/README.md` for the full format and rationale.
+- Run `./process <project>` (or `papercut-processor/export_manual.py`) to (re)generate the model the app consumes.
 
 ## Maintenance of Overlays
 The `overlays/` directory contains DXF files where the `engraving` layer is intended for manual edits.
