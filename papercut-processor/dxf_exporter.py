@@ -10,19 +10,39 @@ import cadquery as cq
 import ezdxf
 from OCP.GProp import GProp_GProps
 from OCP.BRepGProp import BRepGProp
-from OCP.gp import gp_Pnt, gp_Dir, gp_Ax2, gp_Ax3, gp_Trsf, gp_Vec
+from OCP.gp import gp_Pnt, gp_Dir, gp_Ax1, gp_Ax2, gp_Ax3, gp_Trsf, gp_Vec
 from OCP.BRep import BRep_Tool
 from OCP.BRepBuilderAPI import BRepBuilderAPI_Transform
 
 def _find_profile_face(solid: cq.Shape, material_thickness: float) -> cq.Face:
     """Find the best face for the laser-cutting profile.
-    
+
     Prioritizes faces that are perpendicular to the material thickness dimension.
     If no such face is found (within tolerance), falls back to the largest face.
+
+    Tiebreaker: when two candidate faces have equal area (top and bottom of a flat
+    part), prefer the one whose outward normal is most aligned with the positive
+    thin-axis direction.  This guarantees the same face is always chosen regardless
+    of the order OCC enumerates faces, making the resulting DXF stable across
+    machines and OCC versions.
     """
     faces = solid.Faces()
     if not faces:
         raise ValueError("Solid has no faces")
+
+    # Determine the thin axis (the direction perpendicular to the flat face).
+    # For a laser-cut part centered at its COM the thin axis is the axis with the
+    # smallest bounding-box extent.
+    bb = solid.BoundingBox()
+    thin_axis_vec: tuple[float, float, float]
+    min_dim = min(bb.xlen, bb.ylen, bb.zlen)
+    if min_dim == bb.xlen:
+        thin_axis_vec = (1.0, 0.0, 0.0)
+    elif min_dim == bb.ylen:
+        thin_axis_vec = (0.0, 1.0, 0.0)
+    else:
+        thin_axis_vec = (0.0, 0.0, 1.0)
+    tax, tay, taz = thin_axis_vec
 
     # Optimization: Pre-calculate unique vertex points to avoid redundant OCP calls
     # and to significantly speed up the projection loop.
@@ -36,42 +56,58 @@ def _find_profile_face(solid: cq.Shape, material_thickness: float) -> cq.Face:
             unique_points.append(p)
             seen_points.add(pt)
 
-    candidates: list[tuple[cq.Face, float]] = []
-    
+    candidates: list[tuple[cq.Face, float, float]] = []  # (face, area, thin_alignment)
+
     for face in faces:
         # We only care about planar faces
         surface = BRep_Tool.Surface_s(face.wrapped)
         if surface.DynamicType().Name() != "Geom_Plane":
             continue
-            
+
         # Get normal directly from the plane definition - much faster than normalAt(Center())
         # surface is already a Geom_Plane if DynamicType().Name() == "Geom_Plane"
         # In OCP, we can just call Pln() on it.
         gp_pln = surface.Pln()
         normal = gp_pln.Position().Direction()
-        
+
         area = face.Area()
         nx, ny, nz = normal.X(), normal.Y(), normal.Z()
-        
+
         # Compute the extent of the solid along this normal using pre-calculated points
         min_proj = float('inf')
         max_proj = float('-inf')
-        
+
         for p in unique_points:
             proj = p.X() * nx + p.Y() * ny + p.Z() * nz
             if proj < min_proj: min_proj = proj
             if proj > max_proj: max_proj = proj
-        
+
         thickness = max_proj - min_proj
         # Check if this thickness matches the material thickness
         if abs(thickness - material_thickness) < 0.01: # 0.01mm tolerance
-            candidates.append((face, area))
+            # Alignment with the positive thin-axis direction used as tiebreaker
+            alignment = nx * tax + ny * tay + nz * taz
+            candidates.append((face, area, alignment))
 
     if candidates:
-        # Return the largest face among candidates that match the thickness
-        return max(candidates, key=lambda x: x[1])[0]
+        # Primary sort: largest area.  Tiebreaker: face whose normal is most aligned
+        # with the positive thin-axis direction (i.e. the "top" face).  This is
+        # deterministic regardless of OCC's internal face enumeration order.
+        return max(candidates, key=lambda x: (x[1], x[2]))[0]
 
-    # Fallback to absolute largest face if no thickness match found
+    # Fallback to absolute largest planar face if no thickness match found,
+    # again with the same deterministic tiebreaker.
+    planar: list[tuple[cq.Face, float, float]] = []
+    for face in faces:
+        surface = BRep_Tool.Surface_s(face.wrapped)
+        if surface.DynamicType().Name() != "Geom_Plane":
+            continue
+        gp_pln = surface.Pln()
+        normal = gp_pln.Position().Direction()
+        alignment = normal.X() * tax + normal.Y() * tay + normal.Z() * taz
+        planar.append((face, face.Area(), alignment))
+    if planar:
+        return max(planar, key=lambda x: (x[1], x[2]))[0]
     return max(faces, key=lambda f: f.Area())
 
 
@@ -90,11 +126,15 @@ def _face_normal(face: cq.Face) -> gp_Dir:
     return gp_Dir(normal.x, normal.y, normal.z)
 
 
-def _orient_face_to_xy(solid: cq.Shape, face: cq.Face) -> cq.Shape:
+def _orient_face_to_xy(solid: cq.Shape, face: cq.Face) -> tuple[cq.Shape, gp_Trsf]:
     """Transform the solid so that the given face lies on the XY plane.
 
-    The face normal is aligned with the Z axis, and the face is then 
+    The face normal is aligned with the Z axis, and the face is then
     rotated around Z to minimize its axis-aligned bounding box area.
+
+    Returns the oriented solid together with the cumulative ``gp_Trsf`` that maps
+    the input solid's coordinates into the oriented (XY) frame. The transform is
+    needed downstream to project engravings back onto the 3D mesh.
     """
     center = face.Center()
     normal = _face_normal(face)
@@ -129,9 +169,12 @@ def _orient_face_to_xy(solid: cq.Shape, face: cq.Face) -> cq.Shape:
                 pts_2d.append((p.X(), p.Y()))
     
     if not pts_2d:
-        return oriented
+        return oriented, trsf
 
-    candidate_angles = {0.0}
+    # Use a sorted list (not a set) so iteration order is deterministic across
+    # Python versions and machines.  When two angles produce the same bounding-box
+    # area we keep the first one encountered (smallest angle), which is stable.
+    angle_set: set[float] = {0.0}
     for edge in edges:
         if edge.geomType() == "LINE":
             p1 = edge.startPoint()
@@ -140,18 +183,18 @@ def _orient_face_to_xy(solid: cq.Shape, face: cq.Face) -> cq.Shape:
             dy = p2.y - p1.y
             if abs(dx) > 1e-6 or abs(dy) > 1e-6:
                 angle = math.atan2(dy, dx)
-                candidate_angles.add(angle)
-    
+                angle_set.add(angle)
+
     best_area = float('inf')
     best_angle = 0.0
-    
-    for angle in candidate_angles:
+
+    for angle in sorted(angle_set):
         cos_a = math.cos(-angle)
         sin_a = math.sin(-angle)
-        
+
         min_x, max_x = float('inf'), float('-inf')
         min_y, max_y = float('inf'), float('-inf')
-        
+
         for px, py in pts_2d:
             rx = px * cos_a - py * sin_a
             ry = px * sin_a + py * cos_a
@@ -159,33 +202,92 @@ def _orient_face_to_xy(solid: cq.Shape, face: cq.Face) -> cq.Shape:
             if rx > max_x: max_x = rx
             if ry < min_y: min_y = ry
             if ry > max_y: max_y = ry
-            
+
         area = (max_x - min_x) * (max_y - min_y)
-        if area < best_area:
+        # Strictly-less-than keeps the first (smallest) angle on ties.
+        if area < best_area - 1e-6:
             best_area = area
             best_angle = angle
             
     if abs(best_angle) > 1e-6:
-        return oriented.rotate((0,0,0), (0,0,1), -math.degrees(best_angle))
-    return oriented
+        # Replicate `oriented.rotate((0,0,0),(0,0,1), -degrees(best_angle))` as a
+        # gp_Trsf so we can compose it into the cumulative transform. The rotate
+        # angle in radians is exactly -best_angle.
+        rot = gp_Trsf()
+        rot.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), -best_angle)
+        oriented = cq.Shape(BRepBuilderAPI_Transform(oriented.wrapped, rot, True).Shape())
+        # Multiplied(A) applies A first, then self: rot ∘ trsf.
+        return oriented, rot.Multiplied(trsf)
+    return oriented, trsf
 
 
-def export_part_dxf(solid_input: Union[cq.Shape, Path], path: Path, material_thickness: float, kerf_offset_mm: float = 0.0, ref_path: Path = None) -> tuple[float, float, float, str]:
+def _trsf_to_colmajor(trsf: gp_Trsf) -> list[float]:
+    """Convert a gp_Trsf to a column-major 4x4 list of 16 floats (Three.js order)."""
+    m = [0.0] * 16
+    for row in range(1, 4):
+        for col in range(1, 5):
+            m[(col - 1) * 4 + (row - 1)] = trsf.Value(row, col)
+    m[3], m[7], m[11], m[15] = 0.0, 0.0, 0.0, 1.0
+    return m
+
+
+def _mirror_trsf(axis: str) -> gp_Trsf:
+    """Reflection across the plane through the origin perpendicular to `axis`."""
+    direction = gp_Dir(1, 0, 0)
+    if axis == "Y":
+        direction = gp_Dir(0, 1, 0)
+    elif axis == "Z":
+        direction = gp_Dir(0, 0, 1)
+    t = gp_Trsf()
+    t.SetMirror(gp_Ax2(gp_Pnt(0, 0, 0), direction))
+    return t
+
+
+def export_part_dxf(solid_input: Union[cq.Shape, Path], path: Path, material_thickness: float, kerf_offset_mm: float = 0.0, ref_path: Path = None, flip_h: bool = False, flip_v: bool = False) -> tuple[float, float, float, str, list[float]]:
     """Export the cutting profile of a flat solid as a 2D DXF file.
 
     Finds the profile face (based on material thickness), orients the solid
-    so this face lies on the XY plane, then translates it so its bottom-left 
-    is at (0,0). Returns (width_mm, height_mm, area_mm2, svg_path_string).
+    so this face lies on the XY plane, then translates it so its bottom-left
+    is at (0,0). Returns ``(width_mm, height_mm, area_mm2, svg_path_string,
+    dxf_to_local_matrix)`` where the last element is a column-major 4x4 matrix
+    mapping 2D DXF coordinates back into the part's local 3D space (used to place
+    engravings onto the 3D mesh in the manual viewer).
+
+    ``flip_h`` / ``flip_v`` mirror the cut profile for paired directional parts
+    so the engraving lands on the correct physical face. This is a manufacturing
+    concern: the mirror is applied to the exported DXF only, and the returned
+    matrix is composed back into the *un-mirrored* source frame so the manual
+    viewer keeps showing the part in its true 3D orientation.
     """
     if isinstance(solid_input, Path):
         solid = cq.Shape.importBrep(str(solid_input))
     else:
         solid = solid_input
 
+    # Apply the manufacturing flip (mirror) before generating the cut profile.
+    # The thickness axis is the part's thinnest bbox dimension; "horizontal" and
+    # "vertical" are the two in-plane axes relative to it.
+    flip_trsf = gp_Trsf()  # identity
+    if flip_h or flip_v:
+        bb = solid.BoundingBox()
+        dims = [("X", bb.xlen), ("Y", bb.ylen), ("Z", bb.zlen)]
+        thickness_axis = min(dims, key=lambda d: abs(d[1] - material_thickness))[0]
+        if thickness_axis == "Z":
+            h_axis, v_axis = "X", "Y"
+        elif thickness_axis == "X":
+            h_axis, v_axis = "Y", "Z"
+        else:  # Y
+            h_axis, v_axis = "X", "Z"
+        if flip_h:
+            flip_trsf = _mirror_trsf(h_axis).Multiplied(flip_trsf)
+        if flip_v:
+            flip_trsf = _mirror_trsf(v_axis).Multiplied(flip_trsf)
+        solid = cq.Shape(BRepBuilderAPI_Transform(solid.wrapped, flip_trsf, True).Shape())
+
     # Find the profile face and orient the part.
     t0 = time.perf_counter()
     profile_face = _find_profile_face(solid, material_thickness)
-    oriented = _orient_face_to_xy(solid, profile_face)
+    oriented, orient_trsf = _orient_face_to_xy(solid, profile_face)
     t_orient = time.perf_counter() - t0
 
     # After orientation, find the profile face again on the oriented solid.
@@ -241,6 +343,15 @@ def export_part_dxf(solid_input: Union[cq.Shape, Path], path: Path, material_thi
     # Move the profile so its bottom-left is at (0,0)
     face_bb = oriented_profile.BoundingBox()
     oriented_profile = oriented_profile.translate((-face_bb.xmin, -face_bb.ymin, 0))
+
+    # Cumulative (flipped) local-3D -> DXF-2D transform: bottom-left translation ∘ orient.
+    # Inverting maps DXF 2D points back onto the flipped solid's local frame, then
+    # composing the inverse flip brings them into the ORIGINAL (un-mirrored) source
+    # frame — the frame the manual viewer's canonical mesh lives in.
+    bl_trsf = gp_Trsf()
+    bl_trsf.SetTranslation(gp_Vec(-face_bb.xmin, -face_bb.ymin, 0.0))
+    local_to_dxf = bl_trsf.Multiplied(orient_trsf)
+    dxf_to_local = _trsf_to_colmajor(flip_trsf.Inverted().Multiplied(local_to_dxf.Inverted()))
     
     # If a reference path is provided, export the UN-OFFSET profile 
     # using the EXACT SAME translation as the offset profile.
@@ -347,7 +458,7 @@ def export_part_dxf(solid_input: Union[cq.Shape, Path], path: Path, material_thi
         path_data += " Z"
         svg_paths.append(path_data)
         
-    return width_mm, height_mm, oriented_profile.Area(), " ".join(svg_paths)
+    return width_mm, height_mm, oriented_profile.Area(), " ".join(svg_paths), dxf_to_local
 
 
 def get_dxf_layer_svg_paths(dxf_path: Path, layer_name: str) -> str:

@@ -15,14 +15,30 @@
       "title": "",
       "description": "Front",
       "view": {
-        "azimuthDeg": 135,
-        "elevationDeg": 35.264,
-        "zoom": 1.405
+        "azimuthDeg": 45,
+        "elevationDeg": 35.242,
+        "zoom": 1.333
       },
       "dependsOn": [],
       "added": [
         "outer_front#0",
-        "inner_front#0"
+        "inner_front#0",
+        "window_material_extras_8cc1e4_4#0",
+        "window_material_extras_8cc1e4_4#1",
+        "window_material_extras_8cc1e4_4#2",
+        "window_material_extras_8cc1e4_4#3",
+        "window_material_extras_8cc1e4_5#0",
+        "window_material_extras_8cc1e4_5#1",
+        "window_material_extras_8cc1e4_5#2",
+        "window_material_extras_8cc1e4_5#3",
+        "window_material_extras_8cc1e4_5#4",
+        "window_material_extras_8cc1e4_5#5",
+        "window_material_extras_8cc1e4_5#6",
+        "window_material_extras_8cc1e4_5#7",
+        "window_material_extras_8cc1e4_5#8",
+        "window_material_extras_8cc1e4_5#9",
+        "window_material_extras_8cc1e4_5#10",
+        "window_material_extras_8cc1e4_5#11"
       ],
       "parts": {
         "outer_front#0": {
@@ -31,6 +47,166 @@
             "direction": [
               0,
               -1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_4#0": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_4#1": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_4#2": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_4#3": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#0": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#1": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#2": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#3": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#4": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#5": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#6": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#7": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#8": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#9": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#10": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "window_material_extras_8cc1e4_5#11": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
               0
             ]
           }
@@ -176,6 +352,49 @@
         "inter_floor#3",
         "inter_floor#0"
       ],
+      "parts": {
+        "inter_floor#1": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "inter_floor#3": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "inter_floor#2": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "inter_floor#0": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              1,
+              0
+            ]
+          }
+        }
+      },
+      "repeat": null,
       "connections": [
         {
           "id": "188e3be9-9849-4232-b505-a52b918198a4",
@@ -241,49 +460,7 @@
           },
           "toPart": "inner_front#0"
         }
-      ],
-      "parts": {
-        "inter_floor#1": {
-          "explode": {
-            "distance_mm": 30,
-            "direction": [
-              0,
-              1,
-              0
-            ]
-          }
-        },
-        "inter_floor#3": {
-          "explode": {
-            "distance_mm": 30,
-            "direction": [
-              0,
-              1,
-              0
-            ]
-          }
-        },
-        "inter_floor#2": {
-          "explode": {
-            "distance_mm": 30,
-            "direction": [
-              0,
-              1,
-              0
-            ]
-          }
-        },
-        "inter_floor#0": {
-          "explode": {
-            "distance_mm": 30,
-            "direction": [
-              0,
-              1,
-              0
-            ]
-          }
-        }
-      }
+      ]
     },
     {
       "id": "9ecb4272-ba32-45a9-944b-ae4bdf625544",
@@ -295,7 +472,6 @@
         "a669012b-9e16-48c8-b53c-3af2972dc5a1"
       ],
       "added": [],
-      "connections": [],
       "parts": {
         "inner_side#1": {
           "explode": {
@@ -337,7 +513,9 @@
             ]
           }
         }
-      }
+      },
+      "repeat": null,
+      "connections": []
     },
     {
       "id": "5a4d96ad-7bf5-4f47-b7e5-ade17f92bd9c",
@@ -349,7 +527,6 @@
         "a8706da3-2a24-43c9-a4c4-9c3fd5ff5069"
       ],
       "added": [],
-      "connections": [],
       "parts": {
         "inner_back#0": {
           "explode": {
@@ -371,7 +548,9 @@
             ]
           }
         }
-      }
+      },
+      "repeat": null,
+      "connections": []
     },
     {
       "id": "4511c322-d43d-43c1-9af5-db6020aded7b",
@@ -384,7 +563,6 @@
       "added": [
         "ground#0"
       ],
-      "connections": [],
       "parts": {
         "ground#0": {
           "explode": {
@@ -396,7 +574,9 @@
             ]
           }
         }
-      }
+      },
+      "repeat": null,
+      "connections": []
     },
     {
       "id": "1faeea90-d70e-4fdf-a618-00f8ca06626c",
@@ -409,7 +589,6 @@
       "added": [
         "roof#0"
       ],
-      "connections": [],
       "parts": {
         "roof#0": {
           "explode": {
@@ -421,7 +600,9 @@
             ]
           }
         }
-      }
+      },
+      "repeat": null,
+      "connections": []
     },
     {
       "id": "4b48e00b-7986-40a6-9981-eb4a1fc6a17c",
@@ -445,6 +626,19 @@
         "balcony_floor#4",
         "balcony_floor#5"
       ],
+      "parts": {
+        "balcony_floor#6": {
+          "explode": {
+            "distance_mm": 30,
+            "direction": [
+              0,
+              -1,
+              0
+            ]
+          }
+        }
+      },
+      "repeat": null,
       "connections": [
         {
           "id": "03b20dae-0dce-4bcd-8e2e-c6f1000f4ef9",
@@ -462,19 +656,7 @@
           },
           "toPart": "outer_side#1"
         }
-      ],
-      "parts": {
-        "balcony_floor#6": {
-          "explode": {
-            "distance_mm": 30,
-            "direction": [
-              0,
-              -1,
-              0
-            ]
-          }
-        }
-      }
+      ]
     }
   ]
 }

@@ -13,6 +13,15 @@ export interface BBox {
   max: Vec3;
 }
 
+export interface ModelPartEngraving {
+  /** Which face of the flat part carries the engraving. */
+  side: "top" | "bottom";
+  /** SVG path data of the aligned engraving (in DXF / cut-profile coordinates). */
+  svg: string;
+  /** Column-major 4x4 mapping 2D DXF coords -> local 3D; null if unavailable. */
+  transform: Mat4 | null;
+}
+
 /** A unique part geometry (a deduplicated CAD group). */
 export interface ModelPart {
   /** Stable anchor: the resolved 3D part name. Never a sheet label. */
@@ -25,6 +34,8 @@ export interface ModelPart {
   vertexCount: number;
   /** Local-space bounding box of the canonical geometry. */
   bbox: BBox | null;
+  /** Engraving overlay, if one was resolved for this part. */
+  engraving: ModelPartEngraving | null;
 }
 
 /** A physical placement of a part within the assembly. */
@@ -36,6 +47,8 @@ export interface ModelInstance {
   matrix: Mat4;
   /** Display-only sheet label (e.g. "A12"); may change between runs. */
   sheet: string | null;
+  /** Per-instance engraving side override; falls back to the part's side. */
+  engravingSide?: "top" | "bottom";
 }
 
 export interface ModelData {

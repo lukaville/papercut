@@ -18,11 +18,15 @@ interface Props {
   labelPosition: Vec3;
   showLabel: boolean;
   showVertices: boolean;
+  showEngravings: boolean;
+  /** The engraving geometry to render for this instance (side already resolved). */
+  engravingGeometry: THREE.BufferGeometry | null;
   handleSize: number;
   selected: boolean;
   pendingVertex: VertexRef | null;
   onPickVertex: (ref: VertexRef) => void;
-  onSelect: () => void;
+  /** `additive` is true when Cmd/Ctrl is held (toggle into the multi-selection). */
+  onSelect: (additive: boolean) => void;
 }
 
 const HIGHLIGHT = "#f59e0b";
@@ -37,6 +41,8 @@ export function PartObject({
   labelPosition,
   showLabel,
   showVertices,
+  showEngravings,
+  engravingGeometry,
   handleSize: _handleSize,
   selected,
   pendingVertex,
@@ -60,7 +66,7 @@ export function PartObject({
         renderOrder={1}
         onClick={(e: ThreeEvent<MouseEvent>) => {
           e.stopPropagation();
-          onSelect();
+          onSelect(e.metaKey || e.ctrlKey);
         }}
       >
         <meshStandardMaterial
@@ -72,6 +78,12 @@ export function PartObject({
         />
         <Edges threshold={18} color={selected ? HIGHLIGHT : "#0f172a"} />
       </mesh>
+
+      {showEngravings && engravingGeometry ? (
+        <lineSegments geometry={engravingGeometry} renderOrder={2}>
+          <lineBasicMaterial color="#1a1a2e" />
+        </lineSegments>
+      ) : null}
 
       {showLabel && label ? (
         <Html position={labelPosition} center distanceFactor={undefined} zIndexRange={[10, 0]}>

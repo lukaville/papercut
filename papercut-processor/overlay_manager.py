@@ -41,18 +41,35 @@ def manage_overlays(project_dir: Path, overlay_config: dict[str, Any]) -> None:
             raise ValueError(f"Overlay validation failed for '{part_name}': {e}")
 
 
-def get_engraving_entities(overlay_path: Path, part_path: Path, flip_h: bool = False, flip_v: bool = False) -> tuple[list, any]:
-    """Align overlay with part and return filtered engraving entities and transformation matrix."""
+def get_engraving_entities(
+    overlay_path: Path,
+    part_path: Path,
+    flip_h: bool = False,
+    flip_v: bool = False,
+) -> tuple[list, Any, bool, int]:
+    """Align overlay with part and return filtered engraving entities plus orientation info.
+
+    Returns:
+        (entities, alignment_matrix, flip_x_used, rotation_deg_used)
+
+        flip_x_used: True if an additional horizontal flip was needed in the alignment
+            search (after the pre-flip from flip_h/flip_v was already applied).
+        rotation_deg_used: the rotation (0, 90, 180 or 270) that gave the best match.
+
+    The combination of flip_h and flip_x_used indicates which face the engraving
+    was drawn on: if (flip_h XOR flip_x_used) is True the engraving is on the face
+    opposite to the canonical DXF export face ("bottom"); otherwise "top".
+    """
     from ezdxf import bbox
     from ezdxf.math import Matrix44, Vec3
     import math
 
     overlay_doc = ezdxf.readfile(overlay_path)
     part_doc = ezdxf.readfile(part_path)
-    
+
     overlay_msp = overlay_doc.modelspace()
     part_msp = part_doc.modelspace()
-    
+
     if flip_h or flip_v:
         pre_mat = Matrix44()
         if flip_h:
@@ -61,11 +78,11 @@ def get_engraving_entities(overlay_path: Path, part_path: Path, flip_h: bool = F
             pre_mat @= Matrix44.scale(1, -1, 1)
         for e in overlay_msp:
             e.transform(pre_mat)
-    
+
     # 1. Use robust ezdxf.bbox
     overlay_bb = bbox.extents(overlay_msp.query('LINE LWPOLYLINE CIRCLE ARC'))
     part_bb = bbox.extents(part_msp.query('LINE LWPOLYLINE CIRCLE ARC'))
-    
+
     if not overlay_bb or not part_bb:
         raise ValueError("Could not determine bounding box of overlay or part")
 
@@ -73,21 +90,23 @@ def get_engraving_entities(overlay_path: Path, part_path: Path, flip_h: bool = F
     for e in part_msp:
         part_segments.extend(_get_entity_segments(e))
 
-    # 2. Try 8 orientations (4 rotations * 2 flips) to find best orientation 
+    # 2. Try 8 orientations (4 rotations * 2 flips) to find best orientation
     # based on actual perimeter overlap.
     best_matched_length = -1
     best_mat = None
-    
+    best_flip_x: bool = False
+    best_rotation_deg: int = 0
+
     for flip_x in [False, True]:
         for rotation_angle in [0, 90, 180, 270]:
             # Start with centering the overlay at its own origin
             mat = Matrix44.translate(-overlay_bb.extmin.x, -overlay_bb.extmin.y, -overlay_bb.extmin.z)
-            
+
             if flip_x:
                 mat @= Matrix44.scale(-1, 1, 1)
-            
+
             mat @= Matrix44.z_rotate(math.radians(rotation_angle))
-            
+
             # Find the new bounding box after flip and rotation to align back to (0,0)
             # We transform the corners of the original bounding box by the current partial matrix
             corners = [
@@ -99,12 +118,12 @@ def get_engraving_entities(overlay_path: Path, part_path: Path, flip_h: bool = F
             transformed_corners = [mat.transform(c) for c in corners]
             curr_min_x = min(c.x for c in transformed_corners)
             curr_min_y = min(c.y for c in transformed_corners)
-            
+
             mat @= Matrix44.translate(-curr_min_x, -curr_min_y, 0)
-            
+
             # Finally move to part's absolute minimum coordinates
             mat @= Matrix44.translate(part_bb.extmin.x, part_bb.extmin.y, part_bb.extmin.z)
-            
+
             current_matched_length = 0
             for e in overlay_msp.query('LINE LWPOLYLINE'):
                 for s_ov in _get_entity_segments(e):
@@ -113,7 +132,7 @@ def get_engraving_entities(overlay_path: Path, part_path: Path, flip_h: bool = F
                         # Use tighter tolerance for matching
                         iv = _get_segments_overlap_interval(s_ov, s_part, mat, tol=0.01)
                         if iv: ov_intervals.append(iv)
-                    
+
                     if ov_intervals:
                         ov_intervals.sort()
                         c_s, c_e = ov_intervals[0]
@@ -123,10 +142,12 @@ def get_engraving_entities(overlay_path: Path, part_path: Path, flip_h: bool = F
                                 current_matched_length += (c_e - c_s)
                                 c_s, c_e = n_s, n_e
                         current_matched_length += (c_e - c_s)
-            
+
             if current_matched_length > best_matched_length:
                 best_matched_length = current_matched_length
                 best_mat = mat
+                best_flip_x = flip_x
+                best_rotation_deg = rotation_angle
 
     if best_matched_length < 10.0:
         raise ValueError(f"Outline mismatch. Only {best_matched_length:.1f}mm matched in any orientation.")
@@ -192,7 +213,7 @@ def get_engraving_entities(overlay_path: Path, part_path: Path, flip_h: bool = F
                     new_line.dxf.color = e.dxf.color
                 engravings.append(new_line)
 
-    return engravings, mat
+    return engravings, mat, best_flip_x, best_rotation_deg
 
 
 def _get_entity_segments(entity):

@@ -18,7 +18,7 @@ from config import load_config
 from step_reader import load_step
 from onshape_client import parse_onshape_url
 from thickness import detect_thickness
-from deduplicator import deduplicate, _mirror_solid
+from deduplicator import deduplicate
 from naming import resolve_names
 from placer import place_parts
 from manual_exporter import export_manual_model
@@ -40,25 +40,6 @@ def _resolve_step_path(project_dir: Path, file_ref: str) -> Path:
     return project_dir / file_ref
 
 
-def _apply_flips(all_instances, part_configs, thickness):
-    """Mirror instances per project config (mirrors __main__'s flip step)."""
-    for inst in all_instances:
-        p_config = part_configs.get(inst.name)
-        if not p_config or not (p_config.flip_horizontal or p_config.flip_vertical):
-            continue
-        bb = inst.solid.BoundingBox()
-        dims = [("X", bb.xlen), ("Y", bb.ylen), ("Z", bb.zlen)]
-        thickness_axis = min(dims, key=lambda d: abs(d[1] - thickness))[0]
-        if thickness_axis == "Z":
-            h_axis, v_axis = "X", "Y"
-        elif thickness_axis == "X":
-            h_axis, v_axis = "Y", "Z"
-        else:
-            h_axis, v_axis = "X", "Z"
-        if p_config.flip_horizontal:
-            inst.solid = _mirror_solid(inst.solid, h_axis)
-        if p_config.flip_vertical:
-            inst.solid = _mirror_solid(inst.solid, v_axis)
 
 
 def _approx_part_dims(group, thickness):
@@ -81,11 +62,6 @@ def main():
 
     config = load_config(project_dir)
 
-    part_configs = {}
-    for imp in config.imports:
-        for name, p_config in imp.parts.items():
-            part_configs[name] = p_config
-
     all_instances = []
     for imp in config.imports:
         step_path = _resolve_step_path(project_dir, imp.file)
@@ -100,7 +76,8 @@ def main():
     thickness = detect_thickness([inst.solid for inst in all_instances])
     print(f"  Detected thickness: {thickness:.3f} mm")
 
-    _apply_flips(all_instances, part_configs, thickness)
+    # NOTE: cut flips are a 2D-manufacturing concern and intentionally NOT applied
+    # to the 3D geometry — the manual model uses the true source orientation.
 
     groups = deduplicate(all_instances)
     print(f"  Found {len(groups)} unique part(s)")

@@ -48,6 +48,19 @@ export function StepsPanel() {
         </span>
       </div>
 
+      <div
+        className={`step-item step-item--overview${selectedStepId === null ? " step-item--active" : ""}`}
+        onClick={() => selectStep(null)}
+        title="Show the complete assembled model"
+      >
+        <span className="step-expand-spacer" />
+        <span className="step-index step-index--overview">⊙</span>
+        <span className="step-body">
+          <span className="step-title">Full model</span>
+          <span className="step-meta">All parts assembled</span>
+        </span>
+      </div>
+
       {steps.length === 0 ? (
         <div className="panel-empty">No steps yet. Add the first one.</div>
       ) : (
@@ -59,7 +72,7 @@ export function StepsPanel() {
               <li key={step.id} className="step-li">
                 <div
                   className={`step-item${step.id === selectedStepId ? " step-item--active" : ""}`}
-                  onClick={() => selectStep(step.id)}
+                  onClick={() => selectStep(step.id === selectedStepId ? null : step.id)}
                 >
                   {repeated ? (
                     <button

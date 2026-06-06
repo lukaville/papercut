@@ -50,6 +50,8 @@ export interface UiFlags {
   showOrigin: boolean;
   /** Show every copy of a repeated step (preview), not just the primary. */
   previewRepeats: boolean;
+  /** Render engraving lines on part surfaces. */
+  showEngravings: boolean;
 }
 
 interface SubprojectChoice {
@@ -80,8 +82,10 @@ interface AppState {
   // --- persisted UI state ---
   projectName: string | null;
   selectedStepId: string | null;
-  /** The instance focused by the part inspector (within the selected step). */
+  /** The instance focused by the part inspector (the anchor of a multi-selection). */
   selectedInstanceId: string | null;
+  /** All instances selected in the Parts list (includes the anchor). */
+  selectedInstanceIds: string[];
   pendingVertex: VertexRef | null;
   ui: UiFlags;
 
@@ -105,10 +109,16 @@ interface AppState {
   moveStep: (id: string, dir: -1 | 1) => void;
   selectStep: (id: string | null) => void;
   selectInstance: (instanceId: string | null) => void;
+  /** Replace the multi-selection and set its anchor (for list range/toggle clicks). */
+  setSelection: (ids: string[], anchor: string | null) => void;
+  /** Add/remove one instance from the multi-selection (Cmd/Ctrl+click). */
+  toggleInstanceSelection: (id: string) => void;
   /** Toggle a dependency (by step id) on the selected step. */
   toggleStepDependency: (depId: string) => void;
   /** Add/remove an instance from the selected step's `added` (new) parts. */
   setPartAdded: (instanceId: string, added: boolean) => void;
+  /** Bulk add/remove instances from the selected step in a single edit. */
+  setPartsAdded: (instanceIds: string[], added: boolean) => void;
   setStepView: (view: ViewSettings | null) => void;
   /** Save the freeform viewport's current camera as the selected step's view. */
   saveFreeformView: () => void;
@@ -120,6 +130,8 @@ interface AppState {
   applyFreeformView: (view: ViewSettings) => void;
   /** Set or clear (null) the per-part explode override for one instance. */
   setPartExplode: (instanceId: string, explode: ExplodeSettings | null) => void;
+  /** Apply the same explode to multiple selected parts in a single edit. */
+  setPartsExplode: (instanceIds: string[], explode: ExplodeSettings | null) => void;
   /** Auto-detect repeated copies of the selected step's new parts. */
   detectStepRepeats: () => void;
   /** Drop all repeat copies from the selected step. */
@@ -131,6 +143,9 @@ interface AppState {
   clearConnections: () => void;
   hoveredConnectionId: string | null;
   setHoveredConnection: (id: string | null) => void;
+  /** Instance hovered in the Parts list, highlighted (x-ray) in the 3D view. */
+  hoveredInstanceId: string | null;
+  hoverInstance: (id: string | null) => void;
 
   setExplodeScale: (scale: number) => void;
 
@@ -218,7 +233,7 @@ export const useAppStore = create<AppState>()(
             status: "ready",
             saveState: "idle",
             selectedStepId,
-            selectedInstanceId: null,
+            selectedInstanceId: null, selectedInstanceIds: [],
             pendingVertex: null,
             transientFreeformView: null,
             undoStack: [],
@@ -246,9 +261,10 @@ export const useAppStore = create<AppState>()(
 
         projectName: null,
         selectedStepId: null,
-        selectedInstanceId: null,
+        selectedInstanceId: null, selectedInstanceIds: [],
         pendingVertex: null,
         hoveredConnectionId: null,
+        hoveredInstanceId: null,
         ui: {
           connectMode: false,
           showVertices: false,
@@ -256,6 +272,7 @@ export const useAppStore = create<AppState>()(
           showLabels: true,
           showOrigin: true,
           previewRepeats: false,
+          showEngravings: true,
         },
 
         restoreSession: async () => {
@@ -316,7 +333,7 @@ export const useAppStore = create<AppState>()(
             status: "idle",
             error: null,
             selectedStepId: null,
-            selectedInstanceId: null,
+            selectedInstanceId: null, selectedInstanceIds: [],
             pendingVertex: null,
             reconnectHandle: null,
             subprojectChoice: null,
@@ -354,7 +371,7 @@ export const useAppStore = create<AppState>()(
             const base = baseIdx >= 0 ? d.steps[baseIdx] : null;
             d.steps.push({ ...newStep(id), dependsOn: base ? [base.id] : [] });
           });
-          set({ selectedStepId: id, selectedInstanceId: null });
+          set({ selectedStepId: id, selectedInstanceId: null, selectedInstanceIds: [] });
         },
 
         addIndependentStep: () => {
@@ -364,7 +381,7 @@ export const useAppStore = create<AppState>()(
           mutate((d) => {
             d.steps.push(newStep(id)); // dependsOn defaults to []
           });
-          set({ selectedStepId: id, selectedInstanceId: null });
+          set({ selectedStepId: id, selectedInstanceId: null, selectedInstanceIds: [] });
         },
 
         deleteStep: (id) => {
@@ -392,9 +409,29 @@ export const useAppStore = create<AppState>()(
           }),
 
         selectStep: (id) =>
-          set({ selectedStepId: id, selectedInstanceId: null, pendingVertex: null }),
+          set({ selectedStepId: id, selectedInstanceId: null, selectedInstanceIds: [], pendingVertex: null }),
 
-        selectInstance: (instanceId) => set({ selectedInstanceId: instanceId }),
+        selectInstance: (instanceId) =>
+          set({
+            selectedInstanceId: instanceId,
+            selectedInstanceIds: instanceId ? [instanceId] : [],
+          }),
+
+        setSelection: (ids, anchor) =>
+          set({ selectedInstanceIds: ids, selectedInstanceId: anchor }),
+
+        toggleInstanceSelection: (id) =>
+          set((s) => {
+            const next = new Set(s.selectedInstanceIds);
+            const present = !next.has(id);
+            present ? next.add(id) : next.delete(id);
+            const ids = [...next];
+            // Anchor on the clicked part when added; on the last remaining when removed.
+            return {
+              selectedInstanceIds: ids,
+              selectedInstanceId: present ? id : ids[ids.length - 1] ?? null,
+            };
+          }),
 
         toggleStepDependency: (depId) => {
           const doc = get().manual;
@@ -409,13 +446,16 @@ export const useAppStore = create<AppState>()(
           });
         },
 
-        setPartAdded: (instanceId, added) =>
+        setPartAdded: (instanceId, added) => get().setPartsAdded([instanceId], added),
+
+        setPartsAdded: (instanceIds, added) =>
           withSelectedStep((step) => {
-            step.added = step.added.filter((x) => x !== instanceId);
-            if (added) step.added.push(instanceId);
+            const ids = new Set(instanceIds);
+            step.added = step.added.filter((x) => !ids.has(x));
+            if (added) step.added.push(...instanceIds);
             // Explode only applies to new parts; drop it when removed.
-            if (!added && step.parts?.[instanceId]) {
-              delete step.parts[instanceId];
+            if (!added && step.parts) {
+              for (const id of instanceIds) delete step.parts[id];
               if (Object.keys(step.parts).length === 0) delete step.parts;
             }
           }),
@@ -430,25 +470,28 @@ export const useAppStore = create<AppState>()(
         applyFreeformView: (view) =>
           set((s) => ({ transientFreeformView: view, freeformApplyToken: s.freeformApplyToken + 1 })),
 
-        setPartExplode: (instanceId, explode) =>
+        setPartExplode: (instanceId, explode) => get().setPartsExplode([instanceId], explode),
+
+        setPartsExplode: (instanceIds, explode) =>
           withSelectedStep((step) => {
             const doc = get().manual!;
-            // If a repeat copy of the CURRENT step is selected, redirect to its
-            // template so the setting mirrors to every copy at render time.
-            const target = templateInstanceFor(step, instanceId) ?? instanceId;
-            const group = subassemblyGroup(doc, step, target);
             // Only skip instances that are repeat copies of the current step —
             // those are mirrored from the template at render time, not stored.
             // Context parts from dependency steps (including repeated ones) are
             // stored per-instance and must be written normally.
             const currentCopyIds = new Set(repeatCopyInstanceIds(step));
-            for (const id of group) {
-              if (currentCopyIds.has(id)) continue;
-              if (explode === null) {
-                if (step.parts?.[id]) delete step.parts[id];
-              } else {
-                step.parts ??= {};
-                step.parts[id] = { ...step.parts[id], explode };
+            for (const instanceId of instanceIds) {
+              // If a repeat copy of the CURRENT step is selected, redirect to its
+              // template so the setting mirrors to every copy at render time.
+              const target = templateInstanceFor(step, instanceId) ?? instanceId;
+              for (const id of subassemblyGroup(doc, step, target)) {
+                if (currentCopyIds.has(id)) continue;
+                if (explode === null) {
+                  if (step.parts?.[id]) delete step.parts[id];
+                } else {
+                  step.parts ??= {};
+                  step.parts[id] = { ...step.parts[id], explode };
+                }
               }
             }
             if (step.parts && Object.keys(step.parts).length === 0) delete step.parts;
@@ -506,6 +549,8 @@ export const useAppStore = create<AppState>()(
 
         setHoveredConnection: (id) => set({ hoveredConnectionId: id }),
 
+        hoverInstance: (id) => set({ hoveredInstanceId: id }),
+
         setExplodeScale: (scale) => set({ explodeScale: scale }),
 
         setUi: (patch) => set((state) => ({ ui: { ...state.ui, ...patch } })),
@@ -532,7 +577,7 @@ export const useAppStore = create<AppState>()(
             undoStack: undoStack.slice(0, -1),
             redoStack: [manual, ...redoStack],
             selectedStepId: resolveSelectedStep(previous, selectedStepId),
-            selectedInstanceId: null,
+            selectedInstanceId: null, selectedInstanceIds: [],
             pendingVertex: null,
           });
           scheduleSave();
@@ -547,7 +592,7 @@ export const useAppStore = create<AppState>()(
             undoStack: [...undoStack, manual],
             redoStack: redoStack.slice(1),
             selectedStepId: resolveSelectedStep(next, selectedStepId),
-            selectedInstanceId: null,
+            selectedInstanceId: null, selectedInstanceIds: [],
             pendingVertex: null,
           });
           scheduleSave();
@@ -566,7 +611,14 @@ export const useAppStore = create<AppState>()(
       // instead of being dropped by an older persisted snapshot.
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<AppState>;
-        return { ...current, ...p, ui: { ...current.ui, ...(p.ui ?? {}) } };
+        // Seed the (non-persisted) multi-selection from the restored anchor.
+        const selectedInstanceIds = p.selectedInstanceId ? [p.selectedInstanceId] : [];
+        return {
+          ...current,
+          ...p,
+          selectedInstanceIds,
+          ui: { ...current.ui, ...(p.ui ?? {}) },
+        };
       },
     },
   ),

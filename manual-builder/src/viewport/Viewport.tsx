@@ -27,8 +27,11 @@ export function Viewport() {
   const { meshes, ready, error } = useMeshContext();
 
   const selectedInstanceId = useAppStore((s) => s.selectedInstanceId);
+  const selectedInstanceIds = useAppStore((s) => s.selectedInstanceIds);
+  const hoveredInstanceId = useAppStore((s) => s.hoveredInstanceId);
   const pendingVertex = useAppStore((s) => s.pendingVertex);
   const selectInstance = useAppStore((s) => s.selectInstance);
+  const toggleInstanceSelection = useAppStore((s) => s.toggleInstanceSelection);
   const pickVertex = useAppStore((s) => s.pickVertex);
   const addConnection = useAppStore((s) => s.addConnection);
   const clearPendingVertex = useAppStore((s) => s.clearPendingVertex);
@@ -60,10 +63,13 @@ export function Viewport() {
   // "target" sub-mode hides them so parts are directly clickable.
   const showVertices = ui.showVertices;
 
-  const handleSelectInstance = (instanceId: string) => {
+  const handleSelectInstance = (instanceId: string, additive: boolean) => {
     if (selectionMode === "target" && pendingVertex) {
       addConnection(pendingVertex, instanceId);
       clearPendingVertex();
+    } else if (additive) {
+      // Cmd/Ctrl+click toggles the part in/out of the multi-selection.
+      toggleInstanceSelection(instanceId);
     } else {
       selectInstance(instanceId);
     }
@@ -104,8 +110,11 @@ export function Viewport() {
             showCompleted={ui.showCompleted}
             showOrigin={ui.showOrigin}
             connectMode={ui.connectMode}
+            showEngravings={ui.showEngravings}
             pendingVertex={pendingVertex}
             selectedInstanceId={selectedInstanceId}
+            selectedInstanceIds={selectedInstanceIds}
+            hoveredInstanceId={hoveredInstanceId}
             explodeScale={explodeScale}
             previewRepeats={ui.previewRepeats}
             onPickVertex={pickVertex}
@@ -115,6 +124,13 @@ export function Viewport() {
       </Canvas>
 
       <div className="viewport-toolbar">
+        <button
+          className={`btn btn--small${ui.showEngravings ? " btn--primary" : ""}`}
+          onClick={() => setUi({ showEngravings: !ui.showEngravings })}
+          title="Toggle engraving lines"
+        >
+          ✍ Engravings
+        </button>
         <button
           className="btn btn--small"
           disabled={!step}

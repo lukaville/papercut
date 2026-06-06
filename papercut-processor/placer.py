@@ -418,7 +418,7 @@ def export_sheets(
                                 
             part_path = parts_dir / f"{part.name}.dxf"
             
-            o_config = config.overlays.get(part.name)
+            o_config = config.engraving_overrides.get(part.name)
             flip_h = o_config.flip_horizontal if o_config else False
             flip_v = o_config.flip_vertical if o_config else False
             
@@ -573,7 +573,7 @@ def export_preview_svg(
                                 overlay_path = cached_path
                                 break
                                 
-            o_config = config.overlays.get(part.name)
+            o_config = config.engraving_overrides.get(part.name)
             flip_h = o_config.flip_horizontal if o_config else False
             flip_v = o_config.flip_vertical if o_config else False
             
@@ -671,8 +671,8 @@ def _import_overlay_to_sheet(
     try:
         ref_path = part_path.with_suffix(".ref.dxf")
         match_path = ref_path if ref_path.exists() else part_path
-        engravings, align_mat = get_engraving_entities(overlay_path, match_path, flip_h, flip_v)
-        
+        engravings, align_mat, *_ = get_engraving_entities(overlay_path, match_path, flip_h, flip_v)
+
         # Create a unique block name
         block_name = f"OVERLAY_{uuid.uuid4().hex}"
         block = target_doc.blocks.new(name=block_name)
@@ -706,8 +706,8 @@ def _get_overlay_svg_paths(overlay_path: Path, part_path: Path, flip_h: bool = F
     try:
         ref_path = part_path.with_suffix(".ref.dxf")
         match_path = ref_path if ref_path.exists() else part_path
-        engravings, align_mat = get_engraving_entities(overlay_path, match_path, flip_h, flip_v)
-        
+        engravings, align_mat, *_ = get_engraving_entities(overlay_path, match_path, flip_h, flip_v)
+
         svg_segments = []
         for entity in engravings:
             try:

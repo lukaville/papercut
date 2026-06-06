@@ -74,15 +74,23 @@ def resolve_names(groups: list[PartGroup], config: ProjectConfig) -> list[tuple[
         else:
             candidate = base
 
-        # Ensure global uniqueness - FAIL on conflict as requested
+        # Ensure global uniqueness.
+        # _extras parts may intentionally have multiple distinct geometries under
+        # the same CAD name — resolve silently with a numeric suffix.
+        # For all other parts a conflict indicates a real CAD naming problem.
         if candidate in used_names:
-            # Find which groups have this name
-            conflicting_groups = [g.names for g, name, _, _ in resolved if name == candidate]
-            raise ValueError(
-                f"Naming Conflict: Multiple different part geometries share the name '{candidate}'.\n"
-                f"Conflicting groups names: {group.names} vs {conflicting_groups}\n"
-                f"Please rename parts in the CAD model to ensure each unique geometry has a unique name."
-            )
+            if base.endswith("_extras"):
+                suffix = 2
+                while f"{candidate}_{suffix}" in used_names:
+                    suffix += 1
+                candidate = f"{candidate}_{suffix}"
+            else:
+                conflicting_groups = [g.names for g, name, _, _ in resolved if name == candidate]
+                raise ValueError(
+                    f"Naming Conflict: Multiple different part geometries share the name '{candidate}'.\n"
+                    f"Conflicting groups names: {group.names} vs {conflicting_groups}\n"
+                    f"Please rename parts in the CAD model to ensure each unique geometry has a unique name."
+                )
         used_names.add(candidate)
 
         resolved.append((group, candidate, base, False))

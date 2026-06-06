@@ -1,5 +1,6 @@
 """Part deduplication — groups identical solids (including mirrors) into equivalence classes."""
 
+import itertools
 from dataclasses import dataclass, field
 from typing import Optional, Union
 
@@ -10,6 +11,11 @@ from OCP.BRepGProp import BRepGProp
 from OCP.gp import gp_Pnt, gp_Ax1, gp_Ax2, gp_Dir, gp_Trsf
 from OCP.BRepBuilderAPI import BRepBuilderAPI_Transform
 from OCP.BRepAlgoAPI import BRepAlgoAPI_Cut
+from OCP.BRep import BRep_Tool
+from OCP.TopAbs import TopAbs_VERTEX
+from OCP.TopExp import TopExp
+from OCP.TopoDS import TopoDS
+from OCP.TopTools import TopTools_IndexedMapOfShape
 
 
 # Relative tolerance for comparing geometric signature values.
@@ -146,6 +152,96 @@ def _names_are_compatible(name_a: str, name_b: str) -> bool:
     return name_a.lower().replace(" ", "_") == name_b.lower().replace(" ", "_")
 
 
+_IDENTITY4 = [
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0,
+]
+
+# The 24 proper rotations among the axis-permutation matrices (the rotational
+# symmetries of a cube). Flat laser-cut parts assembled into rectilinear models
+# differ only by these axis-aligned rotations, so this set recovers an instance's
+# orientation relative to the canonical.
+#
+# We deliberately exclude the 24 reflections (det = -1): a physical part is never
+# mirrored in an assembly, so the true orientation difference is always a proper
+# rotation. A negative-determinant transform also reverses triangle winding in
+# Three.js, which breaks edge/normal rendering in the viewer. For the symmetric
+# flat parts here an equivalent proper rotation always exists (flipping a plate
+# over = a 180° in-plane rotation), so restricting to rotations loses nothing.
+_PROPER_ROTATIONS: Optional[list[np.ndarray]] = None
+
+
+def _proper_rotations() -> list[np.ndarray]:
+    global _PROPER_ROTATIONS
+    if _PROPER_ROTATIONS is None:
+        mats = []
+        for perm in itertools.permutations(range(3)):
+            for signs in itertools.product((1.0, -1.0), repeat=3):
+                m = np.zeros((3, 3))
+                for row in range(3):
+                    m[row, perm[row]] = signs[row]
+                if np.linalg.det(m) > 0:  # keep proper rotations only
+                    mats.append(m)
+        _PROPER_ROTATIONS = mats
+    return _PROPER_ROTATIONS
+
+
+def _solid_vertices(solid: cq.Shape) -> np.ndarray:
+    """Return the solid's topological vertices as an (N, 3) array."""
+    vmap = TopTools_IndexedMapOfShape()
+    TopExp.MapShapes_s(solid.wrapped, TopAbs_VERTEX, vmap)
+    pts = []
+    for i in range(1, vmap.Extent() + 1):
+        p = BRep_Tool.Pnt_s(TopoDS.Vertex_s(vmap.FindKey(i)))
+        pts.append((p.X(), p.Y(), p.Z()))
+    return np.array(pts, dtype=float) if pts else np.empty((0, 3))
+
+
+def _rotation_to_colmajor(rot: np.ndarray) -> list[float]:
+    """Convert a 3x3 rotation (maps canonical -> instance) to a column-major 4x4."""
+    m = [0.0] * 16
+    for c in range(3):
+        for r in range(3):
+            m[c * 4 + r] = float(rot[r, c])
+    m[15] = 1.0
+    return m
+
+
+def _align_rotation(canon_verts: np.ndarray, inst_verts: np.ndarray) -> tuple[list[float], bool]:
+    """Find the axis-aligned rotation/reflection mapping canonical -> instance.
+
+    Both vertex sets are centered on their own centroid (the exported matrix
+    handles translation). Returns ``(column_major_matrix, ok)``; ``ok`` is False
+    when no axis-aligned orientation matches well, in which case identity is
+    returned so the instance falls back to the canonical orientation.
+    """
+    if canon_verts.shape[0] == 0 or inst_verts.shape[0] == 0:
+        return list(_IDENTITY4), False
+
+    a = canon_verts - canon_verts.mean(0)
+    b = inst_verts - inst_verts.mean(0)
+    diag = float(np.linalg.norm(b.max(0) - b.min(0))) or 1.0
+
+    best_rot = None
+    best_cost = float("inf")
+    for rot in _proper_rotations():
+        ra = a @ rot.T
+        # Sum of squared distances from each rotated canonical vertex to its
+        # nearest instance vertex.
+        d2 = ((ra[:, None, :] - b[None, :, :]) ** 2).sum(-1)
+        cost = float(d2.min(1).sum())
+        if cost < best_cost:
+            best_cost = cost
+            best_rot = rot
+
+    rms = (best_cost / a.shape[0]) ** 0.5
+    if best_rot is None or rms > max(0.1, 0.02 * diag):
+        return list(_IDENTITY4), False
+    return _rotation_to_colmajor(best_rot), True
+
+
 def deduplicate(instances: list[PartInstance]) -> list[PartGroup]:
     """Group solids into equivalence classes of identical parts.
 
@@ -178,22 +274,30 @@ def deduplicate(instances: list[PartInstance]) -> list[PartGroup]:
         group_idx = len(groups)
         group = PartGroup(id=group_idx, canonical=inst_i.solid, count=1, names={inst_i.name}, color=inst_i.color)
         inst_i.group_id = group_idx
+        inst_i.align_matrix = list(_IDENTITY4)
         assigned.add(i)
-        
+
+        # Canonical vertices for orientation alignment of the group's members.
+        canon_verts = _solid_vertices(centered_i)
+
         for j in range(i + 1, len(entries)):
             if j in assigned:
                 continue
-                
-            inst_j, sig_j, _ = entries[j]
-            
+
+            inst_j, sig_j, centered_j = entries[j]
+
             # Match requires geometry, color, AND compatible names
             if (sig_i.matches(sig_j) and inst_i.color == inst_j.color
                     and _names_are_compatible(inst_i.name, inst_j.name)):
                 group.count += 1
                 group.names.add(inst_j.name)
                 inst_j.group_id = group_idx
+                # The STEP may bake a different orientation into this congruent
+                # instance; recover it so the canonical mesh renders correctly.
+                align, _ok = _align_rotation(canon_verts, _solid_vertices(centered_j))
+                inst_j.align_matrix = align
                 assigned.add(j)
-                
+
         groups.append(group)
 
     return groups

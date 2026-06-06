@@ -62,10 +62,15 @@ def _check_pair(pair_info: tuple[int, int, str, str, str, str, list[float], list
 
 def check_intersections(instances: list[PartInstance], tolerance: float = 1e-4) -> None:
     """Check for volumetric intersections between all pairs of part instances.
-    
+
+    Parts whose name ends with '_extras' are excluded from clash detection —
+    they are decorative overlays (stickers, etc.) that may intentionally overlap
+    other geometry.  They are still processed by the rest of the pipeline.
+
     Uses a spatial grid to optimize pair selection and AABB filtering for pruning.
     Throws a ValueError if any two solids overlap by more than the tolerance volume.
     """
+    instances = [inst for inst in instances if not inst.name.endswith("_extras")]
     n = len(instances)
     if n < 2:
         return

@@ -1,20 +1,29 @@
 import:
-  - file: https://cad.onshape.com/documents/49bc2b0284d7a2d765d08b30/v/63a5e72332e670bcc004b860/e/2e3b8605966044f4fcf220db
-    parts:
-      balcony_side_left:
-        flip_horizontal: true
+  - file: https://cad.onshape.com/documents/49bc2b0284d7a2d765d08b30/v/8c20db9f07712d66770c08bd/e/2e3b8605966044f4fcf220db
 
-overlays:
-  outer_side:
-    flip_horizontal: true
-  balcony_front:
-    flip_vertical: true
+cut_overrides:
   balcony_side_left:
     flip_horizontal: true
+
+engraving_overrides:
+  outer_side:
+    flip_horizontal: true
+  outer_front:
+    flip_side: true
+  balcony_front:
+    flip_vertical: true
+    flip_side_instances: "0,2,4,6"
+  balcony_side_left:
+    flip_horizontal: true
+    flip_side: true
   balcony_side:
     flip_vertical: true
+  skirt:
+    flip_vertical: true
+    flip_side_instances: "1"
   roof_exit_box_door:
     flip_horizontal: true
+    flip_side: true
 
 sheets:
   - color: "#121212"

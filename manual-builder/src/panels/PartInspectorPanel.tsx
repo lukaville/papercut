@@ -23,8 +23,9 @@ export function PartInspectorPanel() {
   const model = useAppStore((s) => s.model);
   const step = useAppStore(selectedStep);
   const selectedInstanceId = useAppStore((s) => s.selectedInstanceId);
+  const selectedInstanceIds = useAppStore((s) => s.selectedInstanceIds);
 
-  const setPartExplode = useAppStore((s) => s.setPartExplode);
+  const setPartsExplode = useAppStore((s) => s.setPartsExplode);
   const selectInstance = useAppStore((s) => s.selectInstance);
 
   const instById = useMemo(() => {
@@ -57,6 +58,12 @@ export function PartInspectorPanel() {
   // Explode is authored on the template; if a repeat copy is selected, edit its
   // template part so the change mirrors to every copy.
   const templateId = templateInstanceFor(step, id) ?? id;
+
+  // When several parts are selected, explode edits apply to all of them with the
+  // same settings. Otherwise just the focused part (its subassembly).
+  const multi = selectedInstanceIds.length > 1;
+  const explodeTargets = multi ? selectedInstanceIds : [templateId];
+  const applyExplode = (e: ExplodeSettings | null) => setPartsExplode(explodeTargets, e);
   const explode = partExplode(step, templateId);
   const group = subassemblyGroup(manual, step, templateId);
   const groupSize = group.length;
@@ -99,12 +106,22 @@ export function PartInspectorPanel() {
             <div className="subhead">
               Explode
               <Toggle
-                label={groupSize > 1 ? `subassembly (${groupSize} parts)` : "this part"}
+                label={
+                  multi
+                    ? `${selectedInstanceIds.length} selected parts`
+                    : groupSize > 1
+                      ? `subassembly (${groupSize} parts)`
+                      : "this part"
+                }
                 checked={explode !== null}
-                onChange={(b) => setPartExplode(templateId, b ? defaultExplode() : null)}
+                onChange={(b) => applyExplode(b ? defaultExplode() : null)}
               />
             </div>
-            {repeated ? (
+            {multi ? (
+              <div className="hint">
+                Applies the same explode to all {selectedInstanceIds.length} selected parts.
+              </div>
+            ) : repeated ? (
               <div className="hint">Mirrors to all {repeatCount(step)} copies of this subassembly.</div>
             ) : null}
             {explode ? (
@@ -112,13 +129,13 @@ export function PartInspectorPanel() {
                 <Field label="Distance (mm)">
                   <NumberInput
                     value={explode.distance_mm}
-                    onChange={(n) => setPartExplode(templateId, { ...explode, distance_mm: n })}
+                    onChange={(n) => applyExplode({ ...explode, distance_mm: n })}
                   />
                 </Field>
                 <Field label="Direction">
                   <Vec3Input
                     value={explode.direction}
-                    onChange={(v) => setPartExplode(templateId, { ...explode, direction: v })}
+                    onChange={(v) => applyExplode({ ...explode, direction: v })}
                   />
                 </Field>
               </>

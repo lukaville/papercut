@@ -184,6 +184,14 @@ body {
   background: var(--accent-weak);
   border-color: var(--accent);
 }
+.step-item--overview {
+  margin: 6px 6px 2px;
+  border-radius: 7px;
+}
+.step-index--overview {
+  background: var(--muted);
+  font-size: 13px;
+}
 .step-index {
   width: 22px;
   height: 22px;
@@ -421,6 +429,8 @@ body {
 .part-row {
   cursor: pointer;
   border: 1px solid transparent;
+  /* Avoid selecting row text when Shift/Cmd-clicking to build a selection. */
+  user-select: none;
 }
 .part-row:hover {
   background: var(--surface-2);
@@ -428,6 +438,23 @@ body {
 .part-row--selected {
   background: #fff7ed;
   border-color: #f59e0b;
+}
+
+/* --- Parts bulk-selection bar --- */
+.part-bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 2px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: var(--accent-weak, #fff7ed);
+  border: 1px solid var(--accent, #f59e0b);
+}
+.part-bulk-count {
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: auto;
 }
 
 /* --- Part inspector --- */

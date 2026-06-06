@@ -31,6 +31,14 @@ class Part:
     base_name: Optional[str] = None # Original CAD name before disambiguation
 
 
+_IDENTITY_MATRIX = [
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0,
+]
+
+
 @dataclass
 class PartInstance:
     name: str
@@ -40,6 +48,19 @@ class PartInstance:
     group_id: Optional[int] = None
     sheet_label: Optional[str] = None
     sheet_part_id: Optional[int] = None
+    # Column-major 4x4 rotation mapping the group's canonical geometry onto this
+    # instance's own orientation. Identity for the canonical instance; non-trivial
+    # when the STEP baked different orientations into congruent (deduplicated)
+    # parts. Composed with `matrix` at export time.
+    align_matrix: list[float] = field(default_factory=lambda: list(_IDENTITY_MATRIX))
+
+
+@dataclass
+class EngravingInfo:
+    """Resolved engraving for a part group."""
+    side: str                                  # "top" or "bottom" — which face of the flat part
+    svg: str = ""                              # SVG path data of the aligned engraving (2D DXF coords)
+    transform: Optional[list[float]] = None    # column-major 4x4 mapping 2D DXF -> local 3D
 
 
 @dataclass
@@ -50,6 +71,7 @@ class PartGroup:
     names: set[str] = field(default_factory=set)
     color: Optional[Color] = None
     count: int = 0
+    engraving: Optional[EngravingInfo] = None
 
 
 @dataclass
@@ -83,14 +105,32 @@ class SheetResult:
 
 @dataclass
 class PartConfig:
+    """Per-part cut configuration (the `cut_overrides` section).
+
+    The flips mirror the 2D cut profile so paired directional parts are engraved
+    on the correct physical face; they do not affect the 3D model.
+    """
     flip_horizontal: bool = False
     flip_vertical: bool = False
 
 
 @dataclass
+class EngravingOverride:
+    """Per-part engraving configuration (the `engraving_overrides` section)."""
+    # Overlay-alignment flips (mirror the engraving overlay before matching it to
+    # the cut profile).
+    flip_horizontal: bool = False
+    flip_vertical: bool = False
+    # Flip the auto-detected engraving side (top <-> bottom) for the whole part.
+    flip_side: bool = False
+    # Instance ordinals (the `#N` in the manual instance id) whose side is flipped
+    # relative to the part's resolved side.
+    flip_side_instances: set[int] = field(default_factory=set)
+
+
+@dataclass
 class FileImport:
     file: str
-    parts: dict[str, PartConfig] = field(default_factory=dict)
 
 
 @dataclass
@@ -122,7 +162,8 @@ class KerfConfig:
 @dataclass
 class ProjectConfig:
     imports: list[FileImport] = field(default_factory=list)
-    overlays: dict[str, PartConfig] = field(default_factory=dict)
+    cut_overrides: dict[str, PartConfig] = field(default_factory=dict)
+    engraving_overrides: dict[str, EngravingOverride] = field(default_factory=dict)
     sheets: list[SheetConfig] = field(default_factory=list)
     placement: PlacementConfig = field(default_factory=PlacementConfig)
     bridges: BridgeConfig = field(default_factory=BridgeConfig)

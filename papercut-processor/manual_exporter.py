@@ -107,6 +107,27 @@ def _apply_matrix(matrix: list[float], v: _Vec3) -> _Vec3:
     return _Vec3(x, y, z)
 
 
+def _mat4_mul(a: list[float], b: list[float]) -> list[float]:
+    """Multiply two column-major 4x4 matrices: returns a ∘ b (b applied first)."""
+    out = [0.0] * 16
+    for c in range(4):
+        for r in range(4):
+            out[c * 4 + r] = sum(a[k * 4 + r] * b[c * 4 + k] for k in range(4))
+    return out
+
+
+def _instance_world_matrix(inst: PartInstance) -> list[float]:
+    """Compose the instance placement with its canonical-alignment rotation.
+
+    Rendering uses the group's canonical mesh; ``align_matrix`` rotates that mesh
+    into this instance's own orientation before ``matrix`` places it in the world.
+    """
+    align = getattr(inst, "align_matrix", None)
+    if not align:
+        return inst.matrix
+    return _mat4_mul(inst.matrix, align)
+
+
 def _part_key_for_group(group: PartGroup, instances: list[PartInstance]) -> str:
     """Resolve the stable part key for a group.
 
@@ -138,6 +159,7 @@ def export_manual_model(
     groups: list[PartGroup],
     sheets: Optional[list[SheetResult]] = None,
     thickness_mm: Optional[float] = None,
+    engraving_flip_instances: Optional[dict] = None,
 ) -> Path:
     """Export the manual 3D model for a project.
 
@@ -146,7 +168,12 @@ def export_manual_model(
 
     This only touches the ``manual/model/`` subtree; hand-authored manual
     content elsewhere under ``manual/`` is never modified.
+
+    ``engraving_flip_instances`` maps a part key to a set of instance ordinals
+    whose engraving side is flipped relative to the part's default side; those
+    instances get an explicit ``engravingSide`` in the output.
     """
+    engraving_flip_instances = engraving_flip_instances or {}
     model_dir = project_dir / "manual" / "model"
     meshes_dir = model_dir / "meshes"
     meshes_dir.mkdir(parents=True, exist_ok=True)
@@ -159,6 +186,7 @@ def export_manual_model(
     parts_json: list[dict] = []
     group_part_key: dict[int, str] = {}
     group_vertices: dict[int, list[_Vec3]] = {}
+    part_side_by_key: dict[str, str] = {}  # part key -> default engraving side
 
     for group in groups:
         part_key = _part_key_for_group(group, instances)
@@ -178,6 +206,18 @@ def export_manual_model(
         }
         (meshes_dir / mesh_name).write_text(json.dumps(mesh_payload))
 
+        engraving_entry = None
+        if group.engraving:
+            part_side_by_key[part_key] = group.engraving.side
+            engraving_entry = {
+                "side": group.engraving.side,
+                "svg": group.engraving.svg,
+                "transform": (
+                    [round(c, 8) for c in group.engraving.transform]
+                    if group.engraving.transform else None
+                ),
+            }
+
         parts_json.append({
             "key": part_key,
             "names": sorted(group.names),
@@ -186,6 +226,7 @@ def export_manual_model(
             "mesh": f"meshes/{mesh_name}",
             "vertexCount": len(vertices),
             "bbox": _bbox(vertices) if vertices else None,
+            "engraving": engraving_entry,
         })
 
     parts_json.sort(key=lambda p: p["key"])
@@ -216,16 +257,24 @@ def export_manual_model(
                 m[12], m[13], m[14],
             )
 
-        for ordinal, inst in enumerate(sorted(members, key=_ordinal_sort_key)):
-            verts = group_vertices.get(inst.group_id, [])
-            world_points.extend(_apply_matrix(inst.matrix, v) for v in verts)
+        flip_ordinals = engraving_flip_instances.get(key, set())
+        part_side = part_side_by_key.get(key)
 
-            instances_json.append({
+        for ordinal, inst in enumerate(sorted(members, key=_ordinal_sort_key)):
+            world_matrix = _instance_world_matrix(inst)
+            verts = group_vertices.get(inst.group_id, [])
+            world_points.extend(_apply_matrix(world_matrix, v) for v in verts)
+
+            entry = {
                 "id": f"{key}#{ordinal}",
                 "partKey": key,
-                "matrix": [round(c, 8) for c in inst.matrix],
+                "matrix": [round(c, 8) for c in world_matrix],
                 "sheet": _sheet_label(inst),
-            })
+            }
+            # Per-instance side flip (by ordinal), relative to the part's side.
+            if part_side and ordinal in flip_ordinals:
+                entry["engravingSide"] = "bottom" if part_side == "top" else "top"
+            instances_json.append(entry)
 
     instances_json.sort(key=lambda i: i["id"])
 

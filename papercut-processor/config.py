@@ -1,6 +1,37 @@
 from pathlib import Path
 import yaml
-from models import ProjectConfig, FileImport, PartConfig, SheetConfig, PlacementConfig, BridgeConfig, KerfConfig
+from models import (
+    ProjectConfig, FileImport, PartConfig, EngravingOverride,
+    SheetConfig, PlacementConfig, BridgeConfig, KerfConfig,
+)
+
+
+def _parse_index_ranges(spec) -> set[int]:
+    """Parse an index range spec into a set of ints.
+
+    Accepts an int, a list (of ints / range strings), or a string like
+    "0-3,7,10-12". Ranges are inclusive.
+    """
+    result: set[int] = set()
+    if spec is None:
+        return result
+    if isinstance(spec, int):
+        return {spec}
+    if isinstance(spec, (list, tuple)):
+        for item in spec:
+            result |= _parse_index_ranges(item)
+        return result
+    for token in str(spec).split(","):
+        token = token.strip()
+        if not token:
+            continue
+        if "-" in token:
+            lo, hi = token.split("-", 1)
+            result.update(range(int(lo), int(hi) + 1))
+        else:
+            result.add(int(token))
+    return result
+
 
 def load_config(project_dir: Path) -> ProjectConfig:
     """Load and parse project.yaml into a ProjectConfig object."""
@@ -20,25 +51,32 @@ def load_config(project_dir: Path) -> ProjectConfig:
         file_path = item.get("file")
         if not file_path:
             continue
-            
-        parts_data = item.get("parts", {})
-        parts = {name: PartConfig(
-                    flip_horizontal=p_data.get("flip_horizontal", False),
-                    flip_vertical=p_data.get("flip_vertical", False)
-                 ) 
-                 for name, p_data in parts_data.items()}
-        file_imports.append(FileImport(file=file_path, parts=parts))
-        
-    # Parse overlays
-    overlay_data = data.get("overlays", {})
-    overlays = {}
-    if isinstance(overlay_data, dict):
-        for name, o_data in overlay_data.items():
-            if o_data is None:
-                o_data = {}
-            overlays[name] = PartConfig(
-                flip_horizontal=o_data.get("flip_horizontal", False),
-                flip_vertical=o_data.get("flip_vertical", False)
+        file_imports.append(FileImport(file=file_path))
+
+    # Parse cut overrides (root-level; mirror the 2D cut for paired parts)
+    cut_data = data.get("cut_overrides", {})
+    cut_overrides = {}
+    if isinstance(cut_data, dict):
+        for name, c_data in cut_data.items():
+            if c_data is None:
+                c_data = {}
+            cut_overrides[name] = PartConfig(
+                flip_horizontal=c_data.get("flip_horizontal", False),
+                flip_vertical=c_data.get("flip_vertical", False),
+            )
+
+    # Parse engraving overrides
+    engraving_data = data.get("engraving_overrides", {})
+    engraving_overrides = {}
+    if isinstance(engraving_data, dict):
+        for name, e_data in engraving_data.items():
+            if e_data is None:
+                e_data = {}
+            engraving_overrides[name] = EngravingOverride(
+                flip_horizontal=e_data.get("flip_horizontal", False),
+                flip_vertical=e_data.get("flip_vertical", False),
+                flip_side=bool(e_data.get("flip_side", False)),
+                flip_side_instances=_parse_index_ranges(e_data.get("flip_side_instances")),
             )
     
     # Parse sheets
@@ -78,8 +116,9 @@ def load_config(project_dir: Path) -> ProjectConfig:
     )
     
     return ProjectConfig(
-        imports=file_imports, 
-        overlays=overlays,
+        imports=file_imports,
+        cut_overrides=cut_overrides,
+        engraving_overrides=engraving_overrides,
         sheets=sheet_data,
         placement=placement,
         bridges=bridges,
