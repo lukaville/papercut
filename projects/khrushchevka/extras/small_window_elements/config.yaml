@@ -1,0 +1,50 @@
+# Configuration for generate_extras_sheet.py
+#
+# Layers are composited bottom-to-top in the order they appear below.
+# For each generated item, every layer is added with its given probability;
+# when added, a random variant for that layer is picked from the matching
+# files in this directory (grouped by the layer name in the file name,
+# e.g. `_0062_background_5.png` -> layer "background").
+#
+# `constraints` override the per-layer `chance` for the layers they govern:
+# one combination is chosen per item using the given weights, and only the
+# layers listed in that combination's `include` are turned on.
+
+seed: 42
+
+grid:
+  cols: 10
+  rows: 9
+
+# Cut lines drawn along the grid, extending `margin` px past the sheet on all sides.
+cut_lines:
+  width: 2
+  margin: 100
+  color: [0, 0, 0]
+  opacity: 0.8
+
+item_size:
+  width: 202
+  height: 202
+
+layers:
+  - name: background
+    chance: 0.5
+    flip: true
+  - name: curtains
+    chance: 0.5
+    flip: true
+  - name: windowsill
+    chance: 1.0
+  - name: accessory
+    chance: 0.2
+
+# Always have either background or curtains (or both).
+constraints:
+  - combinations:
+      - include: [background, curtains]
+        weight: 0.4
+      - include: [background]
+        weight: 0.3
+      - include: [curtains]
+        weight: 0.3

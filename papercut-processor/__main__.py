@@ -270,6 +270,9 @@ def main():
                 svg_paths[filename] = svg_path
                 group_dxf_transforms[group.id] = dxf_to_local
 
+                opts = config.part_options.get(filename) or config.part_options.get(base_name)
+                extra = opts.extra_count if opts else 0
+
                 dim_str = f"{width_mm:.1f} × {height_mm:.1f} × {thickness:.1f}"
                 placement_metadata.append(Part(
                     name=filename,
@@ -279,14 +282,18 @@ def main():
                     area_mm2=area,
                     count=group.count,
                     color=group.color,
-                    group_id=group.id
+                    group_id=group.id,
+                    extra_count=extra,
                 ))
 
                 color_str = "Default"
                 if group.color:
                     c = group.color
                     color_str = f"({c.r:.2f}, {c.g:.2f}, {c.b:.2f}, {c.a:.2f})"
-                print(f"  {filename:<26} {group.count:>5}×   {dim_str:<27} {color_str}")
+                count_str = f"{group.count}×"
+                if extra > 0:
+                    count_str += f" (+{extra})"
+                print(f"  {filename:<26} {count_str:>12}   {dim_str:<27} {color_str}")
 
     dxf_count = len(groups) - len(extras_group_ids)
     print()
@@ -325,9 +332,11 @@ def main():
                 engravings, align_mat, flip_x_used, rotation_deg = get_engraving_entities(
                     overlay_path, match_path, flip_h, flip_v
                 )
-                # Auto side: an odd number of horizontal flips means the engraving
-                # was drawn for the face opposite to the canonical DXF view.
-                auto_side = "bottom" if (flip_h ^ flip_x_used) else "top"
+                # flip_h/flip_v now mirror the artwork in-plane after alignment, so
+                # flip_x_used reflects only the overlay's intrinsic orientation —
+                # i.e. it is already flip-free. The face is this base plus explicit
+                # flip_side / per-instance overrides.
+                auto_side = "bottom" if flip_x_used else "top"
                 # `flip_side: true` inverts the auto-detected side for the whole part.
                 flip_side = bool(e_config.flip_side) if e_config else False
                 side = _opposite_side(auto_side) if flip_side else auto_side
@@ -336,6 +345,9 @@ def main():
                     side=side,
                     svg=svg,
                     transform=group_dxf_transforms.get(group.id),
+                    auto_side=auto_side,
+                    flip_horizontal=flip_h,
+                    flip_vertical=flip_v,
                 )
                 if e_config and e_config.flip_side_instances:
                     engraving_flip_instances[filename] = e_config.flip_side_instances
@@ -378,7 +390,8 @@ def main():
         mapping = {}
         for res in sheets_results:
             for pp in res.placed_parts:
-                full_id = f"{res.label}{pp.part_id}"
+                suffix = "+" if pp.is_spare else ""
+                full_id = f"{res.label}{pp.part_id}{suffix}"
                 mapping.setdefault(pp.name, set()).add(full_id)
         
         # Natural sort for IDs (A1, A2, A10)

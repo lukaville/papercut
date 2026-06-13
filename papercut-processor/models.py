@@ -29,6 +29,7 @@ class Part:
     color: Optional[Color]
     group_id: Optional[int] = None # Link to deduplication group
     base_name: Optional[str] = None # Original CAD name before disambiguation
+    extra_count: int = 0  # Additional spare copies for sheet placement
 
 
 _IDENTITY_MATRIX = [
@@ -58,9 +59,12 @@ class PartInstance:
 @dataclass
 class EngravingInfo:
     """Resolved engraving for a part group."""
-    side: str                                  # "top" or "bottom" — which face of the flat part
+    side: str                                  # "top" or "bottom" — the resolved face (after flip_side)
     svg: str = ""                              # SVG path data of the aligned engraving (2D DXF coords)
     transform: Optional[list[float]] = None    # column-major 4x4 mapping 2D DXF -> local 3D
+    auto_side: Optional[str] = None            # auto-detected face before any flip_side override
+    flip_horizontal: bool = False              # overlay flip_horizontal used to generate the svg
+    flip_vertical: bool = False                # overlay flip_vertical used to generate the svg
 
 
 @dataclass
@@ -84,6 +88,7 @@ class PlacedPart:
     rotated: bool = False
     part_id: Optional[int] = None
     base_name: Optional[str] = None
+    is_spare: bool = False
 
 
 @dataclass
@@ -129,6 +134,13 @@ class EngravingOverride:
 
 
 @dataclass
+class PartOptions:
+    """Per-part options (the `part_options` section)."""
+    extra_count: int = 0
+    inner_hole_bridges: bool = False
+
+
+@dataclass
 class FileImport:
     file: str
 
@@ -164,6 +176,7 @@ class ProjectConfig:
     imports: list[FileImport] = field(default_factory=list)
     cut_overrides: dict[str, PartConfig] = field(default_factory=dict)
     engraving_overrides: dict[str, EngravingOverride] = field(default_factory=dict)
+    part_options: dict[str, PartOptions] = field(default_factory=dict)
     sheets: list[SheetConfig] = field(default_factory=list)
     placement: PlacementConfig = field(default_factory=PlacementConfig)
     bridges: BridgeConfig = field(default_factory=BridgeConfig)

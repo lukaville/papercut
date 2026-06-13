@@ -200,16 +200,18 @@ def place_parts(
         color_parts = parts_by_color[color]
         sheet_config = sheet_by_color[color]
         
-        # Flatten parts into a single list of individual items
-        to_place = []
+        # Flatten parts into a single list of (part, is_spare) items
+        to_place: list[tuple[Part, bool]] = []
         for p in color_parts:
             for _ in range(p.count):
-                to_place.append(p)
+                to_place.append((p, False))
+            for _ in range(p.extra_count):
+                to_place.append((p, True))
         
         # Sort by max(width, height) descending - a strong heuristic for MaxRects
-        to_place.sort(key=lambda p: max(p.width_mm, p.height_mm), reverse=True)
+        to_place.sort(key=lambda item: max(item[0].width_mm, item[0].height_mm), reverse=True)
 
-        for p in to_place:
+        for p, is_spare in to_place:
             margin = placement_config.sheet_margin_mm
             p_margin = placement_config.part_margin_mm
             
@@ -228,7 +230,7 @@ def place_parts(
                         final_x < -0.01 or final_y < -0.01):
                         raise ValueError(f"Placement BUG: Part '{p.name}' placed outside sheet '{sheet_config.name}' at ({final_x:.1f}, {final_y:.1f}) with size {rw:.1f}x{rh:.1f}.")
 
-                    res.placed_parts.append(PlacedPart(p.name, final_x, final_y, p.width_mm, p.height_mm, rotated, base_name=p.base_name))
+                    res.placed_parts.append(PlacedPart(p.name, final_x, final_y, p.width_mm, p.height_mm, rotated, base_name=p.base_name, is_spare=is_spare))
                     res.total_parts_area_mm2 += p.area_mm2
                     placed = True
                     break
@@ -272,7 +274,7 @@ def place_parts(
                     config=sheet_config,
                     index=len(results) + 1,
                     label=sheet_label,
-                    placed_parts=[PlacedPart(p.name, final_x, final_y, p.width_mm, p.height_mm, rotated, base_name=p.base_name)],
+                    placed_parts=[PlacedPart(p.name, final_x, final_y, p.width_mm, p.height_mm, rotated, base_name=p.base_name, is_spare=is_spare)],
                     total_parts_area_mm2=p.area_mm2
                 )
                 
@@ -290,8 +292,8 @@ def place_parts(
                 next_id += 1
             pp.part_id = name_to_id[pp.name]
             
-            # Find a matching 3D instance and link it
-            if instances:
+            # Find a matching 3D instance and link it (spare copies have no 3D instance)
+            if not pp.is_spare and instances:
                 # Find which group this part belongs to
                 matching_group_id = None
                 for group_id, inst_list in instances_by_group.items():
@@ -346,20 +348,22 @@ def export_sheets(
         msp = doc.modelspace()
         
         # Determine which instances should carry the label (top-left most)
-        label_carriers = {} # part_name -> PlacedPart
+        label_carriers = {} # part_name -> PlacedPart (non-spare)
+        spare_label_carriers = {} # part_name -> PlacedPart (spare)
         for part in res.placed_parts:
+            target = spare_label_carriers if part.is_spare else label_carriers
             top = part.y_mm + (part.width_mm if part.rotated else part.height_mm)
             left = part.x_mm
-            if part.name not in label_carriers:
-                label_carriers[part.name] = part
+            if part.name not in target:
+                target[part.name] = part
             else:
-                current_best = label_carriers[part.name]
+                current_best = target[part.name]
                 current_top = current_best.y_mm + (current_best.width_mm if current_best.rotated else current_best.height_mm)
                 current_left = current_best.x_mm
                 if top > current_top + 0.001:
-                    label_carriers[part.name] = part
+                    target[part.name] = part
                 elif abs(top - current_top) < 0.001 and left < current_left - 0.001:
-                    label_carriers[part.name] = part
+                    target[part.name] = part
 
         # 1. Engraving Layer (Sheet-level)
         margin = placement_config.sheet_margin_mm
@@ -425,26 +429,35 @@ def export_sheets(
             if overlay_path and overlay_path.exists():
                 _import_overlay_to_sheet(overlay_path, part_path, doc, msp, (part.x_mm, part.y_mm), part.rotated, part.width_mm, part.height_mm, flip_h, flip_v)
 
-            # Add Part ID Label (e.g., 1, 2)
-            if part.part_id is not None and part is label_carriers.get(part.name):
-                id_text = str(part.part_id)
-                label_size = placement_config.part_label_size_mm
-                placed_h = part.width_mm if part.rotated else part.height_mm
-                label_pos = (part.x_mm + 0.5, part.y_mm + placed_h + 0.5)
-                
-                msp.add_text(
-                    id_text,
-                    dxfattribs={
-                        'layer': 'engraving',
-                        'height': label_size,
-                    }
-                ).set_placement(label_pos)
+            # Add Part ID Label (e.g., 1, 2, or 1+ for spares)
+            if part.part_id is not None:
+                is_carrier = (
+                    (not part.is_spare and part is label_carriers.get(part.name)) or
+                    (part.is_spare and part is spare_label_carriers.get(part.name))
+                )
+                if is_carrier:
+                    id_text = f"{res.label}{part.part_id}"
+                    if part.is_spare:
+                        id_text += "+"
+                    label_size = placement_config.part_label_size_mm
+                    placed_h = part.width_mm if part.rotated else part.height_mm
+                    label_pos = (part.x_mm + 0.5, part.y_mm + placed_h + 0.5)
+                    
+                    msp.add_text(
+                        id_text,
+                        dxfattribs={
+                            'layer': 'engraving',
+                            'height': label_size,
+                        }
+                    ).set_placement(label_pos)
 
         # 3. Cutting Layer
         for part in res.placed_parts:
             part_path = parts_dir / f"{part.name}.dxf"
             if part_path.exists():
-                _import_part_to_sheet(part_path, doc, msp, (part.x_mm, part.y_mm), "cutting", part.rotated, part.width_mm, part.height_mm, bridge_config)
+                p_opts = config.part_options.get(part.name) or config.part_options.get(part.base_name)
+                bridge_inner = bool(p_opts and p_opts.inner_hole_bridges)
+                _import_part_to_sheet(part_path, doc, msp, (part.x_mm, part.y_mm), "cutting", part.rotated, part.width_mm, part.height_mm, bridge_config, bridge_inner)
 
         # 4. Sheet Outline Layer (Last)
         msp.add_lwpolyline([
@@ -515,20 +528,22 @@ def export_preview_svg(
         base_y = row * cell_h + sheet_gap/2
         
         # Determine which instances should carry the label (top-left most)
-        label_carriers = {} # part_name -> PlacedPart
+        label_carriers = {} # part_name -> PlacedPart (non-spare)
+        spare_label_carriers = {} # part_name -> PlacedPart (spare)
         for part in res.placed_parts:
+            target = spare_label_carriers if part.is_spare else label_carriers
             top = part.y_mm + (part.width_mm if part.rotated else part.height_mm)
             left = part.x_mm
-            if part.name not in label_carriers:
-                label_carriers[part.name] = part
+            if part.name not in target:
+                target[part.name] = part
             else:
-                current_best = label_carriers[part.name]
+                current_best = target[part.name]
                 current_top = current_best.y_mm + (current_best.width_mm if current_best.rotated else current_best.height_mm)
                 current_left = current_best.x_mm
                 if top > current_top + 0.001:
-                    label_carriers[part.name] = part
+                    target[part.name] = part
                 elif abs(top - current_top) < 0.001 and left < current_left - 0.001:
-                    label_carriers[part.name] = part
+                    target[part.name] = part
 
         # Sheet boundary
         lines.append(f'  <g transform="translate({base_x}, {base_y})">')
@@ -583,15 +598,22 @@ def export_preview_svg(
                 if engraving_data:
                     lines.append(f'    <path class="engraving" d="{engraving_data}" transform="{transform}" />')
             
-            # Add Part ID text (1, 2, etc.)
-            if part.part_id is not None and part is label_carriers.get(part.name):
-                # CAD label_y = part.y + placed_h + 0.5
-                # SVG y is inverted.
-                placed_h = part.width_mm if part.rotated else part.height_mm
-                text_x = part.x_mm + 0.5
-                text_y = res.config.height_mm - (part.y_mm + placed_h + 0.5)
-                id_text = str(part.part_id)
-                lines.append(f'    <text class="part-id-text" x="{text_x}" y="{text_y}">{id_text}</text>')
+            # Add Part ID text (1, 2, etc. or 1+ for spares)
+            if part.part_id is not None:
+                is_carrier = (
+                    (not part.is_spare and part is label_carriers.get(part.name)) or
+                    (part.is_spare and part is spare_label_carriers.get(part.name))
+                )
+                if is_carrier:
+                    # CAD label_y = part.y + placed_h + 0.5
+                    # SVG y is inverted.
+                    placed_h = part.width_mm if part.rotated else part.height_mm
+                    text_x = part.x_mm + 0.5
+                    text_y = res.config.height_mm - (part.y_mm + placed_h + 0.5)
+                    id_text = f"{res.label}{part.part_id}"
+                    if part.is_spare:
+                        id_text += "+"
+                    lines.append(f'    <text class="part-id-text" x="{text_x}" y="{text_y}">{id_text}</text>')
             
         # Label and Color square below
         label_y = res.config.height_mm + 20
@@ -617,7 +639,8 @@ def _import_part_to_sheet(
     rotated: bool,
     orig_w: float,
     orig_h: float,
-    bridge_config: BridgeConfig | None = None
+    bridge_config: BridgeConfig | None = None,
+    bridge_inner_holes: bool = False
 ) -> None:
     """Import geometry from source_path and place it at offset in target_layer."""
     try:
@@ -639,7 +662,7 @@ def _import_part_to_sheet(
         
         # Apply bridges to cutting polylines
         if bridge_config and bridge_config.enable:
-            add_bridges_to_cutting_block(block, bridge_config, rotated=rotated)
+            add_bridges_to_cutting_block(block, bridge_config, rotated=rotated, bridge_inner_holes=bridge_inner_holes)
         
         # Insert the block at the correct position
         insert_x, insert_y = offset

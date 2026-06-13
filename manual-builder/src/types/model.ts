@@ -14,8 +14,13 @@ export interface BBox {
 }
 
 export interface ModelPartEngraving {
-  /** Which face of the flat part carries the engraving. */
+  /** The resolved face the engraving sits on (after any flip_side override). */
   side: "top" | "bottom";
+  /** Auto-detected face before flip_side; the base the UI toggles relative to. */
+  autoSide: "top" | "bottom";
+  /** Overlay flips used to generate `svg` — the baseline the UI previews against. */
+  flipHorizontal: boolean;
+  flipVertical: boolean;
   /** SVG path data of the aligned engraving (in DXF / cut-profile coordinates). */
   svg: string;
   /** Column-major 4x4 mapping 2D DXF coords -> local 3D; null if unavailable. */

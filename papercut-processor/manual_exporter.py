@@ -211,6 +211,9 @@ def export_manual_model(
             part_side_by_key[part_key] = group.engraving.side
             engraving_entry = {
                 "side": group.engraving.side,
+                "autoSide": group.engraving.auto_side or group.engraving.side,
+                "flipHorizontal": group.engraving.flip_horizontal,
+                "flipVertical": group.engraving.flip_vertical,
                 "svg": group.engraving.svg,
                 "transform": (
                     [round(c, 8) for c in group.engraving.transform]

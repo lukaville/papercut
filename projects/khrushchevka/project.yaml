@@ -1,5 +1,5 @@
 import:
-  - file: https://cad.onshape.com/documents/49bc2b0284d7a2d765d08b30/v/8c20db9f07712d66770c08bd/e/2e3b8605966044f4fcf220db
+  - file: https://cad.onshape.com/documents/49bc2b0284d7a2d765d08b30/v/8a6d715987561cbfc3df6097/e/2e3b8605966044f4fcf220db
 
 cut_overrides:
   balcony_side_left:
@@ -8,22 +8,26 @@ cut_overrides:
 engraving_overrides:
   outer_side:
     flip_horizontal: true
+    flip_side: true
   outer_front:
     flip_side: true
   balcony_front:
     flip_vertical: true
-    flip_side_instances: "0,2,4,6"
+    flip_side_instances: "1,3-4,6"
   balcony_side_left:
     flip_horizontal: true
     flip_side: true
   balcony_side:
     flip_vertical: true
+    flip_side: true
   skirt:
     flip_vertical: true
     flip_side_instances: "1"
-  roof_exit_box_door:
+  entrance_door:
     flip_horizontal: true
-    flip_side: true
+    flip_vertical: true
+  roof_exit_box_door:
+    flip_vertical: true
 
 sheets:
   - color: "#121212"
@@ -42,6 +46,12 @@ sheets:
     name: brown
     width_mm: 210
     height_mm: 297
+
+part_options:
+  inter_wall:
+    inner_hole_bridges: true
+  inter_floor:
+    inner_hole_bridges: true
 
 placement:
   sheet_margin_mm: 10

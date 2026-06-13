@@ -29,6 +29,7 @@ export function Viewport() {
   const selectedInstanceId = useAppStore((s) => s.selectedInstanceId);
   const selectedInstanceIds = useAppStore((s) => s.selectedInstanceIds);
   const hoveredInstanceId = useAppStore((s) => s.hoveredInstanceId);
+  const engravingOverrides = useAppStore((s) => s.engravingOverrides);
   const pendingVertex = useAppStore((s) => s.pendingVertex);
   const selectInstance = useAppStore((s) => s.selectInstance);
   const toggleInstanceSelection = useAppStore((s) => s.toggleInstanceSelection);
@@ -115,6 +116,7 @@ export function Viewport() {
             selectedInstanceId={selectedInstanceId}
             selectedInstanceIds={selectedInstanceIds}
             hoveredInstanceId={hoveredInstanceId}
+            engravingOverrides={engravingOverrides}
             explodeScale={explodeScale}
             previewRepeats={ui.previewRepeats}
             onPickVertex={pickVertex}

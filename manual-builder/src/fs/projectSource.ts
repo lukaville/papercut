@@ -53,6 +53,24 @@ export class ProjectSource {
     await writable.close();
   }
 
+  /** Raw `project.yaml` text at the project root, or null if it doesn't exist. */
+  async readProjectConfig(): Promise<string | null> {
+    try {
+      const fileHandle = await this.root.getFileHandle("project.yaml");
+      return await (await fileHandle.getFile()).text();
+    } catch {
+      return null;
+    }
+  }
+
+  /** Overwrite `project.yaml` with raw text (preserves whatever the caller built). */
+  async writeProjectConfig(text: string): Promise<void> {
+    const fileHandle = await this.root.getFileHandle("project.yaml", { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(text);
+    await writable.close();
+  }
+
   private async readJson<T>(segments: string[]): Promise<T> {
     const file = await this.resolveFile(segments);
     const text = await file.text();

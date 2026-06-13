@@ -313,6 +313,15 @@ body {
   font-weight: 600;
   font-size: 12px;
 }
+.badge {
+  font-weight: 600;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: var(--accent-weak, #fff7ed);
+  border: 1px solid var(--accent, #f59e0b);
+  text-transform: capitalize;
+}
 .field {
   display: flex;
   align-items: center;

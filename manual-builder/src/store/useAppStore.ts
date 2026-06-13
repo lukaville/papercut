@@ -24,6 +24,12 @@ import {
   wouldCreateCycle,
 } from "../types/manual";
 import { detectRepeats } from "../lib/repeat";
+import {
+  applyEngravingOverride,
+  emptyOverride,
+  parseEngravingOverrides,
+  type EngravingOverride,
+} from "../lib/projectConfig";
 import type {
   Connection,
   ExplodeSettings,
@@ -78,6 +84,12 @@ interface AppState {
   redoStack: ManualDocument[];
   /** Explode preview scale: 0 = assembled, 1 = full explode. Not persisted. */
   explodeScale: number;
+  /** Raw project.yaml text (for editing engraving overrides), or null if absent. */
+  projectConfigText: string | null;
+  /** Editable engraving overrides keyed by part key, parsed from project.yaml. */
+  engravingOverrides: Record<string, EngravingOverride>;
+  /** Save status for project.yaml writes (separate from manual.json). */
+  configSaveState: SaveState;
 
   // --- persisted UI state ---
   projectName: string | null;
@@ -132,6 +144,10 @@ interface AppState {
   setPartExplode: (instanceId: string, explode: ExplodeSettings | null) => void;
   /** Apply the same explode to multiple selected parts in a single edit. */
   setPartsExplode: (instanceIds: string[], explode: ExplodeSettings | null) => void;
+  /** Patch a part's engraving override and persist to project.yaml (debounced). */
+  setEngravingOverride: (partKey: string, patch: Partial<EngravingOverride>) => void;
+  /** Flip the engraving side of specific instance ordinals of a part. */
+  setEngravingInstanceFlips: (partKey: string, ordinals: number[], flipped: boolean) => void;
   /** Auto-detect repeated copies of the selected step's new parts. */
   detectStepRepeats: () => void;
   /** Drop all repeat copies from the selected step. */
@@ -161,6 +177,7 @@ interface AppState {
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let configSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -179,6 +196,35 @@ export const useAppStore = create<AppState>()(
             set({ saveState: "error", error: errorMessage(err) });
           }
         }, 600);
+      };
+
+      /** Persist project.yaml engraving overrides to disk, debounced. */
+      const scheduleConfigSave = () => {
+        if (configSaveTimer) clearTimeout(configSaveTimer);
+        set({ configSaveState: "saving" });
+        configSaveTimer = setTimeout(async () => {
+          const { source, projectConfigText } = get();
+          if (!source || projectConfigText == null) {
+            set({ configSaveState: "error", error: "project.yaml not found." });
+            return;
+          }
+          try {
+            await source.writeProjectConfig(projectConfigText);
+            set({ configSaveState: "saved" });
+          } catch (err) {
+            set({ configSaveState: "error", error: errorMessage(err) });
+          }
+        }, 600);
+      };
+
+      /** Apply an override patch, recompute project.yaml text, and schedule a save. */
+      const commitEngravingOverride = (partKey: string, next: EngravingOverride) => {
+        const text = applyEngravingOverride(get().projectConfigText, partKey, next);
+        set((s) => ({
+          engravingOverrides: { ...s.engravingOverrides, [partKey]: next },
+          projectConfigText: text ?? s.projectConfigText,
+        }));
+        if (text != null) scheduleConfigSave();
       };
 
       const HISTORY_LIMIT = 100;
@@ -221,7 +267,11 @@ export const useAppStore = create<AppState>()(
         set({ status: "loading", error: null, reconnectHandle: null, subprojectChoice: null });
         try {
           const source = new ProjectSource(handle);
-          const [model, rawManual] = await Promise.all([source.readModel(), source.readManual()]);
+          const [model, rawManual, configText] = await Promise.all([
+            source.readModel(),
+            source.readManual(),
+            source.readProjectConfig(),
+          ]);
           const manual = normalizeManual(rawManual);
           await saveProjectHandle(handle);
           const selectedStepId = resolveSelectedStep(manual, get().selectedStepId);
@@ -229,6 +279,9 @@ export const useAppStore = create<AppState>()(
             source,
             model,
             manual,
+            projectConfigText: configText,
+            engravingOverrides: parseEngravingOverrides(configText),
+            configSaveState: "idle",
             projectName: source.name,
             status: "ready",
             saveState: "idle",
@@ -258,6 +311,9 @@ export const useAppStore = create<AppState>()(
         undoStack: [],
         redoStack: [],
         explodeScale: 1,
+        projectConfigText: null,
+        engravingOverrides: {},
+        configSaveState: "idle",
 
         projectName: null,
         selectedStepId: null,
@@ -346,8 +402,15 @@ export const useAppStore = create<AppState>()(
           const source = get().source;
           if (!source) return;
           try {
-            const model = await source.readModel();
-            set({ model });
+            const [model, configText] = await Promise.all([
+              source.readModel(),
+              source.readProjectConfig(),
+            ]);
+            set({
+              model,
+              projectConfigText: configText,
+              engravingOverrides: parseEngravingOverrides(configText),
+            });
           } catch (err) {
             set({ status: "error", error: errorMessage(err) });
           }
@@ -459,6 +522,21 @@ export const useAppStore = create<AppState>()(
               if (Object.keys(step.parts).length === 0) delete step.parts;
             }
           }),
+
+        setEngravingOverride: (partKey, patch) => {
+          const current = get().engravingOverrides[partKey] ?? emptyOverride();
+          commitEngravingOverride(partKey, { ...current, ...patch });
+        },
+
+        setEngravingInstanceFlips: (partKey, ordinals, flipped) => {
+          const current = get().engravingOverrides[partKey] ?? emptyOverride();
+          const set_ = new Set(current.flipInstances);
+          for (const o of ordinals) (flipped ? set_.add(o) : set_.delete(o));
+          commitEngravingOverride(partKey, {
+            ...current,
+            flipInstances: [...set_].sort((a, b) => a - b),
+          });
+        },
 
         setStepView: (view) => withSelectedStep((step) => void (step.view = view)),
 

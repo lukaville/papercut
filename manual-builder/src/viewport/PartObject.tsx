@@ -21,6 +21,8 @@ interface Props {
   showEngravings: boolean;
   /** The engraving geometry to render for this instance (side already resolved). */
   engravingGeometry: THREE.BufferGeometry | null;
+  /** Local-space mirror to preview overlay flip_horizontal/vertical; null = none. */
+  engravingFlipMatrix?: Mat4 | null;
   handleSize: number;
   selected: boolean;
   pendingVertex: VertexRef | null;
@@ -30,6 +32,32 @@ interface Props {
 }
 
 const HIGHLIGHT = "#f59e0b";
+const IDENTITY16 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+
+/** Engraving line segments, optionally mirrored (local) to preview overlay flips. */
+function EngravingLines({
+  geometry,
+  flipMatrix,
+}: {
+  geometry: THREE.BufferGeometry;
+  flipMatrix: Mat4 | null;
+}) {
+  const ref = useRef<THREE.Group>(null);
+  useLayoutEffect(() => {
+    const g = ref.current;
+    if (!g) return;
+    g.matrixAutoUpdate = false;
+    g.matrix.fromArray(flipMatrix ?? IDENTITY16);
+    g.matrixWorldNeedsUpdate = true;
+  }, [flipMatrix]);
+  return (
+    <group ref={ref}>
+      <lineSegments geometry={geometry} renderOrder={2}>
+        <lineBasicMaterial color="#1a1a2e" />
+      </lineSegments>
+    </group>
+  );
+}
 
 /** One placed part: shaded mesh + crisp edges, optional label and vertex handles. */
 export function PartObject({
@@ -43,6 +71,7 @@ export function PartObject({
   showVertices,
   showEngravings,
   engravingGeometry,
+  engravingFlipMatrix,
   handleSize: _handleSize,
   selected,
   pendingVertex,
@@ -80,9 +109,7 @@ export function PartObject({
       </mesh>
 
       {showEngravings && engravingGeometry ? (
-        <lineSegments geometry={engravingGeometry} renderOrder={2}>
-          <lineBasicMaterial color="#1a1a2e" />
-        </lineSegments>
+        <EngravingLines geometry={engravingGeometry} flipMatrix={engravingFlipMatrix ?? null} />
       ) : null}
 
       {showLabel && label ? (

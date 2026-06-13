@@ -52,13 +52,15 @@ def get_engraving_entities(
     Returns:
         (entities, alignment_matrix, flip_x_used, rotation_deg_used)
 
-        flip_x_used: True if an additional horizontal flip was needed in the alignment
-            search (after the pre-flip from flip_h/flip_v was already applied).
+        flip_x_used: True if the alignment search needed a horizontal flip to match
+            the overlay to the cut. This reflects the overlay's intrinsic drawing
+            orientation and is independent of flip_h/flip_v.
         rotation_deg_used: the rotation (0, 90, 180 or 270) that gave the best match.
 
-    The combination of flip_h and flip_x_used indicates which face the engraving
-    was drawn on: if (flip_h XOR flip_x_used) is True the engraving is on the face
-    opposite to the canonical DXF export face ("bottom"); otherwise "top".
+    flip_h / flip_v mirror the *aligned* engraving in-plane about the part centre
+    (applied after the alignment search, so the search cannot compensate them away).
+    They only change the artwork orientation, never which face it sits on; the face
+    is derived from flip_x_used (the flip-free alignment) plus explicit overrides.
     """
     from ezdxf import bbox
     from ezdxf.math import Matrix44, Vec3
@@ -69,15 +71,6 @@ def get_engraving_entities(
 
     overlay_msp = overlay_doc.modelspace()
     part_msp = part_doc.modelspace()
-
-    if flip_h or flip_v:
-        pre_mat = Matrix44()
-        if flip_h:
-            pre_mat @= Matrix44.scale(-1, 1, 1)
-        if flip_v:
-            pre_mat @= Matrix44.scale(1, -1, 1)
-        for e in overlay_msp:
-            e.transform(pre_mat)
 
     # 1. Use robust ezdxf.bbox
     overlay_bb = bbox.extents(overlay_msp.query('LINE LWPOLYLINE CIRCLE ARC'))
@@ -212,6 +205,19 @@ def get_engraving_entities(
                 if e.dxf.hasattr('color'):
                     new_line.dxf.color = e.dxf.color
                 engravings.append(new_line)
+
+    # Apply flip_h/flip_v as a final in-plane mirror about the part centre, so the
+    # alignment search (done above on the un-flipped overlay) cannot cancel them.
+    # This matches the manual viewer's preview exactly.
+    if flip_h or flip_v:
+        cx = (part_bb.extmin.x + part_bb.extmax.x) / 2
+        cy = (part_bb.extmin.y + part_bb.extmax.y) / 2
+        mirror = (
+            Matrix44.translate(-cx, -cy, 0)
+            @ Matrix44.scale(-1 if flip_h else 1, -1 if flip_v else 1, 1)
+            @ Matrix44.translate(cx, cy, 0)
+        )
+        mat = mat @ mirror
 
     return engravings, mat, best_flip_x, best_rotation_deg
 

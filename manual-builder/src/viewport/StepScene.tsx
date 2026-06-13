@@ -1,7 +1,9 @@
 import { useCallback, useMemo } from "react";
 import type * as THREE from "three";
 
+import { engravingFlipMatrix } from "../lib/engraving";
 import { bboxCenter } from "../lib/geometry";
+import { effectiveSide, type EngravingOverride } from "../lib/projectConfig";
 import { resolveStepInstances, resolvedById } from "../lib/stepGeometry";
 import type { Connection, ManualDocument, VertexRef } from "../types/manual";
 import type { Mat4, ModelData, ModelPart } from "../types/model";
@@ -29,6 +31,8 @@ interface Props {
   selectedInstanceIds?: string[];
   /** Instance hovered in the Parts list, shown as an x-ray highlight. */
   hoveredInstanceId?: string | null;
+  /** Live engraving overrides (project.yaml edits) for real-time side preview. */
+  engravingOverrides?: Record<string, EngravingOverride>;
   explodeScale: number;
   /** Show all copies of a repeated step (preview) vs. only the primary. */
   previewRepeats: boolean;
@@ -53,6 +57,7 @@ export function StepScene({
   selectedInstanceId,
   selectedInstanceIds,
   hoveredInstanceId,
+  engravingOverrides,
   explodeScale,
   previewRepeats,
   onPickVertex,
@@ -80,6 +85,23 @@ export function StepScene({
     () => new Set(selectedInstanceIds ?? (selectedInstanceId ? [selectedInstanceId] : [])),
     [selectedInstanceIds, selectedInstanceId],
   );
+
+  // Per-part local mirror previewing flip_horizontal/vertical overrides, computed
+  // as a delta against the flip state baked into the model. Only when overrides
+  // are supplied (main viewport); the mini preview keeps the as-generated artwork.
+  const engravingFlipByPart = useMemo(() => {
+    const map = new Map<string, Mat4 | null>();
+    if (!engravingOverrides) return map;
+    for (const part of model.parts) {
+      const e = part.engraving;
+      if (!e || !e.transform || !part.bbox) continue;
+      const ov = engravingOverrides[part.key];
+      const dH = (ov?.flipHorizontal ?? false) !== e.flipHorizontal;
+      const dV = (ov?.flipVertical ?? false) !== e.flipVertical;
+      map.set(part.key, engravingFlipMatrix(e.transform, part.bbox, dH, dV));
+    }
+    return map;
+  }, [model, engravingOverrides]);
 
   // Resolve an instance's geometry + world matrix for an x-ray highlight. Prefer
   // the step-resolved placement (correct explode), else fall back to the part's
@@ -156,8 +178,16 @@ export function StepScene({
         //   PartObject still surfaces the one pending vertex regardless of showVertices.
         const instanceShowVertices = connectMode ? !pendingVertex : showVertices;
 
-        // Resolve the engraving face: per-instance override, else the part default.
-        const side = instance.engravingSide ?? part.engravingSide;
+        // Resolve the engraving face. With live overrides (main viewport) compute
+        // it from the part's auto side + the editable override; otherwise fall back
+        // to the side baked into the model.
+        let side: "top" | "bottom";
+        if (engravingOverrides && meta.engraving) {
+          const ordinal = Number(instance.id.slice(instance.id.lastIndexOf("#") + 1));
+          side = effectiveSide(meta.engraving.autoSide, engravingOverrides[instance.partKey], ordinal);
+        } else {
+          side = instance.engravingSide ?? part.engravingSide ?? "top";
+        }
         const engravingGeometry =
           side === "bottom" ? part.engravingBottom : part.engravingTop;
 
@@ -174,6 +204,7 @@ export function StepScene({
             showVertices={instanceShowVertices}
             showEngravings={showEngravings}
             engravingGeometry={engravingGeometry}
+            engravingFlipMatrix={engravingFlipByPart.get(instance.partKey) ?? null}
             handleSize={handleSize}
             selected={selectedSet.has(instance.id)}
             pendingVertex={pendingVertex}

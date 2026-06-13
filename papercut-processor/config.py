@@ -1,7 +1,7 @@
 from pathlib import Path
 import yaml
 from models import (
-    ProjectConfig, FileImport, PartConfig, EngravingOverride,
+    ProjectConfig, FileImport, PartConfig, EngravingOverride, PartOptions,
     SheetConfig, PlacementConfig, BridgeConfig, KerfConfig,
 )
 
@@ -79,6 +79,18 @@ def load_config(project_dir: Path) -> ProjectConfig:
                 flip_side_instances=_parse_index_ranges(e_data.get("flip_side_instances")),
             )
     
+    # Parse part options
+    po_data = data.get("part_options", {})
+    part_options: dict[str, PartOptions] = {}
+    if isinstance(po_data, dict):
+        for name, p_data in po_data.items():
+            if p_data is None:
+                p_data = {}
+            part_options[name] = PartOptions(
+                extra_count=int(p_data.get("extra_count", 0)),
+                inner_hole_bridges=bool(p_data.get("inner_hole_bridges", False)),
+            )
+
     # Parse sheets
     sheet_data = []
     for s in data.get("sheets", []):
@@ -119,6 +131,7 @@ def load_config(project_dir: Path) -> ProjectConfig:
         imports=file_imports,
         cut_overrides=cut_overrides,
         engraving_overrides=engraving_overrides,
+        part_options=part_options,
         sheets=sheet_data,
         placement=placement,
         bridges=bridges,

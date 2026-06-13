@@ -358,6 +358,57 @@ def _add_extra_bridges_on_long_edges(
                 bridges.append(candidate)
 
 
+# ---------- Circle-specific bridge placement ----------
+
+# Diameter threshold (mm) for choosing 2 vs 4 bridges on a circle.
+_CIRCLE_LARGE_DIAMETER_MM = 15.0
+
+# Number of line segments used when tessellating a circle for bridge placement.
+_CIRCLE_TESSELLATION_SEGMENTS = 64
+
+
+def _tessellate_circle(
+    cx: float, cy: float, radius: float, n_segments: int = _CIRCLE_TESSELLATION_SEGMENTS
+) -> list[tuple[float, float]]:
+    """Return `n_segments` vertices of a circle as a closed polygon (no repeated closing vertex)."""
+    return [
+        (cx + radius * math.cos(2 * math.pi * i / n_segments),
+         cy + radius * math.sin(2 * math.pi * i / n_segments))
+        for i in range(n_segments)
+    ]
+
+
+def _compute_circle_bridges(
+    cx: float, cy: float, radius: float, config: BridgeConfig
+) -> tuple[list[tuple[float, float]], list[Bridge]]:
+    """Compute bridge positions for a circle.
+
+    Small circles (diameter < 15 mm) get 2 bridges (top & bottom).
+    Larger circles get 4 bridges at 90° intervals.
+
+    Returns (tessellated_vertices, bridges).
+    """
+    diameter = 2 * radius
+    n_bridges = 2 if diameter < _CIRCLE_LARGE_DIAMETER_MM else 4
+    vertices = _tessellate_circle(cx, cy, radius)
+    n = len(vertices)
+    perimeter = 2 * math.pi * radius
+    edge_length = perimeter / n  # all edges are equal
+
+    bridges: list[Bridge] = []
+    for k in range(n_bridges):
+        # Evenly spaced angular positions, offset by half a step so bridges
+        # don't land exactly on the tessellation's first vertex.
+        frac = (k / n_bridges) + (0.5 / n)
+        edge_idx = int(frac * n) % n
+        t = (frac * n - edge_idx) % 1.0
+        # Clamp to avoid landing exactly on a vertex
+        t = max(0.05, min(0.95, t))
+        bridges.append(Bridge(edge_index=edge_idx, t=t, size_mm=config.size_mm))
+
+    return vertices, bridges
+
+
 def apply_bridges_to_polyline(
     vertices: list[tuple[float, float]],
     bridges: list[Bridge],
@@ -648,20 +699,22 @@ def compute_overcuts(
 def add_bridges_to_cutting_block(
     block,
     bridge_config: BridgeConfig,
-    rotated: bool = False
+    rotated: bool = False,
+    bridge_inner_holes: bool = False
 ) -> None:
     """Apply bridges to cutting geometry within an ezdxf block.
 
     Handles both LINE entities (produced by CadQuery's DXF exporter) and
     LWPOLYLINE entities. Collects all shapes, identifies the outer contour
-    (largest area), and applies bridges only to it. All original cutting
-    geometry is replaced.
+    (largest area), and applies bridges only to it (plus inner holes when
+    bridge_inner_holes is True). All original cutting geometry is replaced.
 
     Modifies the block in place.
 
     Args:
         block: An ezdxf block definition containing cutting geometry.
         bridge_config: Bridge configuration.
+        bridge_inner_holes: If True, also apply bridges to inner hole polygons.
     """
     if not bridge_config.enable:
         return
@@ -690,22 +743,35 @@ def add_bridges_to_cutting_block(
             is_closed = True
         all_polygons.append((vertices, [polyline], is_closed))
 
-    if not all_polygons:
+    # 3. Collect CIRCLE entities (inner holes when bridge_inner_holes is True)
+    circle_entities = [e for e in block if e.dxftype() == "CIRCLE"]
+    circles_to_bridge: list[tuple[list[tuple[float, float]], list[Bridge], list]] = []
+    if bridge_inner_holes and circle_entities:
+        for circle_ent in circle_entities:
+            cx, cy = circle_ent.dxf.center.x, circle_ent.dxf.center.y
+            radius = circle_ent.dxf.radius
+            vertices, bridges = _compute_circle_bridges(cx, cy, radius, bridge_config)
+            circles_to_bridge.append((vertices, bridges, circle_ent))
+
+    if not all_polygons and not circles_to_bridge:
         return
 
-    # 3. Find the outer contour (largest area)
+    # 4. Find the outer contour (largest area) among polygons
     best_idx = _find_outer_contour_index(all_polygons)
-    if best_idx is None:
+    if best_idx is None and not circles_to_bridge:
         return
 
-    # 4. Process all polygons
+    # 5. Process all polygons
     for i, (vertices, original_entities, is_closed) in enumerate(all_polygons):
-        if i == best_idx and len(vertices) >= 2:
-            # This is the outer contour — apply bridges
+        is_outer = (i == best_idx)
+        if (is_outer or bridge_inner_holes) and len(vertices) >= 2:
+            # Apply bridges to outer contour, and to inner holes if requested
             bridges = compute_bridge_positions(vertices, bridge_config, prefer_vertical_local=rotated)
             if bridges:
                 segments = apply_bridges_to_polyline(vertices, bridges, closed=is_closed)
-                overcuts = compute_overcuts(vertices, bridges, bridge_config)
+                # Overcuts only on the outer contour — on inner holes they
+                # would cut into the part itself.
+                overcuts = compute_overcuts(vertices, bridges, bridge_config) if is_outer else []
                 
                 attribs = {}
                 ref = original_entities[0]
@@ -730,7 +796,7 @@ def add_bridges_to_cutting_block(
                 
                 continue
 
-        # For non-outer polygons (holes), convert LINEs to LWPOLYLINE for consistency
+        # For non-bridged polygons (holes without inner bridges), convert LINEs to LWPOLYLINE for consistency
         ref = original_entities[0]
         if ref.dxftype() == "LINE":
             attribs = {'layer': ref.dxf.layer} if hasattr(ref.dxf, 'layer') else {}
@@ -742,6 +808,28 @@ def add_bridges_to_cutting_block(
             # Add as a single (possibly closed) polyline
             pts = vertices + ([vertices[0]] if is_closed else [])
             block.add_lwpolyline(pts, close=False, dxfattribs=attribs)
+
+    # 6. Process circle entities (replace each with bridged polyline segments)
+    for vertices, bridges, circle_ent in circles_to_bridge:
+        attribs = {}
+        if hasattr(circle_ent.dxf, 'layer'):
+            attribs['layer'] = circle_ent.dxf.layer
+        if hasattr(circle_ent.dxf, 'color') and circle_ent.dxf.color is not None:
+            attribs['color'] = circle_ent.dxf.color
+
+        try:
+            block.delete_entity(circle_ent)
+        except Exception:
+            pass
+
+        if bridges:
+            segments = apply_bridges_to_polyline(vertices, bridges, closed=True)
+            # No overcuts on circle holes — they would cut into the part.
+            for seg in segments:
+                block.add_lwpolyline(seg, close=False, dxfattribs=attribs)
+        else:
+            # No bridges computed — write back as a closed polyline
+            block.add_lwpolyline(vertices + [vertices[0]], close=False, dxfattribs=attribs)
 
 
 

@@ -18,7 +18,48 @@
  */
 
 import * as THREE from "three";
-import type { Mat4 } from "../types/model";
+import type { BBox, Mat4 } from "../types/model";
+
+/** Householder reflection about the plane through `center` perpendicular to `axis`. */
+function reflectionMatrix(axis: THREE.Vector3, center: THREE.Vector3): THREE.Matrix4 {
+  const a = axis.clone().normalize();
+  const { x: ax, y: ay, z: az } = a;
+  const d = 2 * center.dot(a);
+  // Linear part L = I - 2·aaᵀ ; translation t = 2(C·a)·a keeps `center` fixed.
+  return new THREE.Matrix4().set(
+    1 - 2 * ax * ax, -2 * ax * ay, -2 * ax * az, d * ax,
+    -2 * ay * ax, 1 - 2 * ay * ay, -2 * ay * az, d * ay,
+    -2 * az * ax, -2 * az * ay, 1 - 2 * az * az, d * az,
+    0, 0, 0, 1,
+  );
+}
+
+/**
+ * Local-space matrix that mirrors a part's engraving about its centre to preview
+ * `flip_horizontal` / `flip_vertical` without reprocessing. The flips are defined
+ * in the 2D DXF frame (X = horizontal, Y = vertical); `transform` gives those axes'
+ * directions in the part's local frame. Returns null when neither flip is active.
+ *
+ * This is an approximation: the Python pipeline re-runs an alignment search after
+ * flipping, so for strongly asymmetric outlines the reprocessed result can differ.
+ */
+export function engravingFlipMatrix(
+  transform: Mat4,
+  bbox: BBox,
+  flipH: boolean,
+  flipV: boolean,
+): Mat4 | null {
+  if (!flipH && !flipV) return null;
+  const center = new THREE.Vector3(
+    (bbox.min[0] + bbox.max[0]) / 2,
+    (bbox.min[1] + bbox.max[1]) / 2,
+    (bbox.min[2] + bbox.max[2]) / 2,
+  );
+  const m = new THREE.Matrix4();
+  if (flipH) m.premultiply(reflectionMatrix(new THREE.Vector3(transform[0], transform[1], transform[2]), center));
+  if (flipV) m.premultiply(reflectionMatrix(new THREE.Vector3(transform[4], transform[5], transform[6]), center));
+  return m.toArray();
+}
 
 /** A single line segment in 2-D DXF space. */
 type Seg = [[number, number], [number, number]];
